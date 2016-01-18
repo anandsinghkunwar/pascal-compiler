@@ -14,12 +14,14 @@ reserved = {
     'downto':'KEYWORD_DOWNTO',
     'else':'KEYWORD_ELSE',
     'end':'KEYWORD_END',
+    'false':'CONSTANT_BOOLEAN_FALSE',
     'file':'KEYWORD_FILE',
     'for':'KEYWORD_FOR',
     'function':'KEYWORD_FUNCTION',
     'if':'KEYWORD_IF',
     'in':'KEYWORD_IN',
     'mod':'OP_MOD',
+    'nil':'CONSTANT_NIL',
     'not':'OP_NOT',
     'of':'KEYWORD_OF',
     'or':'OP_OR',
@@ -30,6 +32,7 @@ reserved = {
     'string':'KEYWORD_STRING',
     'then':'KEYWORD_THEN',
     'to':'KEYWORD_TO',
+    'true':'CONSTANT_BOOLEAN_TRUE',
     'type':'KEYWORD_TYPE',
     'until':'KEYWORD_UNTIL',
     'uses':'KEYWORD_USES',
@@ -41,10 +44,11 @@ reserved = {
 tokens = [
     'IDENTIFIER','TYPE',
 #literals
-    'CONSTANT_INTEGER','CONSTANT_STRING','CONSTANT_REAL','CONSTANT_CHARACTER','CONSTANT_BOOLEAN','CONSTANT_STRING_LEADSPACE','CONSTANT_ESCAPE_STRING', #for handling escaping apostrophe
+    'CONSTANT_INTEGER','CONSTANT_STRING','CONSTANT_REAL','CONSTANT_CHARACTER','CONSTANT_STRING_LEADSPACE','CONSTANT_ESCAPE_STRING', #for handling escaping apostrophe
 #operators
     'OP_PLUS','OP_MINUS','OP_MULT','OP_DIV_REAL',
     'OP_NEQ','OP_GT','OP_LT','OP_GEQ','OP_LEQ',
+    'OP_POINTER','OP_ADDRESS',
     'COMMA','SEMICOLON','COLON','COLON_EQUAL','LEFT_PARENTHESIS','RIGHT_PARENTHESIS','EQUAL','DOT',
     'COMMENTS', 'NEWLINE','SPACE'
     ] + list(reserved.values())
@@ -61,13 +65,15 @@ t_OP_GEQ = r'>='
 t_OP_LEQ = r'<='
 t_COMMA = r','
 t_SEMICOLON = r';'
+t_COLON = r':'
 t_COLON_EQUAL = r':='
 t_LEFT_PARENTHESIS = r'\('
 t_RIGHT_PARENTHESIS = r'\)'
 t_EQUAL = r'='
-t_NEWLINE = r'\n'
-t_ignore_SPACE = r'[ \t\f\v]'
+t_ignore_SPACE = r'\s'
 t_DOT = r'\.'
+t_OP_POINTER = r'\^'
+t_OP_ADDRESS = r'@'
 
 def t_IDENTIFIER(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
@@ -95,15 +101,38 @@ def t_CONSTANT_ESCAPE_STRING(t):
         t_error(t)
     else:
         return t
-
+def t_COMMENTS(t):
+    r'(\(\*.*\*\))|({.*})|(//.*)'
+    if (t.value[len(t.value)-1]=='\n'):
+        t.value='\n'
+        t_NEWLINE(t)
+def t_NEWLINE(t):
+    r'\n+'
+    t.lexer.lineno += len(t.value)
 def t_error(t):
     print("\n>>>>>>>>>>>>>>!!!!!!!!\n Illegal string '%s'\n>>>>>>>>>>>>>>!!!!!!!!\n" % t.value)
     exit()
 
 lexer = lex.lex()
 # Test it out
-data = '''program Test
-'''
+data = '''program exPointers;
+var
+   number: integer;
+   iptr: ^integer;
+   y: ^word;
+
+begin
+   number := 100;
+   writeln('Number is: ', number);
+   iptr := @number;
+   writeln('iptr points to a value: ', iptr^);
+   
+   iptr ^ := 200;
+   writeln('Number is: ', number);
+   writeln('iptr points to a value: ', iptr^);
+   y := addr(iptr);
+   writeln(y ^); 
+end.'''
 
 # Give the lexer some input
 lexer.input(data)
