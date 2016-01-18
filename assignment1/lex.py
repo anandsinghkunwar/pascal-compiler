@@ -41,7 +41,7 @@ reserved = {
 tokens = [
     'IDENTIFIER','TYPE',
 #literals
-    'CONSTANT_INTEGER','CONSTANT_STRING','CONSTANT_REAL','CONSTANT_CHARACTER','CONSTANT_BOOLEAN',
+    'CONSTANT_INTEGER','CONSTANT_STRING','CONSTANT_REAL','CONSTANT_CHARACTER','CONSTANT_BOOLEAN','CONSTANT_STRING_LEADSPACE','CONSTANT_ESCAPE_STRING', #for handling escaping apostrophe
 #operators
     'OP_PLUS','OP_MINUS','OP_MULT','OP_DIV_REAL',
     'OP_NEQ','OP_GT','OP_LT','OP_GEQ','OP_LEQ',
@@ -52,37 +52,57 @@ tokens = [
 
 t_OP_PLUS = r'\+'
 t_OP_MINUS = r'-'
-t_OP_MULT = r'\''
+t_OP_MULT = r'\*'
 t_OP_DIV_REAL = r'/'
-t_OP_NEQ = r'<\s*>'
+t_OP_NEQ = r'<>'
 t_OP_GT = r'>'
 t_OP_LT = r'<'
-t_OP_GEQ = r'>\s*='
-t_OP_LEQ = r'<\s*='
+t_OP_GEQ = r'>='
+t_OP_LEQ = r'<='
 t_COMMA = r','
 t_SEMICOLON = r';'
-t_COLON_EQUAL = r':\s*='
+t_COLON_EQUAL = r':='
 t_LEFT_PARENTHESIS = r'\('
 t_RIGHT_PARENTHESIS = r'\)'
 t_EQUAL = r'='
 t_NEWLINE = r'\n'
-t_SPACE = r'\s'
+t_ignore_SPACE = r'[ \t\f\v]'
 t_DOT = r'\.'
 
 def t_IDENTIFIER(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
     t.type = reserved.get(t.value,'IDENTIFIER')    # Check for reserved words
     return t
+def t_CONSTANT_REAL(t):
+    r'([0-9]+(\.[0-9]+)(e[\+-]?[0-9]+)?)|([0-9]+(e[\+-]?[0-9]+))' # Checked for form 123.123 123.123e-123 123e-231
+    t.value = float(t.value)
+    return t
+def t_CONSTANT_INTEGER(t):
+    r'[0-9]+'
+    t.value = int(t.value)
+    return t
+def t_CONSTANT_STRING_LEADSPACE(t):
+    r'\s+\'.*?\''
+    t.value = t.value.split('\'')[1]
+    return t
+def t_CONSTANT_STRING(t):
+    r'\'.*?\''
+    t.value = t.value.split('\'')[1]
+    return t
+def t_CONSTANT_ESCAPE_STRING(t):
+    r'\s*\#[0-9]+'
+    if(t.value[0]!='#'):
+        t_error(t)
+    else:
+        return t
+
+def t_error(t):
+    print("\n>>>>>>>>>>>>>>!!!!!!!!\n Illegal string '%s'\n>>>>>>>>>>>>>>!!!!!!!!\n" % t.value)
+    exit()
 
 lexer = lex.lex()
 # Test it out
-data = '''program HelloWorld;
-uses crt;
-
-begin
-   writeln('Hello, World');
-   readkey;
-end.
+data = '''program Test
 '''
 
 # Give the lexer some input
