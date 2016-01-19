@@ -1,7 +1,21 @@
+#!/usr/bin/python
+
+import sys, os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+
 from src import lexer as lexerModule
+
+cmdLine = sys.argv
+
+if len(cmdLine) != 2:
+    print("Usage: bin/lexer <source-file>")
+    quit()
+else:
+    fileName = cmdLine[1]
+    sourceFile = open(fileName, "r")
+    data = sourceFile.read()
+
 # Test it out
-data = '''
-Hello=anand'''
 
 # Give the lexer some input
 lexerModule.lexer.input(data)
