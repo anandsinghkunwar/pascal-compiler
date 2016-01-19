@@ -29,6 +29,8 @@ reserved = {
     'program':'KEYWORD_PROGRAM',
     'record':'KEYWORD_RECORD',
     'repeat':'KEYWORD_REPEAT',
+    'shl':'OP_SHIFTLEFT',
+    'shr':'OP_SHIFTRIGHT',
     'string':'KEYWORD_STRING',
     'then':'KEYWORD_THEN',
     'to':'KEYWORD_TO',
@@ -39,7 +41,7 @@ reserved = {
     'var':'KEYWORD_VAR',
     'while':'KEYWORD_WHILE',
     'with':'KEYWORD_WITH',
-    'xor':'KEYWORD_XOR'
+    'xor':'OP_XOR'
     }
 tokens = [
     'IDENTIFIER','TYPE',
@@ -63,6 +65,8 @@ t_OP_GT = r'>'
 t_OP_LT = r'<'
 t_OP_GEQ = r'>='
 t_OP_LEQ = r'<='
+t_OP_SHIFTLEFT = r'<<'
+t_OP_SHIFTRIGHT = r'>>'
 t_COMMA = r','
 t_SEMICOLON = r';'
 t_COLON = r':'
@@ -77,6 +81,7 @@ t_OP_ADDRESS = r'@'
 
 def t_IDENTIFIER(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
+    t.value = t.value.lower()
     t.type = reserved.get(t.value,'IDENTIFIER')    # Check for reserved words
     return t
 def t_CONSTANT_REAL(t):
