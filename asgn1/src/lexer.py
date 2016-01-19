@@ -46,7 +46,9 @@ reserved = {
 tokens = [
     'IDENTIFIER','TYPE',
 #literals
-    'CONSTANT_INTEGER','CONSTANT_STRING','CONSTANT_REAL','CONSTANT_CHARACTER','CONSTANT_STRING_LEADSPACE','CONSTANT_ESCAPE_STRING', #for handling escaping apostrophe
+    'CONSTANT_INTEGER','CONSTANT_STRING','CONSTANT_REAL',
+    'CONSTANT_STRING_LEADSPACE','CONSTANT_ESCAPE_STRING', #for handling escaping apostrophe
+    'CONSTANT_BINARY', 'CONSTANT_OCTAL', 'CONSTANT_HEX',
 #operators
     'OP_PLUS','OP_MINUS','OP_MULT','OP_DIV_REAL',
     'OP_NEQ','OP_GT','OP_LT','OP_GEQ','OP_LEQ',
@@ -85,12 +87,24 @@ def t_IDENTIFIER(t):
     t.type = reserved.get(t.value,'IDENTIFIER')    # Check for reserved words
     return t
 def t_CONSTANT_REAL(t):
-    r'([0-9]+(\.[0-9]+)(e[\+-]?[0-9]+)?)|([0-9]+(e[\+-]?[0-9]+))' # Checked for form 123.123 123.123e-123 123e-231
+    r'(?i)([0-9]+(\.[0-9]+)(e[\+-]?[0-9]+)?)|([0-9]+(e[\+-]?[0-9]+))' # Checked for form 123.123 123.123e-123 123e-231
     t.value = float(t.value)
     return t
 def t_CONSTANT_INTEGER(t):
     r'[0-9]+'
     t.value = int(t.value)
+    return t
+def t_CONSTANT_HEX(t):
+    r'(?i)\$[0-9a-f]+'
+    t.value = int(t.value[1:len(t.value)], 16)
+    return t
+def t_CONSTANT_BINARY(t):
+    r'%[0-1]+'
+    t.value = int(t.value[1:len(t.value)], 2)
+    return t
+def t_CONSTANT_OCTAL(t):
+    r'&[0-7]+'
+    t.value = int(t.value[1:len(t.value)], 8)
     return t
 def t_CONSTANT_STRING_LEADSPACE(t):
     r'\s+\'.*?\''
