@@ -115,7 +115,7 @@ def t_NEWLINE(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
 def t_error(t):
-    print("\n>>>>>>>>>>>>>>!!!!!!!!\n Illegal string '%s'\n>>>>>>>>>>>>>>!!!!!!!!\n" % t.value)
+    print("\n>>>>>>>>>>>>>>!!!!!!!!\n Illegal character '%s' on line number %d\n>>>>>>>>>>>>>>!!!!!!!!\n" % (t.value[0], t.lineno))
     exit()
 
 lexer = lex.lex()
