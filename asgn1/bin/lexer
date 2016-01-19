@@ -15,8 +15,6 @@ else:
     sourceFile = open(fileName, "r")
     data = sourceFile.read()
 
-# Test it out
-
 # Give the lexer some input
 lexerModule.lexer.input(data)
 tokenCountDict = {}
@@ -38,5 +36,3 @@ for i in tokenDict:
     print '{:^40} {:^12} {:^30}'.format(i, tokenCountDict[i], lexemeList[0])
     for j in xrange(1, len(lexemeList)): 
         print '{:^40} {:^12} {:^30}'.format("", "", lexemeList[j])
-#print tokenDict
-#print tokenCountDict
