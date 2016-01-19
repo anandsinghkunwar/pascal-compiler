@@ -32,6 +32,7 @@ while True:
 
 # Print stats
 print '{:^40} {:^12} {:^30}'.format("Token", "Occurrences", "Lexemes")
+print '-' * 84
 for i in tokenDict:
     lexemeList = list(tokenDict[i])
     print '{:^40} {:^12} {:^30}'.format(i, tokenCountDict[i], lexemeList[0])
