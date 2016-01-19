@@ -1,0 +1,2 @@
+Building is not required. The file bin/lexer is an executable script. Usage (within asgn1/ directory):
+    bin/lexer <source-file>
