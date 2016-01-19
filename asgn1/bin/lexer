@@ -29,5 +29,13 @@ while True:
         break      # No more input
     tokenCountDict.update({tok.type: tokenCountDict.get(tok.type,0)+1 })
     tokenDict.update({tok.type: tokenDict.get(tok.type,set())|{tok.value}})
-print tokenDict
-print tokenCountDict
+
+# Print stats
+print '{:^40} {:^12} {:^30}'.format("Token", "Occurrences", "Lexemes")
+for i in tokenDict:
+    lexemeList = list(tokenDict[i])
+    print '{:^40} {:^12} {:^30}'.format(i, tokenCountDict[i], lexemeList[0])
+    for j in xrange(1, len(lexemeList)): 
+        print '{:^40} {:^12} {:^30}'.format("", "", lexemeList[j])
+#print tokenDict
+#print tokenCountDict
