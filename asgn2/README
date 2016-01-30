@@ -1,0 +1,2 @@
+Building is not required. The file bin/codegen is an executable script. Usage (within asgn2/ directory):
+    bin/codegen <source-file>.ir
