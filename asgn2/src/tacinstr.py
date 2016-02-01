@@ -22,6 +22,8 @@ class TACInstr(object):
         self.InstrType = TACInstr.InstrMap[instrTuple[1]]
         # Now, the parsing diverges for each type
         if self.isAssign():
+            if   len(instrTuple) == 3:   # Variable declaration: 0, decl, alpha
+                pass
             if   len(instrTuple) == 4:   # Basic assignment: 1, =, a, b
                 pass
             elif len(instrTuple) == 5:   # Assignment with unary op: 2, =, -, g, f
