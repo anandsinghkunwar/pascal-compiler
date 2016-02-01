@@ -18,7 +18,7 @@ class TACInstr(object):
         # Process the instrTuple to populate the member fields
         self.InstrType = TACInstr.InstrMap[instrTuple[1]]
         # Now, the parsing diverges for each type
-        if self.InstrType == TACInstr.ASSIGN:
+        if self.isAssign():
             if   len(instrTuple) == 4:   # Basic assignment: 1, =, a, b
                 pass
             elif len(instrTuple) == 5:   # Assignment with unary op: 2, =, -, g, f
@@ -28,26 +28,26 @@ class TACInstr(object):
             else:
                 # Error
                 pass
-        elif self.InstrType == TACInstr.IFGOTO:
+        elif self.isIfGoto():
             if len(instrTuple) == 6:    # Tuple: 4, ifgoto, relop, i, j, L
                 self.Target = int(instrTuple[5])
                 pass
             else:
                 # Error
                 pass
-        elif self.InstrType == TACInstr.GOTO:
+        elif self.isGoto():
             if len(instrTuple) == 3:    # Tuple: 5, goto, L1
                 self.Target = int(instrTuple[2])
             else:
                 # Error
                 pass
-        elif self.InstrType == TACInstr.CALL:
+        elif self.isCall():
             if len(instrTuple) == 3:    # Tuple: 6, call, foo
                 pass
             else:
                 # Error
                 pass
-        elif self.InstrType == TACInstr.RETURN:
+        elif self.isReturn():
             if len(instrTuple) == 3:    # Tuple: 7, ret, retval
                 pass
             else:
@@ -78,20 +78,20 @@ class TACInstr(object):
 
     # Methods to check type of the instruction 
     def isAssign(self):
-        return self.InstrType == ASSIGN
+        return self.InstrType == TACInstr.ASSIGN
     def isIfGoto(self):
-        return self.InstrType == IFGOTO
+        return self.InstrType == TACInstr.IFGOTO
     def isGoto(self):
-        return self.InstrType == GOTO
+        return self.InstrType == TACInstr.GOTO
     def isCall(self):
-        return self.InstrType == CALL
+        return self.InstrType == TACInstr.CALL
     def isReturn(self):
-        return self.InstrType == RETURN
+        return self.InstrType == TACInstr.RETURN
 
     # Auxiliary methods
     def getVarSet(self):
         varSet = set()
         for var in (self.Src1, self.Src2, self.Dest):
             if var.name:
-                varSet.add([var.name])
+                varSet.update([var.name])
         return varSet
