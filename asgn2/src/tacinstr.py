@@ -64,8 +64,8 @@ class TACInstr(object):
     OpMap = {
                 "+"     : ADD,      "-"     : SUB,      "*"     : MULT,
                 "/"     : DIV,      ">"     : GT,       "<"     : LT,
-                ">=",   : GEQ,      "<="    : LEQ,      "<>"    : NEQ,
-                "<<",   : SHL,      ">>"    : SHR,      "and"   : AND,
+                ">="    : GEQ,      "<="    : LEQ,      "<>"    : NEQ,
+                "<<"    : SHL,      ">>"    : SHR,      "and"   : AND,
                 "not"   : NOT,      "or"    : OR,       "mod"   : MOD,
                 "xor"   : XOR
             }

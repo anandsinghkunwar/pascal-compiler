@@ -26,3 +26,33 @@ class Register(object):
 
     def spill(self):
         pass
+
+
+class Data(object):
+    def __init__(self):
+        self.dataDict = {}
+
+    def allocateMem(self, name):
+        self.dataDict["mem_" + name] = 0
+        return "mem_" + name
+
+    def isAllocated(self, name):
+        return self.dataDict.get("mem_" + name) != None
+
+    def assignVal(self, name, value):
+        if self.isAllocated(self, name):
+            self.dataDict["mem_" + name] = value
+        else:
+            pass    #handle error
+    def getVal(self, name):
+        if self.isAllocated(self, name):
+            return self.dataDict["mem_" + name]
+        else:
+            pass    #handle error
+
+    def generate(self):
+        text = ".section .data\n"
+        align = " "*4
+        for key in self.dataDict.keys():
+            text += key + ":\n" + align + ".long " + str(self.dataDict[key]) + "\n"
+        return text
