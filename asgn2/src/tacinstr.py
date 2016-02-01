@@ -1,7 +1,10 @@
-# Class to define a symbol table entry.
+# Class to define a symbol table entry (for variables).
 class SymTabEntry(object):
+# For now, assume that all entries in the symbol table are integers.
     def __init__(self, name):
         self.name = name
+        self.dataType = 'integer'
+
 
 # Class to define a Three Address Code Instruction (TACInstr).
 
