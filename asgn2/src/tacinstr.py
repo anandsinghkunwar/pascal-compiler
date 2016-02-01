@@ -1,7 +1,7 @@
 # Class to define a symbol table entry.
 class SymTabEntry(object):
-    def __init__(self):
-        pass
+    def __init__(self, name):
+        self.name = name
 
 # Class to define a Three Address Code Instruction (TACInstr).
 
@@ -10,9 +10,9 @@ class TACInstr(object):
         self.InstrType = None
         self.Target = None
         self.Op = None
-        self.Src1 = SymTabEntry()
-        self.Src2 = SymTabEntry()
-        self.Dest = SymTabEntry()
+        self.Src1 = SymTabEntry('')
+        self.Src2 = SymTabEntry('')
+        self.Dest = SymTabEntry('')
         self.SymTable = None
 
         # Process the instrTuple to populate the member fields
@@ -87,3 +87,11 @@ class TACInstr(object):
         return self.InstrType == CALL
     def isReturn(self):
         return self.InstrType == RETURN
+
+    # Auxiliary methods
+    def getVarSet(self):
+        varSet = set()
+        for var in (self.Src1, self.Src2, self.Dest):
+            if var.name:
+                varSet.add([var.name])
+        return varSet
