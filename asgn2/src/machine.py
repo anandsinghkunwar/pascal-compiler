@@ -3,22 +3,7 @@
 #   - a class to implement the (global) data region
 #   - a class to implement the code section
 
-import tacinstr, basicblock
-
-# Global variable to store number of general purpose registers
-numRegs = 6
-
-# Global list of register names
-regNames = ['eax', 'ebx', 'ecx', 'edx', 'edi', 'esi']
-
-# Global map from register names to register objects
-registerMap = {}
-for name in regNames:
-    reg = Register(name)
-    registerMap[name] = reg
-
-# Global object to instantiate the data section
-data = Data()
+import tacinstr, basicblock, codegen
 
 # Class to implement machine registers.
 # The member variable varNames acts as a register descriptor,
