@@ -1,4 +1,4 @@
-import machine, basicblock, codegen
+import machine, basicblock, codegen, re
 
 # Class to define a symbol table entry (for variables).
 # Member variables:
@@ -21,37 +21,89 @@ class SymTabEntry(object):
         reg = machine.registerMap[regName]
         reg.addVar(self.name)
 
-# Class to define a Three Address Code Instruction (TACInstr).
+# Class to handle instruction operands
+class Operand(object):
+    # Regular expressions to identify operand types
+    reInt = r'^\d+$'
+    reIdentifier = r'^[a-zA-Z_][a-zA-Z0-9_]*$'
 
+    # Operand Types
+    INT, VAR = range(2)
+
+    def __init__(self, string):
+        if re.match(reInt, string):
+            self.operandType = Operand.INT
+            self.operand = int(string)
+        elif re.match(reIdentifier, string):
+            self.operandType = Operand.VAR
+            self.operand = SymTabEntry(string)
+        else:
+            # Error
+            pass
+
+    def isInt(self):
+        return self.operandType == Operand.INT
+    def isVar(self):
+        return self.operandType == Operand.VAR
+
+# Class to define a Three Address Code Instruction (TACInstr).
 class TACInstr(object):
+
     def __init__(self, instrTuple):
         self.InstrType = None
         self.Target = None
         self.Op = None
-        self.Src1 = SymTabEntry('')
-        self.Src2 = SymTabEntry('')
-        self.Dest = SymTabEntry('')
+        self.Src1 = None
+        self.Src2 = None
+        self.Dest = None
         self.SymTable = None
 
         # Process the instrTuple to populate the member fields
         self.InstrType = TACInstr.InstrMap[instrTuple[1]]
         # Now, the parsing diverges for each type
         if self.isAssign():
-            if   len(instrTuple) == 3:   # Variable declaration: 0, decl, alpha
-                pass
             if   len(instrTuple) == 4:   # Basic assignment: 1, =, a, b
-                pass
+                dest = Operand(instrTuple[2])
+                src1 = Operand(instrTuple[3])
+                if not dest.isVar():
+                    # Error
+                    pass
+                else:
+                    self.Dest = dest.operand
+                    self.Src1 = src1.operand
             elif len(instrTuple) == 5:   # Assignment with unary op: 2, =, -, g, f
-                pass
+                dest = Operand(instrTuple[3])
+                src1 = Operand(instrTuple[4])
+                if not dest.isVar():
+                    # Error
+                    pass
+                else:
+                    self.Dest = dest.operand
+                    self.Src1 = src1.operand
+                    self.Op = TACInstr.OpMap[instrTuple[2]]
             elif len(instrTuple) == 6:   # Assignment with binary op: 3, =, +, a, b, c
-                pass
+                dest = Operand(instrTuple[3])
+                src1 = Operand(instrTuple[4])
+                src2 = Operand(instrTuple[5])
+                if not dest.isVar():
+                    # Error
+                    pass
+                else:
+                    self.Dest = dest.operand
+                    self.Src1 = src1.operand
+                    self.Src2 = src2.operand
+                    self.Op = TACInstr.OpMap[instrTuple[2]]
             else:
                 # Error
                 pass
         elif self.isIfGoto():
             if len(instrTuple) == 6:    # Tuple: 4, ifgoto, relop, i, j, L
                 self.Target = int(instrTuple[5])
-                pass
+                self.Op = TACInstr.OpMap[instrTuple[2]]
+                src1 = Operand(instrTuple[3])
+                src2 = Operand(instrTuple[4])
+                self.Src1 = src1.operand
+                self.Src2 = src2.operand
             else:
                 # Error
                 pass
@@ -69,7 +121,7 @@ class TACInstr(object):
                 pass
         elif self.isReturn():
             if len(instrTuple) == 3:    # Tuple: 7, ret, retval
-                pass
+                self.Src1 = int(instrTuple[2])
             else:
                 # Error
                 pass
