@@ -1,3 +1,5 @@
+import tacinstr, codegen, machine
+
 # Class to define a basic block in IR code:
 #  Structure:
 #   - a list of instructions
@@ -5,15 +7,12 @@
 #  Methods:
 #   - basic-block local register allocation function
 #   - More?
-
-import tacinstr
-
 class BasicBlock(object):
     def __init__(self, instrList):
         self.instrList = instrList
         self.varSet = set()
         for instr in instrList:
-            self.varSet.update(set(instr.getVarSet()))
+            self.varSet.update(instr.getVarSet())
 
     # Method: allocateRegisters
     #   Uses the NextUse heuristic to select the registers

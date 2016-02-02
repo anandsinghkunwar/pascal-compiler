@@ -164,6 +164,6 @@ class TACInstr(object):
     def getVarSet(self):
         varSet = set()
         for var in (self.Src1, self.Src2, self.Dest):
-            if var.name:
+            if type(var) == SymTabEntry and var.name:
                 varSet.update([var.name])
         return varSet
