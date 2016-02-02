@@ -11,23 +11,29 @@ numRegs = 6
 # Global list of register names
 registers = ['eax', 'ebx', 'ecx', 'edx', 'edi', 'esi']
 
+# Global object to instantiate the data section
+data = Data()
+
 # Class to implement machine registers.
+# The member variable varNames acts as a register descriptor,
+# which keeps track of the set of variable names that the
+# register holds.
 class Register(object):
     def __init__(self, name):
         self.name = name
-        self.value = 0
-        self.empty = True
-    
-    def value(self):
-        return self.value
+        self.varNames = set()
 
     def isEmpty(self):
-        return self.empty
+        return len(self.varNames) == 0
+
+    def addVar(self, varName):
+        self.varNames.add(varName)
 
     def spill(self):
         pass
 
-
+# Class to implement the global data region. For now, we allow
+# only integers to be allocated.
 class Data(object):
     def __init__(self):
         self.dataDict = {}
@@ -44,6 +50,7 @@ class Data(object):
             self.dataDict["mem_" + name] = value
         else:
             pass    #handle error
+
     def getVal(self, name):
         if self.isAllocated(self, name):
             return self.dataDict["mem_" + name]
