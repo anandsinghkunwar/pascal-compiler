@@ -31,10 +31,10 @@ class Operand(object):
     INT, VAR = range(2)
 
     def __init__(self, string):
-        if re.match(reInt, string):
+        if re.match(Operand.reInt, string):
             self.operandType = Operand.INT
             self.operand = int(string)
-        elif re.match(reIdentifier, string):
+        elif re.match(Operand.reIdentifier, string):
             self.operandType = Operand.VAR
             self.operand = SymTabEntry(string)
         else:
