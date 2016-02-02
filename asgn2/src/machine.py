@@ -9,7 +9,13 @@ import tacinstr, basicblock
 numRegs = 6
 
 # Global list of register names
-registers = ['eax', 'ebx', 'ecx', 'edx', 'edi', 'esi']
+regNames = ['eax', 'ebx', 'ecx', 'edx', 'edi', 'esi']
+
+# Global map from register names to register objects
+registerMap = {}
+for name in regNames:
+    reg = Register(name)
+    registerMap[name] = reg
 
 # Global object to instantiate the data section
 data = Data()
