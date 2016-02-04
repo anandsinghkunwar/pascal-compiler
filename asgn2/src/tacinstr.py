@@ -4,8 +4,8 @@ import machine, basicblock, codegen, re
 # Member variables:
 #   name - name of the variable
 #   dataType - type of the variable (currently all integers)
-#   liveStatus - whether the the variable is live or not, 
-#                by default this is True as at the end of the 
+#   liveStatus - whether the the variable is live or not,
+#                by default this is True as at the end of the
 #                basic block the all variables are considered live
 #   nextUse - next line number where the variable will be used
 class SymTabEntry(object):
