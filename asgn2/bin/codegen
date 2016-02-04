@@ -5,18 +5,22 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.
 
 # Take input from the files specified on the cmdline
 import fileinput
-from src import tacinstr
+from src import tacinstr, codegen, basicblock
 
 # Parse the input and store it in the list IRCode.
 # Here, the line number of a TAC instruction is i+1,
 # where the index of the instruction in IRCode is i.
 IRCode = []
+program = []
 for line in fileinput.input():
     line = line.split(',')
     for i in range(len(line)):
         line[i] = line[i].strip()
     instr = tacinstr.TACInstr(line)
+    program.append(instr)
     # More stuff
-    IRCode.append(instr)
-
+basicBlockInstructions = codegen.Codegen(program)
+basicBlocks = list()
+for instrList in basicBlockInstructions:
+    basicBlocks.append(basicblock.BasicBlock(instrList))
 print IRCode
