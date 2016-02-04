@@ -10,9 +10,12 @@ regNames = ['eax', 'ebx', 'ecx', 'edx', 'esi', 'edi']
 
 # Map from register names to register objects
 registerMap = {}
-for name in regNames:
-    reg = machine.Register(name)
-    registerMap[name] = reg
+
+# Set of variables
+variables = set()
+
+# Map from variable names to variable objects
+varMap = {}
 
 # Object to instantiate the data section
 data = machine.Data()
