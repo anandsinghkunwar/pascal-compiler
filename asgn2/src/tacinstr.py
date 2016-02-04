@@ -3,7 +3,6 @@ import machine, basicblock, codegen, re
 # Class to define a symbol table entry (for variables).
 # Member variables:
 #   name - name of the variable
-#   dataType - type of the variable (currently all integers)
 #   liveStatus - whether the the variable is live or not,
 #                by default this is True as at the end of the
 #                basic block the all variables are considered live
@@ -12,7 +11,6 @@ class SymTabEntry(object):
 # For now, assume that all entries in the symbol table are integers.
     def __init__(self, name):
         self.name = name
-        self.dataType = 'integer'
         self.liveStatus = True
         self.nextUse = None
 
