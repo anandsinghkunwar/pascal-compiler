@@ -18,7 +18,4 @@ for line in fileinput.input():
     instr = tacinstr.TACInstr(line)
     IRCode.append(instr)
     # More stuff
-basicBlockInstructions = codegen.Codegen(IRCode)
-basicBlocks = list()
-for instrList in basicBlockInstructions:
-    basicBlocks.append(basicblock.BasicBlock(instrList))
+codeGen = codegen.Codegen(IRCode)
