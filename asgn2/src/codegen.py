@@ -19,6 +19,7 @@ class Codegen(object):
         for leaderPair in pairwise(leaders):
             bb = basicblock.BasicBlock(self.prog[leaderPair[0]-1:leaderPair[1]-1)
             self.basicBlocks.append(bb)
+
 # Auxiliary function
 def pairwise(iterable):
     a, b = tee(iterable)
