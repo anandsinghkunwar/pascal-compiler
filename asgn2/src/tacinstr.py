@@ -4,9 +4,34 @@ import machine, basicblock, codegen, re
 # Member variables:
 #   name - name of the variable
 #   dataType - type of the variable (currently all integers)
+#   liveStatus - whether the the variable is live or not, 
+#                by default this is True as at the end of the 
+#                basic block the all variables are considered live
+#   nextUse - next line number where the variable will be used
+class SymTabEntry(object):
+# For now, assume that all entries in the symbol table are integers.
+    def __init__(self, name):
+        self.name = name
+        self.dataType = 'integer'
+        self.liveStatus = True
+        self.nextUse = None
+
+    def memAlloc(self):
+        memAddr = machine.data.allocateMem(self.name)
+        self.addr.add(memAddr)
+
+    def loadIntoReg(self, regName):
+        reg = machine.registerMap[regName]
+        reg.addVar(self.name)
+
+
+# Class to define an address descriptor table entry (for variables).
+# Member variables:
+#   name - name of the variable
+#   dataType - type of the variable (currently all integers)
 #   addr - set of locations (e.g. reg, memory, stack) where the
 #          value of the variable can be found.
-class SymTabEntry(object):
+class AddrDescEntry(object):
 # For now, assume that all entries in the symbol table are integers.
     def __init__(self, name):
         self.name = name
@@ -22,6 +47,7 @@ class SymTabEntry(object):
         reg.addVar(self.name)
 
 # Class to handle instruction operands
+
 class Operand(object):
     # Regular expressions to identify operand types
     reInt = r'^\d+$'
@@ -36,7 +62,7 @@ class Operand(object):
             self.operand = int(string)
         elif re.match(Operand.reIdentifier, string):
             self.operandType = Operand.VAR
-            self.operand = SymTabEntry(string)
+            self.operand = string
         else:
             # Error
             pass
@@ -57,6 +83,7 @@ class TACInstr(object):
         self.Src2 = None
         self.Dest = None
         self.SymTable = None
+        self.LineNo = instrTuple[0]
 
         # Process the instrTuple to populate the member fields
         self.InstrType = TACInstr.InstrMap[instrTuple[1]]
@@ -69,8 +96,8 @@ class TACInstr(object):
                     # Error
                     pass
                 else:
-                    self.Dest = dest.operand
-                    self.Src1 = src1.operand
+                    self.Dest = dest
+                    self.Src1 = src1
             elif len(instrTuple) == 5:   # Assignment with unary op: 2, =, -, g, f
                 dest = Operand(instrTuple[3])
                 src1 = Operand(instrTuple[4])
@@ -78,8 +105,8 @@ class TACInstr(object):
                     # Error
                     pass
                 else:
-                    self.Dest = dest.operand
-                    self.Src1 = src1.operand
+                    self.Dest = dest
+                    self.Src1 = src1
                     self.Op = TACInstr.OpMap[instrTuple[2]]
             elif len(instrTuple) == 6:   # Assignment with binary op: 3, =, +, a, b, c
                 dest = Operand(instrTuple[3])
@@ -89,9 +116,9 @@ class TACInstr(object):
                     # Error
                     pass
                 else:
-                    self.Dest = dest.operand
-                    self.Src1 = src1.operand
-                    self.Src2 = src2.operand
+                    self.Dest = dest
+                    self.Src1 = src1
+                    self.Src2 = src2
                     self.Op = TACInstr.OpMap[instrTuple[2]]
             else:
                 # Error
@@ -100,10 +127,8 @@ class TACInstr(object):
             if len(instrTuple) == 6:    # Tuple: 4, ifgoto, relop, i, j, L
                 self.Target = int(instrTuple[5])
                 self.Op = TACInstr.OpMap[instrTuple[2]]
-                src1 = Operand(instrTuple[3])
-                src2 = Operand(instrTuple[4])
-                self.Src1 = src1.operand
-                self.Src2 = src2.operand
+                self.Src1 = Operand(instrTuple[3])
+                self.Src2 = Operand(instrTuple[4])
             else:
                 # Error
                 pass
