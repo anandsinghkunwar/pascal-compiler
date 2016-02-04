@@ -135,11 +135,12 @@ class TACInstr(object):
                 pass
         elif self.isReturn():
             if len(instrTuple) == 3:    # Tuple: 7, ret, retval
-                self.Src1 = int(instrTuple[2])
+                self.Src1 = Operand(instrTuple[2])
+            elif len(instrTuple) == 2:    # Tuple: 8, ret
+                pass
             else:
                 # Error
                 pass
-
     # Types of operations
     ADD, SUB, MULT, DIV, GT, LT, GEQ, LEQ, NEQ, SHL, SHR, AND, NOT, OR, MOD, XOR = range(16)
 
