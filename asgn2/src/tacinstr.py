@@ -16,15 +16,6 @@ class SymTabEntry(object):
         self.liveStatus = True
         self.nextUse = None
 
-    def memAlloc(self):
-        memAddr = machine.data.allocateMem(self.name)
-        self.addr.add(memAddr)
-
-    def loadIntoReg(self, regName):
-        reg = machine.registerMap[regName]
-        reg.addVar(self.name)
-
-
 # Class to define an address descriptor table entry (for variables).
 # Member variables:
 #   name - name of the variable
