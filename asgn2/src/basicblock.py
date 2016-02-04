@@ -31,12 +31,12 @@ class BasicBlock(object):
             else:
                 instr.SymTable = dict([varName, SymTabEntry(varName)] for varName in self.varSet)
             if instr.Dest:
-                instr.SymTable[instr.Dest.operand].liveStatus = False
-                instr.SymTable[instr.Dest.operand].nextUse = None
+                instr.SymTable[instr.Dest.operand.name].liveStatus = False
+                instr.SymTable[instr.Dest.operand.name].nextUse = None
             if instr.Src1 and instr.Src1.isVar():
-                instr.SymTable[instr.Src1.operand].liveStatus = True
-                instr.SymTable[instr.Src1.operand].nextUse = instr.LineNo
+                instr.SymTable[instr.Src1.operand.name].liveStatus = True
+                instr.SymTable[instr.Src1.operand.name].nextUse = instr.LineNo
             if instr.Src2 and instr.Src2.isVar():
-                instr.SymTable[instr.Src2.operand].liveStatus = True
-                instr.SymTable[instr.Src2.operand].nextUse = instr.LineNo
+                instr.SymTable[instr.Src2.operand.name].liveStatus = True
+                instr.SymTable[instr.Src2.operand.name].nextUse = instr.LineNo
             prev = instr.SymTable

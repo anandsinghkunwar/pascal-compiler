@@ -1,4 +1,4 @@
-import machine, basicblock, codegen, re
+import machine, basicblock, codegen, re, globjects
 
 # Class to define a symbol table entry (for variables).
 # Member variables:
@@ -51,7 +51,9 @@ class Operand(object):
             self.operand = int(string)
         elif re.match(Operand.reIdentifier, string):
             self.operandType = Operand.VAR
-            self.operand = string
+            if not string in globjects.varMap.keys():
+                globjects.varMap[string] = AddrDescEntry(string)
+            self.operand = globjects.varMap[string]
         else:
             # Error
             pass
@@ -78,7 +80,7 @@ class TACInstr(object):
         self.InstrType = TACInstr.InstrMap[instrTuple[1]]
         # Now, the parsing diverges for each type
         if self.isAssign():
-            if   len(instrTuple) == 4:   # Basic assignment: 1, =, a, b
+            if len(instrTuple) == 4:   # Basic assignment: 1, =, a, b
                 dest = Operand(instrTuple[2])
                 src1 = Operand(instrTuple[3])
                 if not dest.isVar():
@@ -179,6 +181,6 @@ class TACInstr(object):
     def getVarSet(self):
         varSet = set()
         for var in (self.Src1, self.Src2, self.Dest):
-            if type(var) == SymTabEntry and var.name:
-                varSet.update([var.name])
+            if var and var.isVar():
+                varSet.update([var.operand.name])
         return varSet

@@ -11,10 +11,7 @@ regNames = ['eax', 'ebx', 'ecx', 'edx', 'esi', 'edi']
 # Map from register names to register objects
 registerMap = {}
 
-# Set of variables
-variables = set()
-
-# Map from variable names to variable objects
+# Map from variable names to variable address descriptor
 varMap = {}
 
 # Object to instantiate the data section
