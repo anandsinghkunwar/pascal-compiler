@@ -23,13 +23,16 @@ class BasicBlock(object):
     # Uses to initialise Symbol Table of all instructions in
     # the basic block and compute next uses for all variables
     # in the basic block
-    def computeNextUses():
+    def computeNextUses(self):
         prev = None
-        for instr in self.instrList.reverse():
+        print len(self.instrList)
+        instrList = list(self.instrList)
+        instrList.reverse()
+        for instr in instrList:
             if prev:
                 instr.SymTable = copy.deepcopy(prev.SymTable)
             else:
-                instr.SymTable = dict([varName, SymTabEntry(varName)] for varName in self.varSet)
+                instr.SymTable = dict([varName, tacinstr.SymTabEntry(varName)] for varName in self.varSet)
             if instr.Dest:
                 instr.SymTable[instr.Dest.operand.name].liveStatus = False
                 instr.SymTable[instr.Dest.operand.name].nextUse = None
