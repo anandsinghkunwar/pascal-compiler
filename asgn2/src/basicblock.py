@@ -25,7 +25,6 @@ class BasicBlock(object):
     # in the basic block
     def computeNextUses(self):
         prev = None
-        print len(self.instrList)
         instrList = list(self.instrList)
         instrList.reverse()
         for instr in instrList:
