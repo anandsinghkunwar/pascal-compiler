@@ -19,7 +19,7 @@ class Codegen(object):
                 leaders.add(instr.Target)
                 leaders.add(instr.LineNo + 1)
         for leaderPair in pairwise(leaders):
-            bb = basicblock.BasicBlock(self.prog[leaderPair[0]-1:leaderPair[1]-1)
+            bb = basicblock.BasicBlock(self.prog[leaderPair[0]-1:leaderPair[1]-1])
             self.basicBlocks.append(bb)
 # Auxiliary function
 def pairwise(iterable):

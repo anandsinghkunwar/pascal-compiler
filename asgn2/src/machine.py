@@ -3,8 +3,6 @@
 #   - a class to implement the (global) data region
 #   - a class to implement the code section
 
-import tacinstr, basicblock, codegen
-
 # Class to implement machine registers.
 # The member variable varNames acts as a register descriptor,
 # which keeps track of the set of variable names that the

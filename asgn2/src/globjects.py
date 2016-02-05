@@ -1,6 +1,6 @@
 # Contains all the global variables used in the code generator.
 
-import tacinstr, codegen, machine, basicblock
+import machine
 
 # Variable to store the number of machine registers
 numRegs = 6
