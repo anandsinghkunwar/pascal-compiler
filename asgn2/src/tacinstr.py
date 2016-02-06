@@ -80,6 +80,8 @@ class TACInstr(object):
         self.Src2 = None
         self.Dest = None
         self.SymTable = None
+        self.Label = None
+        self.TargetLabel = None
         self.LineNo = int(instrTuple[0])
 
         # Process the instrTuple to populate the member fields
@@ -135,11 +137,11 @@ class TACInstr(object):
                 self.Target = int(instrTuple[2])
                 globjects.targetSet.add(self.Target)
             else:
-                # Error
+                # TODO: Error
                 pass
-        elif self.isCall(): # TODO
+        elif self.isCall(): # TODO: Calling to be implemented with label
             if len(instrTuple) == 3:    # Tuple: 6, call, foo
-                pass
+                self.TargetLabel = instrTuple[2]
             else:
                 # Error
                 pass
@@ -148,6 +150,12 @@ class TACInstr(object):
                 self.Src1 = Operand(instrTuple[2])
             elif len(instrTuple) == 2:    # Tuple: 8, ret
                 pass
+            else:
+                # Error
+                pass
+        elif self.isLabel():
+            if len(instrTuple) == 3:    # Tuple: 9, label, name
+                self.Label = instrTuple[2]
             else:
                 # Error
                 pass
@@ -165,12 +173,12 @@ class TACInstr(object):
             }
 
     # Types of instructions
-    ASSIGN, IFGOTO, GOTO, CALL, RETURN = range(5)
+    ASSIGN, IFGOTO, GOTO, CALL, RETURN, LABEL = range(6)
 
     # Instruction map
     InstrMap = {
                 "="     : ASSIGN,      "ifgoto"     : IFGOTO,      "goto"     : GOTO,
-                "call"  : CALL,        "ret"        : RETURN
+                "call"  : CALL,        "ret"        : RETURN,      "label"    : LABEL
                }
 
     # Methods to check type of the instruction 
@@ -184,6 +192,8 @@ class TACInstr(object):
         return self.InstrType == TACInstr.CALL
     def isReturn(self):
         return self.InstrType == TACInstr.RETURN
+    def isLabel(self):
+        return self.InstrType == TACInstr.LABEL
     def isTarget(self):
         return self.LineNo in globjects.targetSet
 

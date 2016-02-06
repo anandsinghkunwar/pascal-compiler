@@ -20,3 +20,6 @@ currInstr = None
 
 # Set of Targets
 targetSet = set()
+
+# Set of Labels
+labelSet = set()
