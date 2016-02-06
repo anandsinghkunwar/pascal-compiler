@@ -8,7 +8,7 @@ indent = "    "
 def translateBlock(bb):
     for instr in bb:
         globject.currInstr = instr
-        string = ""
+        string = ".LABEL_" + str(instr.LineNo) + ":\n"
         if instr.isAssign:
             if instr.Src2:  #assignment with binary operator    x = y op z
                 location = bb.getReg()
@@ -18,14 +18,14 @@ def translateBlock(bb):
                     if not loc:
                         loc = machine.getOccupiedRegister()
                 if instr.Src1.isInt():  # y is integer
-                    string +=  indent + "movl $" + instr.Src1.operand + ",%" + loc.name + "\n"
+                    string +=  indent + "movl $" + str(instr.Src1.operand) + ",%" + loc.name + "\n"
                 elif location[1]:   # y is variable and getReg returned y's register. so loc has y's value
                     pass
                 else:   # y is a variable and loc dosen't have y's value
                     string += indent + "movl " + instr.Src1.operand.name + ",%" + loc.name + "\n"
                 op = getOperator(instr.op)
                 if instr.Src2.isInt():
-                    string += indent + op + " $" + instr.Src2.operand + ",%" + loc.name + "\n"
+                    string += indent + op + " $" + str(instr.Src2.operand) + ",%" + loc.name + "\n"
                 elif instr.Src2.reg:    #z exists in a register
                     flag = False
                     if instr.Src2.reg.name != "ecx" and (op == "sal" or op == "sar"):
