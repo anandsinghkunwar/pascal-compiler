@@ -13,7 +13,8 @@ class SymTabEntry(object):
         self.name = name
         self.liveStatus = True
         self.nextUse = None
-
+    def isLive():
+        return self.liveStatus
 # Class to define an address descriptor table entry (for variables).
 # Member variables:
 #   name - name of the variable
@@ -33,8 +34,12 @@ class AddrDescEntry(object):
         self.memAddr = globjects.data.allocateMem(self.name)
 
     def loadIntoReg(self, regName):
-        self.reg = globjects.registerMap[regName]
-        self.reg.addVar(self.name)
+        globjects.registerMap[regName].addVar(self.name)
+
+    def removeReg():
+        self.reg.varNames.remove(self.name)
+
+
 
 # Class to handle instruction operands
 

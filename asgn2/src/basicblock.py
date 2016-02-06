@@ -16,40 +16,25 @@ class BasicBlock(object):
             self.varSet.update(instr.getVarSet())
         self.computeNextUses()
 
-    # Method: allocateRegisters
-    #   Uses the NextUse heuristic to select the registers
-    #   to be spilled.
-    def allocateRegisters(self, numRegs):
-        pass
     def getReg(self):
-        if G.currInstr.Src1 and G.currInstr.Src1.isVar():
-            varName = G.currInstr.Src1.operand.name
-            if (G.currInstr.SymTable[varName].liveStatus == False and
-                G.currInstr.SymTable[varName].liveStatus == None and
-                G.varMap[varName].reg and
-                len(G.varMap[varName].reg.varNames) == 1):
+        varName = G.currInstr.Src1.operand.name
+        if (not G.currInstr.SymTable[varName].isLive() and
+            G.currInstr.SymTable[varName].nextUse == None and
+            G.varMap[varName].reg and
+            len(G.varMap[varName].reg.varNames) == 1):
                 regName = G.varMap[varName].reg.name
-                G.varMap[varName].reg.spill()
-                return G.registerMap[regName]
-
-        if G.currInstr.Src2 and G.currInstr.Src2.isVar():
-            varName = G.currInstr.Src2.operand.name
-            if (G.currInstr.SymTable[varName].liveStatus == False and
-                G.currInstr.SymTable[varName].liveStatus == None and
-                G.varMap[varName].reg and
-                len(G.varMap[varName].reg.varNames) == 1):
-                regName = G.varMap[varName].reg.name
-                G.varMap[varName].reg.spill()
+                G.varMap[varName].updateAddressDescriptor(None)
                 return G.registerMap[regName]
 
         reg = self.getEmptyRegister()
         if reg:
             return reg
-
-        if G.currInstr.Dest:
+        elif G.currInstr.Dest:
             varName = G.currInstr.Dest.operand.name
             if G.currInstr.SymTable[varName].nextUse:
-                return getOccupiedRegister()
+                reg = getOccupiedRegister()
+                #generate instructions here
+                return reg
             else:
                 pass #return memory
 

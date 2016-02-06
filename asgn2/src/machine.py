@@ -19,11 +19,17 @@ class Register(object):
 
     def addVar(self, varName):
         self.varNames.add(varName)
+        globjects.varMap[varName].reg = self
+
+    def removeVar(self, varName):
+        self.varNames.remove(varName)
+        globjects.varMap[varName].reg = None
 
     def spill(self):
         for varName in self.varNames:
             globjects.varMap[varName].reg = None
         self.varNames = set()
+        #add mov instruction
 
 
 # Class to implement the global data region. For now, we allow
