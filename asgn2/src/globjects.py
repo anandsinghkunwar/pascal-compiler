@@ -19,4 +19,4 @@ data = None
 currInstr = None
 
 # Set of Targets
-targetSet = {}
+targetSet = set()
