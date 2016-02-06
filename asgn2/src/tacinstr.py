@@ -27,19 +27,15 @@ class AddrDescEntry(object):
     def __init__(self, name):
         self.name = name
         self.dataType = 'integer'
-        self.memAddr = None
         self.reg = None
-
-    def memAlloc(self):
         self.memAddr = globjects.data.allocateMem(self.name)
+        self.dirty = False
 
     def loadIntoReg(self, regName):
         globjects.registerMap[regName].addVar(self.name)
 
     def removeReg():
         self.reg.varNames.remove(self.name)
-
-
 
 # Class to handle instruction operands
 

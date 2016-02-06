@@ -16,6 +16,16 @@ class BasicBlock(object):
             self.varSet.update(instr.getVarSet())
         self.computeNextUses()
 
+# getReg method
+#  Purpose:
+#          For assignment of the form x = y op z does the following
+#          * Returns y's register(if has only y) when y not live and no next use
+#          * If not returns empty register
+#          * If not, x has no next use then spills furthest use register and returns
+#          * If not, returns memory location of x
+#  Returns:
+#      tuple of (boolean, reg/memory)
+#          * true means that it returned y's register
     def getReg(self):
         varName = G.currInstr.Src1.operand.name
         if (not G.currInstr.SymTable[varName].isLive() and
@@ -24,19 +34,19 @@ class BasicBlock(object):
             len(G.varMap[varName].reg.varNames) == 1):
                 regName = G.varMap[varName].reg.name
                 G.varMap[varName].updateAddressDescriptor(None)
-                return G.registerMap[regName]
+                return G.registerMap[regName], True
 
         reg = self.getEmptyRegister()
         if reg:
-            return reg
+            return reg, False
         elif G.currInstr.Dest:
             varName = G.currInstr.Dest.operand.name
             if G.currInstr.SymTable[varName].nextUse:
                 reg = getOccupiedRegister()
                 #generate instructions here
-                return reg
+                return reg, False
             else:
-                pass #return memory
+                return G.currInstr.Dest.memAddr, False
 
     def getEmptyRegister():
         for regName in G.regNames:
