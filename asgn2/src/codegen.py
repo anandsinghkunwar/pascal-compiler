@@ -10,11 +10,12 @@ class Codegen(object):
         self.basicBlocks = []
         for regName in globjects.regNames:
             globjects.registerMap[regName] = machine.Register(regName)
+        globjects.data = machine.Data()
         self.computeBasicBlocks()
 
     # Method to compute basic blocks from the IR program
     def computeBasicBlocks(self):
-        leaders = set([1, len(self.program)])
+        leaders = set([1, len(self.program)+1])
         for instr in self.program:      #Yet to add for calling/return statements
             if instr.isIfGoto() or instr.isGoto():
                 leaders.add(instr.Target)

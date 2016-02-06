@@ -1,3 +1,5 @@
+import globjects
+
 # Contains a model of the machine assembly code
 #   - a class to implement machine registers
 #   - a class to implement the (global) data region
@@ -19,7 +21,10 @@ class Register(object):
         self.varNames.add(varName)
 
     def spill(self):
-        pass
+        for varName in self.varNames:
+            globjects.varMap[varName].reg = None
+        self.varNames = set()
+
 
 # Class to implement the global data region. For now, we allow
 # only integers to be allocated.

@@ -18,22 +18,23 @@ class SymTabEntry(object):
 # Member variables:
 #   name - name of the variable
 #   dataType - type of the variable (currently all integers)
-#   addr - set of locations (e.g. reg, memory, stack) where the
-#          value of the variable can be found.
+#   reg - Register object where variable resides
+#   memAddr - Memory Address where variable resides
+
 class AddrDescEntry(object):
 # For now, assume that all entries in the symbol table are integers.
     def __init__(self, name):
         self.name = name
         self.dataType = 'integer'
-        self.addr = set()
+        self.memAddr = None
+        self.reg = None
 
     def memAlloc(self):
-        memAddr = machine.data.allocateMem(self.name)
-        self.addr.add(memAddr)
+        self.memAddr = globjects.data.allocateMem(self.name)
 
     def loadIntoReg(self, regName):
-        reg = machine.registerMap[regName]
-        reg.addVar(self.name)
+        self.reg = globjects.registerMap[regName]
+        self.reg.addVar(self.name)
 
 # Class to handle instruction operands
 
