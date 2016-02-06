@@ -17,3 +17,6 @@ data = None
 
 # Current Instruction Variable
 currInstr = None
+
+# Set of Targets
+targetSet = {}

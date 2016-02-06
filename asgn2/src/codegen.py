@@ -19,7 +19,7 @@ class Codegen(object):
         for instr in self.program:      #Yet to add for calling/return statements
             if instr.isIfGoto() or instr.isGoto():
                 leaders.add(instr.Target)
-                leaders.add(int(instr.LineNo) + 1)
+                leaders.add(instr.LineNo + 1)
         for leaderPair in pairwise(leaders):
             bb = basicblock.BasicBlock(self.program[leaderPair[0]-1:leaderPair[1]-1])
             self.basicBlocks.append(bb)

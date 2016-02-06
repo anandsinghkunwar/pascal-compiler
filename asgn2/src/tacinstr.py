@@ -80,7 +80,7 @@ class TACInstr(object):
         self.Src2 = None
         self.Dest = None
         self.SymTable = None
-        self.LineNo = instrTuple[0]
+        self.LineNo = int(instrTuple[0])
 
         # Process the instrTuple to populate the member fields
         self.InstrType = TACInstr.InstrMap[instrTuple[1]]
@@ -123,6 +123,7 @@ class TACInstr(object):
         elif self.isIfGoto():
             if len(instrTuple) == 6:    # Tuple: 4, ifgoto, relop, i, j, L
                 self.Target = int(instrTuple[5])
+                globjects.targetSet.add(self.Target)
                 self.Op = TACInstr.OpMap[instrTuple[2]]
                 self.Src1 = Operand(instrTuple[3])
                 self.Src2 = Operand(instrTuple[4])
@@ -132,10 +133,11 @@ class TACInstr(object):
         elif self.isGoto():
             if len(instrTuple) == 3:    # Tuple: 5, goto, L1
                 self.Target = int(instrTuple[2])
+                globjects.targetSet.add(self.Target)
             else:
                 # Error
                 pass
-        elif self.isCall():
+        elif self.isCall(): # TODO
             if len(instrTuple) == 3:    # Tuple: 6, call, foo
                 pass
             else:
@@ -182,6 +184,8 @@ class TACInstr(object):
         return self.InstrType == TACInstr.CALL
     def isReturn(self):
         return self.InstrType == TACInstr.RETURN
+    def isTarget(self):
+        return self.LineNo in globjects.targetSet
 
     # Auxiliary methods
     def getVarSet(self):
