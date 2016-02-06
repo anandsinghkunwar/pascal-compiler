@@ -13,27 +13,29 @@ class SymTabEntry(object):
         self.name = name
         self.liveStatus = True
         self.nextUse = None
-
+    def isLive():
+        return self.liveStatus
 # Class to define an address descriptor table entry (for variables).
 # Member variables:
 #   name - name of the variable
 #   dataType - type of the variable (currently all integers)
-#   addr - set of locations (e.g. reg, memory, stack) where the
-#          value of the variable can be found.
+#   reg - Register object where variable resides
+#   memAddr - Memory Address where variable resides
+
 class AddrDescEntry(object):
 # For now, assume that all entries in the symbol table are integers.
     def __init__(self, name):
         self.name = name
         self.dataType = 'integer'
-        self.addr = set()
-
-    def memAlloc(self):
-        memAddr = machine.data.allocateMem(self.name)
-        self.addr.add(memAddr)
+        self.reg = None
+        self.memAddr = globjects.data.allocateMem(self.name)
+        self.dirty = False
 
     def loadIntoReg(self, regName):
-        reg = machine.registerMap[regName]
-        reg.addVar(self.name)
+        globjects.registerMap[regName].addVar(self.name)
+
+    def removeReg():
+        self.reg.varNames.remove(self.name)
 
 # Class to handle instruction operands
 
@@ -74,7 +76,9 @@ class TACInstr(object):
         self.Src2 = None
         self.Dest = None
         self.SymTable = None
-        self.LineNo = instrTuple[0]
+        self.Label = None
+        self.TargetLabel = None
+        self.LineNo = int(instrTuple[0])
 
         # Process the instrTuple to populate the member fields
         self.InstrType = TACInstr.InstrMap[instrTuple[1]]
@@ -117,6 +121,7 @@ class TACInstr(object):
         elif self.isIfGoto():
             if len(instrTuple) == 6:    # Tuple: 4, ifgoto, relop, i, j, L
                 self.Target = int(instrTuple[5])
+                globjects.targetSet.add(self.Target)
                 self.Op = TACInstr.OpMap[instrTuple[2]]
                 self.Src1 = Operand(instrTuple[3])
                 self.Src2 = Operand(instrTuple[4])
@@ -126,12 +131,13 @@ class TACInstr(object):
         elif self.isGoto():
             if len(instrTuple) == 3:    # Tuple: 5, goto, L1
                 self.Target = int(instrTuple[2])
+                globjects.targetSet.add(self.Target)
             else:
-                # Error
+                # TODO: Error
                 pass
-        elif self.isCall():
+        elif self.isCall(): # TODO: Calling to be implemented with label
             if len(instrTuple) == 3:    # Tuple: 6, call, foo
-                pass
+                self.TargetLabel = instrTuple[2]
             else:
                 # Error
                 pass
@@ -140,6 +146,12 @@ class TACInstr(object):
                 self.Src1 = Operand(instrTuple[2])
             elif len(instrTuple) == 2:    # Tuple: 8, ret
                 pass
+            else:
+                # Error
+                pass
+        elif self.isLabel():
+            if len(instrTuple) == 3:    # Tuple: 9, label, name
+                self.Label = instrTuple[2]
             else:
                 # Error
                 pass
@@ -157,12 +169,12 @@ class TACInstr(object):
             }
 
     # Types of instructions
-    ASSIGN, IFGOTO, GOTO, CALL, RETURN = range(5)
+    ASSIGN, IFGOTO, GOTO, CALL, RETURN, LABEL = range(6)
 
     # Instruction map
     InstrMap = {
                 "="     : ASSIGN,      "ifgoto"     : IFGOTO,      "goto"     : GOTO,
-                "call"  : CALL,        "ret"        : RETURN
+                "call"  : CALL,        "ret"        : RETURN,      "label"    : LABEL
                }
 
     # Methods to check type of the instruction 
@@ -176,6 +188,10 @@ class TACInstr(object):
         return self.InstrType == TACInstr.CALL
     def isReturn(self):
         return self.InstrType == TACInstr.RETURN
+    def isLabel(self):
+        return self.InstrType == TACInstr.LABEL
+    def isTarget(self):
+        return self.LineNo in globjects.targetSet
 
     # Auxiliary methods
     def getVarSet(self):

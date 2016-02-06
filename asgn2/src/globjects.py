@@ -1,7 +1,5 @@
 # Contains all the global variables used in the code generator.
 
-import tacinstr, codegen, machine, basicblock
-
 # Variable to store the number of machine registers
 numRegs = 6
 
@@ -15,4 +13,13 @@ registerMap = {}
 varMap = {}
 
 # Object to instantiate the data section
-data = machine.Data()
+data = None
+
+# Current Instruction Variable
+currInstr = None
+
+# Set of Targets
+targetSet = set()
+
+# Set of Labels
+labelSet = set()

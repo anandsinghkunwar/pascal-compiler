@@ -1,9 +1,9 @@
+import globjects
+
 # Contains a model of the machine assembly code
 #   - a class to implement machine registers
 #   - a class to implement the (global) data region
 #   - a class to implement the code section
-
-import tacinstr, basicblock, codegen
 
 # Class to implement machine registers.
 # The member variable varNames acts as a register descriptor,
@@ -19,9 +19,18 @@ class Register(object):
 
     def addVar(self, varName):
         self.varNames.add(varName)
+        globjects.varMap[varName].reg = self
+
+    def removeVar(self, varName):
+        self.varNames.remove(varName)
+        globjects.varMap[varName].reg = None
 
     def spill(self):
-        pass
+        for varName in self.varNames:
+            globjects.varMap[varName].reg = None
+        self.varNames = set()
+        #add mov instruction
+
 
 # Class to implement the global data region. For now, we allow
 # only integers to be allocated.
