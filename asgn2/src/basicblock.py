@@ -24,7 +24,7 @@ class BasicBlock(object):
 #          * If not, x has no next use then spills furthest use register and returns
 #          * If not, returns memory location of x
 #  Returns:
-#      tuple of (boolean, reg/memory)
+#      tuple of (reg/memory, boolean)
 #          * true means that it returned y's register
     def getReg(self):
         varName = G.currInstr.Src1.operand.name
