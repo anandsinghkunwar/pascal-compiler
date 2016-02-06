@@ -55,7 +55,10 @@ class BasicBlock(object):
         return None
     def getOccupiedRegister():
         maxNextUse = 0
+        unavailableReg = [G.varMap[varName].reg for varName in G.currInstr.getVarSet()]
         for regName in G.regNames:
+            if regName in unavailableReg:
+                continue
             if not G.registerMap[regName].isEmpty():
                 nextUseList = [G.currInstr.SymTable[varName].nextUse
                     for varName in G.registerMap[regName].varNames
