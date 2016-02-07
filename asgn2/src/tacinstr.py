@@ -95,16 +95,19 @@ class TACInstr(object):
                 else:
                     self.Dest = dest
                     self.Src1 = src1
-            elif len(instrTuple) == 5:   # Assignment with unary op: 2, =, -, g, f
+            elif len(instrTuple) == 5:
                 dest = Operand(instrTuple[3])
-                src1 = Operand(instrTuple[4])
                 if not dest.isVar():
                     # Error
                     pass
                 else:
                     self.Dest = dest
-                    self.Src1 = src1
                     self.Op = TACInstr.OpMap[instrTuple[2]]
+                    if self.Op == CALL:         # Special unary op: 9, =, call, a, foo
+                        self.TargetLabel = instrTuple[4]
+                    else:               # Assignment with unary op: 2, =, -, g, f
+                        src1 = Operand(instrTuple[4])
+                        self.Src1 = src1
             elif len(instrTuple) == 6:   # Assignment with binary op: 3, =, +, a, b, c
                 dest = Operand(instrTuple[3])
                 src1 = Operand(instrTuple[4])
@@ -190,7 +193,7 @@ class TACInstr(object):
                 ">="    : GEQ,      "<="    : LEQ,      "<>"    : NEQ,
                 "<<"    : SHL,      ">>"    : SHR,      "and"   : AND,
                 "not"   : NOT,      "or"    : OR,       "mod"   : MOD,
-                "xor"   : XOR,      "=="    : EQ
+                "xor"   : XOR,      "=="    : EQ,       "call"  : CALL
             }
 
     # Types of instructions
