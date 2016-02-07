@@ -13,7 +13,7 @@ class SymTabEntry(object):
         self.name = name
         self.liveStatus = True
         self.nextUse = None
-    def isLive():
+    def isLive(self):
         return self.liveStatus
 # Class to define an address descriptor table entry (for variables).
 # Member variables:
