@@ -118,7 +118,17 @@ def translateBlock(bb):
         elif instr.isCall():    #call func_name
             string += "call " + instr.TargetLabel + "\n"
         elif instr.isReturn():
-            pass
+            if instr.Src1:
+                globjects.registerMap["eax"].spill()
+                if instr.Src1.isInt():
+                    string += indent + "movl $" + str(instr.Src1.operand) + ",%eax\n"
+                elif instr.Src1.operand.reg:
+                    string += indent + "movl %" + instr.Src1.operand.reg.name + ",%eax\n"
+                else:
+                    string += indent + "movl " + instr.Src1.operand.name + ",%eax\n"
+                string += indent + "ret\n"
+            else:
+                string += indent + "ret\n"
         elif instr.isLabel():   #label func_name
             string = instr.Label + ":\n"
         else:   #error
