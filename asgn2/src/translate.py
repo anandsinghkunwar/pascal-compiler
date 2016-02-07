@@ -13,10 +13,6 @@ def translateBlock(bb):
             if instr.Src2:  #assignment with binary operator    x = y op z
                 location = bb.getReg()
                 loc = location[0]
-                if not type(loc) == machine.Register:
-                    loc = machine.getEmptyRegister()
-                    if not loc:
-                        loc = machine.getOccupiedRegister()
                 if instr.Src1.isInt():  # y is integer
                     string +=  indent + "movl $" + str(instr.Src1.operand) + ",%" + loc.name + "\n"
                 elif location[1]:   # y is variable and getReg returned y's register. so loc has y's value
