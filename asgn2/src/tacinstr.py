@@ -156,7 +156,7 @@ class TACInstr(object):
                 # Error
                 pass
     # Types of operations
-    ADD, SUB, MULT, DIV, GT, LT, GEQ, LEQ, NEQ, SHL, SHR, AND, NOT, OR, MOD, XOR = range(16)
+    ADD, SUB, MULT, DIV, EQ, GT, LT, GEQ, LEQ, NEQ, SHL, SHR, AND, NOT, OR, MOD, XOR = range(17)
 
     # Operation map
     OpMap = {
@@ -165,7 +165,7 @@ class TACInstr(object):
                 ">="    : GEQ,      "<="    : LEQ,      "<>"    : NEQ,
                 "<<"    : SHL,      ">>"    : SHR,      "and"   : AND,
                 "not"   : NOT,      "or"    : OR,       "mod"   : MOD,
-                "xor"   : XOR
+                "xor"   : XOR,      "=="    : EQ
             }
 
     # Types of instructions
