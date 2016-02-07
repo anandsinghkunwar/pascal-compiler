@@ -79,6 +79,8 @@ class TACInstr(object):
         self.Label = None
         self.TargetLabel = None
         self.LineNo = int(instrTuple[0])
+        self.IOFmtString = ''
+        self.IOArgList = []
 
         # Process the instrTuple to populate the member fields
         self.InstrType = TACInstr.InstrMap[instrTuple[1]]
@@ -155,6 +157,28 @@ class TACInstr(object):
             else:
                 # Error
                 pass
+        elif self.isPrintf():           # Tuple: 10, printf, fmt_string, args...
+            if len(instrTuple) >= 3:
+                self.IOFmtString = instrTuple[2]
+                self.IOArgList = [Operand(arg) for arg in instrTuple[3:]]
+            else:
+                # Error
+                pass
+        elif self.isScanf():            # Tuple: 11, scanf, fmt_string, args...
+            if len(instrTuple) >= 3:
+                self.IOFmtString = instrTuple[2]
+                self.IOArgList = [Operand(arg) for arg in instrTuple[3:]]
+                for arg in self.IOArgList:
+                    if arg.isInt():
+                        # Error
+                        pass
+            else:
+                # Error
+                pass
+        else:
+            # Error
+            pass
+
 
     # Types of operations
     ADD, SUB, MULT, DIV, EQ, GT, LT, GEQ, LEQ, NEQ, SHL, SHR, AND, NOT, OR, MOD, XOR = range(17)
@@ -170,13 +194,13 @@ class TACInstr(object):
             }
 
     # Types of instructions
-    ASSIGN, IFGOTO, GOTO, CALL, RETURN, LABEL, PRINTF, SCANF, EXIT = range(9)
+    ASSIGN, IFGOTO, GOTO, CALL, RETURN, LABEL, PRINTF, SCANF = range(8)
 
     # Instruction map
     InstrMap = {
                 "="     : ASSIGN,      "ifgoto"     : IFGOTO,      "goto"     : GOTO,
                 "call"  : CALL,        "ret"        : RETURN,      "label"    : LABEL,
-                "printf": PRINTF,      "scanf"      : SCANF,       "exit"     : EXIT
+                "printf": PRINTF,      "scanf"      : SCANF
                }
 
     # Methods to check type of the instruction 
