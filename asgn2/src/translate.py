@@ -82,22 +82,31 @@ def translateBlock(bb):
                             string += indent + "xchgl %ecx," + instr.Src2.operand.name + "\n"
                     instr.Dest.operand.loadIntoReg(loc.name)
             elif instr.Op:  #assignment wirh unary operator a = op b
-                if instr.Src1.operand.reg:  #b exists in a register
-                    loc = instr.Src1.operand.reg
-                else:
-                    loc = bb.getReg()
-                    loc = loc[0]
-                if instr.Src1.isInt():  #b is integer
-                    string += indent + "movl $" + str(instr.Src1.operand) + ",%" + loc.name + "\n"
-                elif not instr.Src1.operand.reg:   #b is in memory
-                    string += indent + "movl " + instr.Src1.operand.name + ",%" + loc.name + "\n"
-                if instr.Op == tacinstr.TACInstr.SUB:
-                    string += indent + "imul $-1,%" + loc.name + "\n"
-                elif instr.Op == tacinstr.TACInstr.NOT:
-                    string += indent + "notl %" + loc.name + "\n"
+                if instr.Src1:
+                    if instr.Src1.operand.reg:  #b exists in a register
+                        loc = instr.Src1.operand.reg
+                    else:
+                        loc = bb.getReg()
+                        loc = loc[0]
+                    if instr.Src1.isInt():  #b is integer
+                        string += indent + "movl $" + str(instr.Src1.operand) + ",%" + loc.name + "\n"
+                    elif not instr.Src1.operand.reg:   #b is in memory
+                        string += indent + "movl " + instr.Src1.operand.name + ",%" + loc.name + "\n"
+                    if instr.Op == tacinstr.TACInstr.SUB:
+                        string += indent + "imul $-1,%" + loc.name + "\n"
+                    elif instr.Op == tacinstr.TACInstr.NOT:
+                        string += indent + "notl %" + loc.name + "\n"
+                    else:   #error
+                        pass
+                    instr.Dest.operand.loadIntoReg(loc.name)
+                elif instr.Op == tacinstr.TACInstr.CALL:   # a = call func_name
+                    string += indent + "call " + instr.TargetLabel + "\n"
+                    if instr.Dest.operand.reg:
+                        string += indent + "movl %eax,%" + instr.Dest.operand.reg.name + "\n"
+                    else:
+                        string += indent + "movl %eax," + instr.Dest.operand.name + "\n"
                 else:   #error
-                    pass
-                instr.Dest.operand.loadIntoReg(loc.name)
+                    pass                
             else:   #basic assignment   a = b
                 if instr.Src1.isInt():  #b is integer
                     if instr.Dest.operand.reg:  #a is in a register
