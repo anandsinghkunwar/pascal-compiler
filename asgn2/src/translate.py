@@ -72,7 +72,7 @@ def translateBlock(bb):
                         if instr.Src2.operand.reg.name != "ecx" and (instr.Op == tacinstr.TACInstr.SHL or instr.Op == tacinstr.TACInstr.SHR):
                             G.text.string += indent + "xchgl %ecx,%" + instr.Src2.operand.reg.name + "\n"
                         G.text.string += indent + op + " %" + instr.Src2.operand.reg.name + ",%" + loc.name + "\n"
-                        if instr.Src2.operand.reg.name != "ecx" and (oinstr.Op == tacinstr.TACInstr.SHL or instr.Op == tacinstr.TACInstr.SHR):
+                        if instr.Src2.operand.reg.name != "ecx" and (instr.Op == tacinstr.TACInstr.SHL or instr.Op == tacinstr.TACInstr.SHR):
                             G.text.string += indent + "xchgl %ecx,%" + instr.Src2.operand.reg.name + "\n"
                     else:   #z doesn't exist in a register
                         if instr.Src2.operand.reg.name != "ecx" and (instr.Op == tacinstr.TACInstr.SHL or instr.Op == tacinstr.TACInstr.SHR):
