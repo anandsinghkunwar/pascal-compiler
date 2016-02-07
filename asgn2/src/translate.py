@@ -11,30 +11,75 @@ def translateBlock(bb):
         string = ".LABEL_" + str(instr.LineNo) + ":\n"
         if instr.isAssign():
             if instr.Src2:  #assignment with binary operator    x = y op z
-                location = bb.getReg()
-                loc = location[0]
-                if instr.Src1.isInt():  # y is integer
-                    string +=  indent + "movl $" + str(instr.Src1.operand) + ",%" + loc.name + "\n"
-                elif location[1]:   # y is variable and getReg returned y's register. so loc has y's value
-                    pass
-                else:   # y is a variable and loc doesn't have y's value
-                    string += indent + "movl " + instr.Src1.operand.name + ",%" + loc.name + "\n"
                 op = getOperator(instr.Op)
-                if instr.Src2.isInt():
-                    string += indent + op + " $" + str(instr.Src2.operand) + ",%" + loc.name + "\n"
-                elif instr.Src2.operand.reg:    #z exists in a register
-                    if instr.Src2.operand.reg.name != "ecx" and (op == "sal" or op == "sar"):
-                        string += indent + "xchgl %ecx,%" + instr.Src2.operand.reg.name + "\n"
-                    string += indent + op + " %" + instr.Src2.operand.reg.name + ",%" + loc.name + "\n"
-                    if instr.Src2.operand.reg.name != "ecx" and (op == "sal" or op == "sar"):
-                        string += indent + "xchgl %ecx,%" + instr.Src2.operand.reg.name + "\n"
-                else:   #z doesn't exist in a register
-                    if instr.Src2.operand.reg.name != "ecx" and (op == "sal" or op == "sar"):
-                        string += indent + "xchgl %ecx," + instr.Src2.operand.name + "\n"
-                    string += indent + op + " " + instr.Src2.operand.name + ",%" + loc.name + "\n"
-                    if instr.Src2.operand.reg.name != "ecx" and (op == "sal" or op == "sar"):
-                        string += indent + "xchgl %ecx," + instr.Src2.operand.name + "\n"
-                instr.Dest.operand.loadIntoReg(loc.name)
+                if op == "idiv" or op == "mod":
+                    string += indent + "pushl %eax\n" + indent + "pushl %edx\n"
+                    if instr.Src2.isInt():  # z is integer
+                        string += indent + "pushl $" + str(instr.Src2.operand) + "\n"
+                    elif instr.Src2.operand.reg:    # z is in register
+                        string += indent + "pushl %" + instr.Src2.operand.reg.name + "\n"
+                    else:   # z is in memory
+                        string += indent + "pushl " + instr.Src2.operand.name + "\n"
+                    if instr.Src1.isInt():  # y is integer
+                        string += indent + "movl $" + str(instr.Src1.operand) + ",%eax\n"
+                    elif instr.Src1.operand.reg:    # y is in register
+                        string += indent + "movl %" + instr.Src1.operand.reg.name + ",%eax\n"
+                    else:   # y is in memory
+                        string += indent + "movl " + instr.Src1.operand.name + ",%eax\n"
+                    string += indent + "cltd\n"  # split eax into edx:eax for division
+                    string += indent + "idiv (%esp)\n"
+                    if op == "idiv":
+                        if instr.Dest.operand.reg:  # x is in register
+                            string += indent + "movl %eax,%" + instr.Dest.operand.reg.name + "\n"
+                        else:   # x is in memory
+                            string += indent + "movl %eax," + instr.Dest.operand.name + "\n"
+                    else:   # op == "mod"
+                        if instr.Dest.operand.reg:  # x is in register
+                            string += indent + "movl %edx,%" + instr.Dest.operand.reg.name + "\n"
+                        else:   # x is in memory
+                            string += indent + "movl %edx," + instr.Dest.operand.name + "\n"
+                    # restoring the stack and registers
+                    if instr.Dest.operand.reg:
+                        if instr.Dest.operand.reg.name == "eax":
+                            string += indent + "popl %edx\n"    # z value popped from stack
+                            string += indent + "popl %edx\n"    # restoring edx
+                            string += indent + "addl $4,%esp\n" # restoring stack so that eax value on stack can be overwritten
+                        elif instr.Dest.operand.reg.name == "edx":
+                            string += indent + "popl %eax\n"    # removing z from stack
+                            string += indent + "popl %eax\n"    # removing edx(original value of x) stored on stack
+                            string += indent + "popl %eax\n"    # restoring eax
+                        else:
+                            string += indent + "popl %edx\n"    # z value popped from stack
+                            string += indent + "popl %edx\n"    # restoring edx
+                            string += indent + "popl %eax\n"    # restoring eax
+                    else:
+                        string += indent + "popl %edx\n"    # z value popped from stack
+                        string += indent + "popl %edx\n"    # restoring edx
+                        string += indent + "popl %eax\n"    # restoring eax
+                else:
+                    location = bb.getReg()
+                    loc = location[0]
+                    if instr.Src1.isInt():  # y is integer
+                        string += indent + "movl $" + str(instr.Src1.operand) + ",%" + loc.name + "\n"
+                    elif location[1]:   # y is variable and getReg returned y's register. so loc has y's value
+                        pass
+                    else:   # y is a variable and loc doesn't have y's value
+                        string += indent + "movl " + instr.Src1.operand.name + ",%" + loc.name + "\n"
+                    if instr.Src2.isInt():
+                        string += indent + op + " $" + str(instr.Src2.operand) + ",%" + loc.name + "\n"
+                    elif instr.Src2.operand.reg:    #z exists in a register
+                        if instr.Src2.operand.reg.name != "ecx" and (op == "sal" or op == "sar"):
+                            string += indent + "xchgl %ecx,%" + instr.Src2.operand.reg.name + "\n"
+                        string += indent + op + " %" + instr.Src2.operand.reg.name + ",%" + loc.name + "\n"
+                        if instr.Src2.operand.reg.name != "ecx" and (op == "sal" or op == "sar"):
+                            string += indent + "xchgl %ecx,%" + instr.Src2.operand.reg.name + "\n"
+                    else:   #z doesn't exist in a register
+                        if instr.Src2.operand.reg.name != "ecx" and (op == "sal" or op == "sar"):
+                            string += indent + "xchgl %ecx," + instr.Src2.operand.name + "\n"
+                        string += indent + op + " " + instr.Src2.operand.name + ",%" + loc.name + "\n"
+                        if instr.Src2.operand.reg.name != "ecx" and (op == "sal" or op == "sar"):
+                            string += indent + "xchgl %ecx," + instr.Src2.operand.name + "\n"
+                    instr.Dest.operand.loadIntoReg(loc.name)
             elif instr.Op:  #assignment wirh unary operator a = op b
                 if instr.Src1.operand.reg:  #b exists in a register
                     loc = instr.Src1.operand.reg
