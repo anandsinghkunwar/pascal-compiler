@@ -103,7 +103,7 @@ class TACInstr(object):
                 else:
                     self.Dest = dest
                     self.Op = TACInstr.OpMap[instrTuple[2]]
-                    if self.Op == CALL:         # Special unary op: 9, =, call, a, foo
+                    if self.Op == TACInstr.CALL:         # Special unary op: 9, =, call, a, foo
                         self.TargetLabel = instrTuple[4]
                     else:               # Assignment with unary op: 2, =, -, g, f
                         src1 = Operand(instrTuple[4])
@@ -184,7 +184,7 @@ class TACInstr(object):
 
 
     # Types of operations
-    ADD, SUB, MULT, DIV, EQ, GT, LT, GEQ, LEQ, NEQ, SHL, SHR, AND, NOT, OR, MOD, XOR = range(17)
+    ADD, SUB, MULT, DIV, EQ, GT, LT, GEQ, LEQ, NEQ, SHL, SHR, AND, NOT, OR, MOD, XOR, CALL = range(18)
 
     # Operation map
     OpMap = {
