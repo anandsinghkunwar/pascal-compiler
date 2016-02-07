@@ -21,7 +21,7 @@ def translateBlock(bb):
                     string +=  indent + "movl $" + str(instr.Src1.operand) + ",%" + loc.name + "\n"
                 elif location[1]:   # y is variable and getReg returned y's register. so loc has y's value
                     pass
-                else:   # y is a variable and loc dosen't have y's value
+                else:   # y is a variable and loc doesn't have y's value
                     string += indent + "movl " + instr.Src1.operand.name + ",%" + loc.name + "\n"
                 op = getOperator(instr.op)
                 if instr.Src2.isInt():
@@ -34,7 +34,7 @@ def translateBlock(bb):
                     string += indent + op + " %" + instr.Src2.operand.reg.name + ",%" + loc.name + "\n"
                     if flag:
                         string += indent + "xchgl %ecx,%" + instr.Src2.operand.reg.name + "\n"
-                else:   #z dosen't exist in a register
+                else:   #z doesn't exist in a register
                     flag = False
                     if instr.Src2.reg.name != "ecx" and (op == "sal" or op == "sar"):
                         string += indent + "xchgl %ecx," + instr.Src2.operand.name + "\n"
@@ -60,15 +60,23 @@ def translateBlock(bb):
             pass
 
 def getOperator(op):
-    if op == 0:
+    if op == tacinstr.ADD:
         return "addl"
-    elif op == 1:
+    elif op == tacinstr.SUB:
         return "subl"
-    elif op == 2:
+    elif op == tacinstr.MULT:
         return "imul"
-    elif op == 3:   #div consumes too many registers, will handle later
+    elif op == tacinstr.DIV:   #div consumes too many registers, will handle later
         pass
-    elif op == 9:
+    elif op == tacinstr.SHL:
         return "sal"
-    elif op == 10:
+    elif op == tacinstr.SHR:
         return "sar"
+    elif op == tacinstr.AND:
+        return "andl"
+    elif op == tacinstr.OR:
+        return "orl"
+    elif op == tacinstr.XOR:
+        return "xorl"
+    elif op == tacinstr.MOD:    #use div and get result from edx
+        pass
