@@ -96,17 +96,16 @@ def translateBlock(bb):
                         string += indent + "imul $-1,%" + loc.name + "\n"
                     elif instr.Op == tacinstr.TACInstr.NOT:
                         string += indent + "notl %" + loc.name + "\n"
-                    else:   #error
+                    elif instr.Op == tacinstr.TACInstr.ADD:
                         pass
+                    else:
+                        globjects.halt(instr.LineNo, "undefined unary operator")
                     instr.Dest.operand.loadIntoReg(loc.name)
                 elif instr.Op == tacinstr.TACInstr.CALL:   # a = call func_name
                     string += indent + "call " + instr.TargetLabel + "\n"
-                    if instr.Dest.operand.reg:
-                        string += indent + "movl %eax,%" + instr.Dest.operand.reg.name + "\n"
-                    else:
-                        string += indent + "movl %eax," + instr.Dest.operand.name + "\n"
-                else:   #error
-                    pass                
+                    string += indent + "movl %eax," + instr.Dest.operand.name + "\n"
+                else:
+                    globjects.halt(instr.LineNo, "invalid assignment instruction with unary operator")
             else:   #basic assignment   a = b
                 if instr.Src1.isInt():  #b is integer
                     if instr.Dest.operand.reg:  #a is in a register
@@ -166,8 +165,8 @@ def translateBlock(bb):
                 string += indent + "je "
             elif instr.Op == tacinstr.TACInstr.NEQ:
                 string += indent + "jne "
-            else:   #error
-                pass
+            else:
+                globjects.halt(instr.LineNo, "undefined relational operator")
             string += ".LABEL_" + str(instr.Target) + "\n"
 ######################################################  isGoto instruction #######################################################
         elif instr.isGoto():    #goto line_no
@@ -191,8 +190,8 @@ def translateBlock(bb):
 ######################################################  isLabel instruction ######################################################
         elif instr.isLabel():   #label func_name
             string = instr.Label + ":\n"
-        else:   #error
-            pass
+        else:
+            globjects.halt(instr.LineNo, "unsupported instruction")
         print string
 
 def getMnemonic(op):
