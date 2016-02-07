@@ -9,6 +9,7 @@ def translateBlock(bb):
     for instr in bb.instrList:
         globjects.currInstr = instr
         string = ".LABEL_" + str(instr.LineNo) + ":\n"
+######################################################  assignment instruction ###################################################
         if instr.isAssign():
             if instr.Src2:  #assignment with binary operator    x = y op z
                 op = getMnemonic(instr.Op)
@@ -117,6 +118,7 @@ def translateBlock(bb):
                         loc = loc[0]
                         string += indent + "movl " + instr.Src1.operand.name + ",%" + loc.name + "\n"
                         instr.Dest.operand.loadIntoReg(loc.name)
+######################################################  isIfGoto instruction #####################################################
         elif instr.isIfGoto():  # if i relop j jump L
             if instr.Src1.isInt():  # i is integer. cmpl should not have immediate as first argument
                 string += indent + "pushl $" + str(instr.Src1.operand) + "\n"
@@ -158,10 +160,13 @@ def translateBlock(bb):
             else:   #error
                 pass
             string += ".LABEL_" + str(instr.Target) + "\n"
+######################################################  isGoto instruction #######################################################
         elif instr.isGoto():    #goto line_no
             string += indent + "jmp .LABEL_" + str(instr.Target) + "\n"
+######################################################  isCall instruction #######################################################
         elif instr.isCall():    #call func_name
             string += indent + "call " + instr.TargetLabel + "\n"
+######################################################  isReturn instruction #####################################################
         elif instr.isReturn():
             if instr.Src1:
                 globjects.registerMap["eax"].spill()
@@ -174,6 +179,7 @@ def translateBlock(bb):
                 string += indent + "ret\n"
             else:
                 string += indent + "ret\n"
+######################################################  isLabel instruction ######################################################
         elif instr.isLabel():   #label func_name
             string = instr.Label + ":\n"
         else:   #error
