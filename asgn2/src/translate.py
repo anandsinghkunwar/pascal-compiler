@@ -40,8 +40,24 @@ def translateBlock(bb):
                         string += indent + "xchgl %ecx," + instr.Src2.operand.name + "\n"
                 instr.Dest.operand.loadIntoRegister(loc.name)
                 loc.addVar(instr.Dest.operand.name)
-            elif instr.Op:  #assignment wirh unary operator
-                pass
+            elif instr.Op:  #assignment wirh unary operator a = op b
+                if instr.Src1.reg:  #b exists in a register
+                    loc = instr.Src1.reg
+                else:
+                    loc = bb.getReg()
+                    loc = loc[0]
+                if instr.Src1.isInt():  #b is integer
+                    string += indent + "movl $" + str(instr.Src1.operand) + ",%" + loc.name + "\n"
+                elif not instr.Src1.reg:   #b is in memory
+                    string += indent + "movl " + instr.Src1.operand.name + ",%" + loc.name + "\n"
+                if instr.op == tacinstr.TACInstr.SUB:
+                    string += indent + "imul $-1,%" + loc.name + "\n"
+                elif instr.op == tacinstr.TACInstr.NOT:
+                    string += indent + "notl %" + loc.name + "\n"
+                else:   #error
+                    pass
+                instr.Dest.operand.loadIntoRegister(loc.name)
+                loc.addVar(instr.Dest.operand.name)
             else:           #basic assignment
                 pass
         elif instr.isIfGoto():
@@ -56,23 +72,23 @@ def translateBlock(bb):
             pass
 
 def getOperator(op):
-    if op == tacinstr.ADD:
+    if op == tacinstr.TACInstr.ADD:
         return "addl"
-    elif op == tacinstr.SUB:
+    elif op == tacinstr.TACInstr.SUB:
         return "subl"
-    elif op == tacinstr.MULT:
+    elif op == tacinstr.TACInstr.MULT:
         return "imul"
-    elif op == tacinstr.DIV:   #div consumes too many registers, will handle later
+    elif op == tacinstr.TACInstr.DIV:   #div consumes too many registers, will handle later
         pass
-    elif op == tacinstr.SHL:
+    elif op == tacinstr.TACInstr.SHL:
         return "sal"
-    elif op == tacinstr.SHR:
+    elif op == tacinstr.TACInstr.SHR:
         return "sar"
-    elif op == tacinstr.AND:
+    elif op == tacinstr.TACInstr.AND:
         return "andl"
-    elif op == tacinstr.OR:
+    elif op == tacinstr.TACInstr.OR:
         return "orl"
-    elif op == tacinstr.XOR:
+    elif op == tacinstr.TACInstr.XOR:
         return "xorl"
-    elif op == tacinstr.MOD:    #use div and get result from edx
+    elif op == tacinstr.TACInstr.MOD:    #use div and get result from edx
         pass
