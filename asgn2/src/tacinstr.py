@@ -67,7 +67,6 @@ class Operand(object):
 
 # Class to define a Three Address Code Instruction (TACInstr).
 class TACInstr(object):
-
     def __init__(self, instrTuple):
         self.InstrType = None
         self.Target = None
@@ -79,7 +78,7 @@ class TACInstr(object):
         self.Label = None
         self.TargetLabel = None
         self.LineNo = int(instrTuple[0])
-        self.IOFmtString = ''
+        self.IOFmtStringAddr = None
         self.IOArgList = []
 
         # Process the instrTuple to populate the member fields
@@ -162,14 +161,14 @@ class TACInstr(object):
                 pass
         elif self.isPrintf():           # Tuple: 10, printf, fmt_string, args...
             if len(instrTuple) >= 3:
-                self.IOFmtString = instrTuple[2]
+                self.IOFmtStringAddr = globjects.data.allocateMem('.STR'+str(self.LineNo), instrTuple[2])
                 self.IOArgList = [Operand(arg) for arg in instrTuple[3:]]
             else:
                 # Error
                 pass
         elif self.isScanf():            # Tuple: 11, scanf, fmt_string, args...
             if len(instrTuple) >= 3:
-                self.IOFmtString = instrTuple[2]
+                self.IOFmtStringAddr = globjects.data.allocateMem('.STR'+str(self.LineNo), instrTuple[2])
                 self.IOArgList = [Operand(arg) for arg in instrTuple[3:]]
                 for arg in self.IOArgList:
                     if arg.isInt():

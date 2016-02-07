@@ -28,7 +28,7 @@ class Register(object):
     def spill(self):
         for varName in self.varNames:
             globjects.varMap[varName].reg = None
-            print " "*4 + "movl %" + self.name + "," + varname + ""*4 + ";Spilling register\n"
+            print " "*4 + "movl %" + self.name + "," + varname + " "*4 + ";Spilling register\n"
         self.varNames = set()
 
 
@@ -38,28 +38,23 @@ class Data(object):
     def __init__(self):
         self.dataDict = {}
 
-    def allocateMem(self, name):
-        self.dataDict["mem_" + name] = 0
-        return "mem_" + name
+    def allocateMem(self, name, value=0):
+        self.dataDict[name] = value
+        return name
 
     def isAllocated(self, name):
-        return self.dataDict.get("mem_" + name) != None
-
-    def assignVal(self, name, value):
-        if self.isAllocated(self, name):
-            self.dataDict["mem_" + name] = value
-        else:
-            pass    #handle error
-
-    def getVal(self, name):
-        if self.isAllocated(self, name):
-            return self.dataDict["mem_" + name]
-        else:
-            pass    #handle error
+        return self.dataDict.get(name) != None
 
     def generate(self):
         text = ".section .data\n"
-        align = " "*4
+        indent = " "*4
         for key in self.dataDict.keys():
-            text += key + ":\n" + align + ".long " + str(self.dataDict[key]) + "\n"
+            text += key + ":\n"
+            if type(self.dataDict[key]) == int:
+                text += indent + ".long " + str(self.dataDict[key]) + "\n"
+            elif type(self.dataDict[key]) == str:
+                text += indent + ".ascii" + str(self.dataDict[key]) + "\n"
         return text
+
+    def printDataSection(self):
+        print self.generate()

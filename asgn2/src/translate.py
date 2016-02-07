@@ -3,7 +3,7 @@ import tacinstr
 import basicblock
 import globjects
 
-indent = "    "
+indent = " "*4
 
 def translateBlock(bb):
     for instr in bb.instrList:
