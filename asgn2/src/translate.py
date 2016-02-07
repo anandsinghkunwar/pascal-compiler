@@ -13,7 +13,7 @@ def translateBlock(bb):
             if instr.Src2:  #assignment with binary operator    x = y op z
                 op = getMnemonic(instr.Op)
                 if instr.Op == tacinstr.TACInstr.DIV or instr.Op == tacinstr.TACInstr.MOD:
-                    string += indent + "pushl %eax\n" + indent + "pushl %edx\n"
+                    string += indent + "pushl %eax\n" + indent + "pushl %edx" + " "*4 +";clearing eax and edx for division\n"
                     if instr.Src2.isInt():  # z is integer
                         string += indent + "pushl $" + str(instr.Src2.operand) + "\n"
                     elif instr.Src2.operand.reg:    # z is in register
@@ -26,7 +26,7 @@ def translateBlock(bb):
                         string += indent + "movl %" + instr.Src1.operand.reg.name + ",%eax\n"
                     else:   # y is in memory
                         string += indent + "movl " + instr.Src1.operand.name + ",%eax\n"
-                    string += indent + "cltd\n"  # split eax into edx:eax for division
+                    string += indent + "cltd" + " "*4 +";splitting eax into edx:eax\n"  # split eax into edx:eax for division
                     string += indent + "idiv (%esp)\n"
                     if instr.Op == tacinstr.TACInstr.DIV:
                         if instr.Dest.operand.reg:  # x is in register
@@ -39,6 +39,7 @@ def translateBlock(bb):
                         else:   # x is in memory
                             string += indent + "movl %edx," + instr.Dest.operand.name + "\n"
                     # restoring the stack and registers
+                    string += indent + " "*4 + ";restoring stack and registers\n"
                     if instr.Dest.operand.reg:
                         if instr.Dest.operand.reg.name == "eax":
                             string += indent + "addl $4,%esp\n" # restoring stack so that z value on stack can be overwritten
