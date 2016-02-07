@@ -53,7 +53,7 @@ tokens = [
     'OP_PLUS','OP_MINUS','OP_MULT','OP_DIV_REAL',
     'OP_NEQ','OP_GT','OP_LT','OP_GEQ','OP_LEQ',
     'OP_POINTER','OP_ADDRESS',
-    'COMMA','SEMICOLON','COLON','COLON_EQUAL','LEFT_PARENTHESIS','RIGHT_PARENTHESIS','EQUAL','DOT',
+    'COMMA','SEMICOLON','COLON','COLON_EQUAL','LEFT_PARENTHESIS','RIGHT_PARENTHESIS','LEFT_SQUARE_BRACKETS','RIGHT_SQUARE_BRACKETS','EQUAL','DOT',
     'COMMENTS', 'NEWLINE','SPACE'
     ] + list(reserved.values())
 #have to take care of comments
@@ -75,6 +75,8 @@ t_COLON = r':'
 t_COLON_EQUAL = r':='
 t_LEFT_PARENTHESIS = r'\('
 t_RIGHT_PARENTHESIS = r'\)'
+t_LEFT_SQUARE_BRACKETS = r'\['
+t_RIGHT_SQUARE_BRACKETS = r'\]'
 t_EQUAL = r'='
 t_ignore_SPACE = r'\s'
 t_DOT = r'\.'
