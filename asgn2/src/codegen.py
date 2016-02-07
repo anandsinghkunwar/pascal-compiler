@@ -1,6 +1,6 @@
 # Main code generator module. Contains description of the
 # symbol table, register descriptor, address descriptor.
-import tacinstr, basicblock, machine, globjects
+import tacinstr, basicblock, machine, globjects, translate
 from itertools import tee, izip
 
 # Class to define the code generator
@@ -10,7 +10,7 @@ class Codegen(object):
         self.basicBlocks = []
         for regName in globjects.regNames:
             globjects.registerMap[regName] = machine.Register(regName)
-        globjects.data = machine.Data()
+
         self.computeBasicBlocks()
 
     # Method to compute basic blocks from the IR program
@@ -23,7 +23,8 @@ class Codegen(object):
         for leaderPair in pairwise(leaders):
             bb = basicblock.BasicBlock(self.program[leaderPair[0]-1:leaderPair[1]-1])
             self.basicBlocks.append(bb)
-
+        for basicBlock in self.basicBlocks:
+            translate.translateBlock(basicBlock)
 # Auxiliary function
 def pairwise(iterable):
     a, b = tee(iterable)
