@@ -15,6 +15,9 @@ varMap = {}
 # Object to instantiate the data section
 data = None
 
+# Object to instantiate the text section
+text = None
+
 # Current Instruction Variable
 currInstr = None
 

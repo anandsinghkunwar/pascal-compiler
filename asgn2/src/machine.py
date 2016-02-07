@@ -46,15 +46,33 @@ class Data(object):
         return self.dataDict.get(name) != None
 
     def generate(self):
-        text = ".section .data\n"
+        dataString = ".section .data\n"
         indent = " "*4
         for key in self.dataDict.keys():
-            text += key + ":\n"
+            dataString += key + ":\n"
             if type(self.dataDict[key]) == int:
-                text += indent + ".long " + str(self.dataDict[key]) + "\n"
+                dataString += indent + ".long " + str(self.dataDict[key]) + "\n"
             elif type(self.dataDict[key]) == str:
-                text += indent + ".ascii" + str(self.dataDict[key]) + "\n"
-        return text
+                dataString += indent + ".ascii" + str(self.dataDict[key]) + "\n"
+        return dataString
 
     def printDataSection(self):
+        print self.generate()
+
+# Class to implement the text region.
+class Text(object):
+    def __init__(self):
+        self.string = ''
+
+    def generate(self):
+        textString = ".section .text\n"
+        indent = " "*4
+        textString += indent + ".extern printf\n"
+        textString += indent + ".extern scanf\n"
+        textString += indent + ".globl main\n\n"
+        textString += "main: \n"
+        textString += self.string
+        return textString
+
+    def printTextSection(self):
         print self.generate()

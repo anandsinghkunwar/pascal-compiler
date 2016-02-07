@@ -10,7 +10,6 @@ class Codegen(object):
         self.basicBlocks = []
         for regName in globjects.regNames:
             globjects.registerMap[regName] = machine.Register(regName)
-
         self.computeBasicBlocks()
 
     # Method to compute basic blocks from the IR program
