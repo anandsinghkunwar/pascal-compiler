@@ -113,12 +113,14 @@ def translateBlock(bb):
             else:   #error
                 pass
             string += ".LABEL_" + str(instr.Target) + "\n"
-        elif instr.isGoto():
+        elif instr.isGoto():    #goto line_no
             string += "jmp .LABEL_" + str(instr.Target) + "\n"
-        elif instr.isCall():
-            pass
+        elif instr.isCall():    #call func_name
+            string += "call " + instr.TargetLabel + "\n"
         elif instr.isReturn():
             pass
+        elif instr.isLabel():   #label func_name
+            string = instr.Label + ":\n"
         else:   #error
             pass
         print string
