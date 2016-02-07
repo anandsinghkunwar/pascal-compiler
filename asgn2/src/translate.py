@@ -7,6 +7,10 @@ indent = " "*4
 
 def translateBlock(bb):
     for instr in bb.instrList:
+        # If we have reached the last instruction in the basic block, spill all registers.
+        if instr == bb.instrList[-1]:
+            for regName in G.regNames:
+                G.registerMap[regName].spill()
         G.currInstr = instr
         G.text.string = ".LABEL_" + str(instr.LineNo) + ":\n"
 ######################################################  assignment instruction ###################################################
