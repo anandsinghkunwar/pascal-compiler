@@ -57,8 +57,7 @@ class Operand(object):
                 globjects.varMap[string] = AddrDescEntry(string)
             self.operand = globjects.varMap[string]
         else:
-            # Error
-            pass
+            globjects.halt(-1, "unsupported operand type")
 
     def isInt(self):
         return self.operandType == Operand.INT
@@ -89,16 +88,14 @@ class TACInstr(object):
                 dest = Operand(instrTuple[2])
                 src1 = Operand(instrTuple[3])
                 if not dest.isVar():
-                    # Error
-                    pass
+                    globjects.halt(self.LineNo, instrTuple[2] + " is not a variable")
                 else:
                     self.Dest = dest
                     self.Src1 = src1
             elif len(instrTuple) == 5:
                 dest = Operand(instrTuple[3])
                 if not dest.isVar():
-                    # Error
-                    pass
+                    globjects.halt(self.LineNo, instrTuple[3] + " is not a variable")
                 else:
                     self.Dest = dest
                     self.Op = TACInstr.OpMap[instrTuple[2]]
@@ -112,16 +109,14 @@ class TACInstr(object):
                 src1 = Operand(instrTuple[4])
                 src2 = Operand(instrTuple[5])
                 if not dest.isVar():
-                    # Error
-                    pass
+                    globjects.halt(self.LineNo, instrTuple[3] + " is not a variable")
                 else:
                     self.Dest = dest
                     self.Src1 = src1
                     self.Src2 = src2
                     self.Op = TACInstr.OpMap[instrTuple[2]]
             else:
-                # Error
-                pass
+                globjects.halt(self.LineNo, "unsupported format for assignment instruction")
         elif self.isIfGoto():
             if len(instrTuple) == 6:    # Tuple: 4, ifgoto, relop, i, j, L
                 self.Target = int(instrTuple[5])
@@ -130,57 +125,47 @@ class TACInstr(object):
                 self.Src1 = Operand(instrTuple[3])
                 self.Src2 = Operand(instrTuple[4])
             else:
-                # Error
-                pass
+                globjects.halt(self.LineNo, "unsupported format for IfGoto instruction")
         elif self.isGoto():
             if len(instrTuple) == 3:    # Tuple: 5, goto, L1
                 self.Target = int(instrTuple[2])
                 globjects.targetSet.add(self.Target)
             else:
-                # TODO: Error
-                pass
+                globjects.halt(self.LineNo, "unsupported format for Goto instruction")
         elif self.isCall(): # TODO: Calling to be implemented with label
             if len(instrTuple) == 3:    # Tuple: 6, call, foo
                 self.TargetLabel = instrTuple[2]
             else:
-                # Error
-                pass
+                globjects.halt(self.LineNo, "unsupported format for call instruction")
         elif self.isReturn():
             if len(instrTuple) == 3:    # Tuple: 7, ret, retval
                 self.Src1 = Operand(instrTuple[2])
             elif len(instrTuple) == 2:    # Tuple: 8, ret
                 pass
             else:
-                # Error
-                pass
+                globjects.halt(self.LineNo, "unsupported format for return instruction")
         elif self.isLabel():
             if len(instrTuple) == 3:    # Tuple: 9, label, name
                 self.Label = instrTuple[2]
             else:
-                # Error
-                pass
+                globjects.halt(self.LineNo, "unsupported format for label instruction")
         elif self.isPrintf():           # Tuple: 10, printf, fmt_string, args...
             if len(instrTuple) >= 3:
                 self.IOFmtStringAddr = globjects.data.allocateMem('.STR'+str(self.LineNo), instrTuple[2])
                 self.IOArgList = [Operand(arg) for arg in instrTuple[3:]]
             else:
-                # Error
-                pass
+                globjects.halt(self.LineNo, "unsupported format for printf instruction")
         elif self.isScanf():            # Tuple: 11, scanf, fmt_string, args...
             if len(instrTuple) >= 3:
                 self.IOFmtStringAddr = globjects.data.allocateMem('.STR'+str(self.LineNo), instrTuple[2])
                 self.IOArgList = [Operand(arg) for arg in instrTuple[3:]]
                 for arg in self.IOArgList:
                     if arg.isInt():
-                        # Error
-                        pass
+                        globjects.halt(self.LineNo, "integer argumnet instead of memory address in scanf instruction")
             else:
-                # Error
-                pass
+                globjects.halt(self.LineNo, "too few arguments for scanf instruction")
         else:
-            # Error
-            pass
-
+            globjects.halt(self.LineNo, "unsupported instruction")
 
     # Types of operations
     ADD, SUB, MULT, DIV, EQ, GT, LT, GEQ, LEQ, NEQ, SHL, SHR, AND, NOT, OR, MOD, XOR, CALL = range(18)
