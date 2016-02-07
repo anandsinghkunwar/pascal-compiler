@@ -9,7 +9,7 @@ def translateBlock(bb):
     for instr in bb:
         globject.currInstr = instr
         string = ".LABEL_" + str(instr.LineNo) + ":\n"
-        if instr.isAssign:
+        if instr.isAssign():
             if instr.Src2:  #assignment with binary operator    x = y op z
                 location = bb.getReg()
                 loc = location[0]
@@ -33,12 +33,10 @@ def translateBlock(bb):
                     if instr.Src2.reg.name != "ecx" and (op == "sal" or op == "sar"):
                         string += indent + "xchgl %ecx,%" + instr.Src2.operand.reg.name + "\n"
                 else:   #z doesn't exist in a register
-                    flag = False
                     if instr.Src2.reg.name != "ecx" and (op == "sal" or op == "sar"):
                         string += indent + "xchgl %ecx," + instr.Src2.operand.name + "\n"
-                        flag = True
                     string += indent + op + " " + instr.Src2.operand.name + ",%" + loc.name + "\n"
-                    if flag:
+                    if instr.Src2.reg.name != "ecx" and (op == "sal" or op == "sar"):
                         string += indent + "xchgl %ecx," + instr.Src2.operand.name + "\n"
                 instr.Dest.operand.loadIntoRegister(loc.name)
                 loc.addVar(instr.Dest.operand.name)
@@ -46,13 +44,13 @@ def translateBlock(bb):
                 pass
             else:           #basic assignment
                 pass
-        elif instr.isIfGoto:
+        elif instr.isIfGoto():
             pass
-        elif instr.isGoto:
+        elif instr.isGoto():
             pass
-        elif instr.isCall:
+        elif instr.isCall():
             pass
-        elif instr.isReturn:
+        elif instr.isReturn():
             pass
         else:   #error
             pass
