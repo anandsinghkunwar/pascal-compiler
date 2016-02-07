@@ -158,9 +158,9 @@ def translateBlock(bb):
                 pass
             string += ".LABEL_" + str(instr.Target) + "\n"
         elif instr.isGoto():    #goto line_no
-            string += "jmp .LABEL_" + str(instr.Target) + "\n"
+            string += indent + "jmp .LABEL_" + str(instr.Target) + "\n"
         elif instr.isCall():    #call func_name
-            string += "call " + instr.TargetLabel + "\n"
+            string += indent + "call " + instr.TargetLabel + "\n"
         elif instr.isReturn():
             if instr.Src1:
                 globjects.registerMap["eax"].spill()
