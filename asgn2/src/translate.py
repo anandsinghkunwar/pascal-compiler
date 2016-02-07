@@ -72,8 +72,47 @@ def translateBlock(bb):
                         loc = loc[0]
                         string += indent + "movl " + instr.Src1.operand.name + ",%" + loc.name + "\n"
                         instr.Dest.operand.loadIntoReg(loc.name)
-        elif instr.isIfGoto():
-            pass
+        elif instr.isIfGoto():  # if i relop j jump L
+            if instr.Src1.isInt():  # i is integer. cmpl should not have immediate as first argument
+                string += indent + "pushl $" + str(instr.Src1.operand) + "\n"
+                if instr.Src2.isInt():
+                    string += indent + "cmpl $" + str(instr.Src2.operand) + ",(%esp)\n"
+                elif instr.Src2.operand.reg:
+                    string += indent + "cmpl %" + instr.Src2.operand.reg.name + ",(%esp)\n"
+                else:
+                    string += indent + "cmpl " + instr.Src2.operand.name + ",(%esp)\n"
+                string += indent + "addl $4,%esp\n"
+            elif instr.Src1.operand.reg:
+                if instr.Src2.isInt():
+                    string += indent + "cmpl $" + str(instr.Src2.operand)
+                elif instr.Src2.operand.reg:
+                    string += indent + "cmpl %" + instr.Src2.operand.reg.name
+                else:
+                    string += indent + "cmpl " + instr.Src2.operand.name
+                string += ",%" + instr.Src1.operand.reg.name + "\n"
+            else:
+                if instr.Src2.isInt():
+                    string += indent + "cmpl $" + str(instr.Src2.operand)
+                elif instr.Src2.operand.reg:
+                    string += indent + "cmpl %" + instr.Src2.operand.reg.name
+                else:
+                    string += indent + "cmpl " + instr.Src2.operand.name
+                string += "," + instr.Src1.operand.name + "\n"
+            if instr.Op == tacinstr.TACInstr.GEQ:
+                string += indent + "jge "
+            elif instr.Op == tacinstr.TACInstr.GT:
+                string += indent + "jg "
+            elif instr.Op == tacinstr.TACInstr.LEQ:
+                string += indent + "jle "
+            elif instr.Op == tacinstr.TACInstr.LT:
+                string += indent + "jl "
+            elif instr.Op == tacinstr.TACInstr.EQ:
+                string += indent + "je "
+            elif instr.Op == tacinstr.TACInstr.NEQ:
+                string += indent + "jne "
+            else:   #error
+                pass
+            string += ".LABEL_" + str(instr.Target) + "\n"
         elif instr.isGoto():
             pass
         elif instr.isCall():
