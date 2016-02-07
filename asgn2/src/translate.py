@@ -39,7 +39,6 @@ def translateBlock(bb):
                     if instr.Src2.reg.name != "ecx" and (op == "sal" or op == "sar"):
                         string += indent + "xchgl %ecx," + instr.Src2.operand.name + "\n"
                 instr.Dest.operand.loadIntoRegister(loc.name)
-                loc.addVar(instr.Dest.operand.name)
             elif instr.Op:  #assignment wirh unary operator a = op b
                 if instr.Src1.reg:  #b exists in a register
                     loc = instr.Src1.reg
@@ -57,7 +56,6 @@ def translateBlock(bb):
                 else:   #error
                     pass
                 instr.Dest.operand.loadIntoRegister(loc.name)
-                loc.addVar(instr.Dest.operand.name)
             else:           #basic assignment
                 pass
         elif instr.isIfGoto():
