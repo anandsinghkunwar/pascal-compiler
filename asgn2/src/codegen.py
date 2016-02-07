@@ -20,7 +20,7 @@ class Codegen(object):
             if instr.isIfGoto() or instr.isGoto():
                 leaders.add(instr.Target)
                 leaders.add(instr.LineNo + 1)
-            if instr.isCall():
+            if instr.isCall() or instr.isReturn():
                 leaders.add(instr.LineNo + 1)
             if instr.isLabel():
                 leaders.add(instr.LineNo)
