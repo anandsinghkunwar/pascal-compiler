@@ -14,6 +14,7 @@ from src import tacinstr, codegen, basicblock, globjects, machine
 # for printf and scanf.
 IRCode = []
 globjects.data = machine.Data()
+globjects.text = machine.Text()
 
 for line in fileinput.input():
     splitter = shlex.shlex(line, posix=True)
