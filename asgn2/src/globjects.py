@@ -23,3 +23,8 @@ targetSet = set()
 
 # Set of Labels
 labelSet = set()
+
+# Error handling function
+def halt(lineNo, errorMsg):
+    print lineNo + ": " + errorMsg + "\n"
+    exit()
