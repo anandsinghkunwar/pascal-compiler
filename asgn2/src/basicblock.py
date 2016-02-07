@@ -39,30 +39,27 @@ class BasicBlock(object):
         reg = self.getEmptyRegister()
         if reg:
             return reg, False
-        elif G.currInstr.Dest:
-            varName = G.currInstr.Dest.operand.name
-            if G.currInstr.SymTable[varName].nextUse:
-                reg = getOccupiedRegister()
-                #generate instructions here
-                return reg, False
-            else:
-                return G.currInstr.Dest.memAddr, False
+        varName = G.currInstr.Dest.operand.name
+        reg = self.getOccupiedRegister()
+        #generate instructions here
+        return reg, False
 
-    def getEmptyRegister():
+    def getEmptyRegister(self):
         for regName in G.regNames:
             if G.registerMap[regName].isEmpty():
                 return G.registerMap[regName]
         return None
-    def getOccupiedRegister():
+
+    def getOccupiedRegister(self):
         maxNextUse = 0
-        unavailableReg = [G.varMap[varName].reg for varName in G.currInstr.getVarSet()]
+        unavailableReg = [G.varMap[varName].reg.name for varName in G.currInstr.getVarSet()]
         for regName in G.regNames:
             if regName in unavailableReg:
                 continue
             if not G.registerMap[regName].isEmpty():
                 nextUseList = [G.currInstr.SymTable[varName].nextUse
-                    for varName in G.registerMap[regName].varNames
-                    if G.currInstr.SymTable[varName].nextUse != 0]
+                               for varName in G.registerMap[regName].varNames
+                               if G.currInstr.SymTable[varName].nextUse]
 
                 if nextUseList:
                     minNextUseReg = min(nextUseList)
@@ -75,6 +72,7 @@ class BasicBlock(object):
                     maxNextUse = minNextUseReg
         G.registerMap[maxNextRegName].spill()
         return G.registerMap[maxNextRegName]
+
     # Method: computeNextUses
     # Uses to initialise Symbol Table of all instructions in
     # the basic block and compute next uses for all variables
