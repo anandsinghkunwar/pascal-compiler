@@ -9,11 +9,12 @@ def translateBlock(bb):
     for instr in bb.instrList:
         globjects.currInstr = instr
         string = ".LABEL_" + str(instr.LineNo) + ":\n"
+######################################################  assignment instruction ###################################################
         if instr.isAssign():
             if instr.Src2:  #assignment with binary operator    x = y op z
                 op = getMnemonic(instr.Op)
                 if instr.Op == tacinstr.TACInstr.DIV or instr.Op == tacinstr.TACInstr.MOD:
-                    string += indent + "pushl %eax\n" + indent + "pushl %edx\n"
+                    string += indent + "pushl %eax\n" + indent + "pushl %edx" + " "*4 +";clearing eax and edx for division\n"
                     if instr.Src2.isInt():  # z is integer
                         string += indent + "pushl $" + str(instr.Src2.operand) + "\n"
                     elif instr.Src2.operand.reg:    # z is in register
@@ -26,7 +27,7 @@ def translateBlock(bb):
                         string += indent + "movl %" + instr.Src1.operand.reg.name + ",%eax\n"
                     else:   # y is in memory
                         string += indent + "movl " + instr.Src1.operand.name + ",%eax\n"
-                    string += indent + "cltd\n"  # split eax into edx:eax for division
+                    string += indent + "cltd" + " "*4 +";splitting eax into edx:eax\n"  # split eax into edx:eax for division
                     string += indent + "idiv (%esp)\n"
                     if instr.Op == tacinstr.TACInstr.DIV:
                         if instr.Dest.operand.reg:  # x is in register
@@ -39,6 +40,7 @@ def translateBlock(bb):
                         else:   # x is in memory
                             string += indent + "movl %edx," + instr.Dest.operand.name + "\n"
                     # restoring the stack and registers
+                    string += indent + " "*4 + ";restoring stack and registers\n"
                     if instr.Dest.operand.reg:
                         if instr.Dest.operand.reg.name == "eax":
                             string += indent + "addl $4,%esp\n" # restoring stack so that z value on stack can be overwritten
@@ -116,6 +118,7 @@ def translateBlock(bb):
                         loc = loc[0]
                         string += indent + "movl " + instr.Src1.operand.name + ",%" + loc.name + "\n"
                         instr.Dest.operand.loadIntoReg(loc.name)
+######################################################  isIfGoto instruction #####################################################
         elif instr.isIfGoto():  # if i relop j jump L
             if instr.Src1.isInt():  # i is integer. cmpl should not have immediate as first argument
                 string += indent + "pushl $" + str(instr.Src1.operand) + "\n"
@@ -157,10 +160,13 @@ def translateBlock(bb):
             else:   #error
                 pass
             string += ".LABEL_" + str(instr.Target) + "\n"
+######################################################  isGoto instruction #######################################################
         elif instr.isGoto():    #goto line_no
             string += indent + "jmp .LABEL_" + str(instr.Target) + "\n"
+######################################################  isCall instruction #######################################################
         elif instr.isCall():    #call func_name
             string += indent + "call " + instr.TargetLabel + "\n"
+######################################################  isReturn instruction #####################################################
         elif instr.isReturn():
             if instr.Src1:
                 globjects.registerMap["eax"].spill()
@@ -173,6 +179,7 @@ def translateBlock(bb):
                 string += indent + "ret\n"
             else:
                 string += indent + "ret\n"
+######################################################  isLabel instruction ######################################################
         elif instr.isLabel():   #label func_name
             string = instr.Label + ":\n"
         else:   #error
