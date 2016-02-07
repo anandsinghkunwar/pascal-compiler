@@ -218,4 +218,7 @@ class TACInstr(object):
         for var in (self.Src1, self.Src2, self.Dest):
             if var and var.isVar():
                 varSet.update([var.operand.name])
+        for arg in self.IOArgList:
+            if arg and arg.isVar():
+                varSet.update([arg.operand.name])
         return varSet
