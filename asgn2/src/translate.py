@@ -27,12 +27,10 @@ def translateBlock(bb):
                 if instr.Src2.isInt():
                     string += indent + op + " $" + str(instr.Src2.operand) + ",%" + loc.name + "\n"
                 elif instr.Src2.reg:    #z exists in a register
-                    flag = False
                     if instr.Src2.reg.name != "ecx" and (op == "sal" or op == "sar"):
                         string += indent + "xchgl %ecx,%" + instr.Src2.operand.reg.name + "\n"
-                        flag = True
                     string += indent + op + " %" + instr.Src2.operand.reg.name + ",%" + loc.name + "\n"
-                    if flag:
+                    if instr.Src2.reg.name != "ecx" and (op == "sal" or op == "sar"):
                         string += indent + "xchgl %ecx,%" + instr.Src2.operand.reg.name + "\n"
                 else:   #z doesn't exist in a register
                     flag = False
