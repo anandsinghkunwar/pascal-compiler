@@ -187,9 +187,28 @@ def translateBlock(bb):
                 string += indent + "ret\n"
             else:
                 string += indent + "ret\n"
-######################################################  isLabel instruction ######################################################
+######################################################  isLabel instruction #####################################################
         elif instr.isLabel():   #label func_name
             string = instr.Label + ":\n"
+######################################################  Printf instruction ######################################################
+        elif instr.isPrintf():  # printf fmt args
+            for arg in reversed(instr.IOArgList):
+                if arg.isVar():
+                    string += indent + "pushl " + arg.operand.name + "\n"
+                elif arg.isInt():
+                    string += indent + "pushl $" + str(arg.operand) + "\n"
+            string += indent + "pushl $" + instr.IOFmtStringAddr + "\n"
+            string += indent + "call printf\n"
+            string += indent + "addl $" + str(4 * (len(instr.IOArgList) + 1)) + "%esp\n"
+######################################################  Scanf instruction ######################################################
+        elif instr.isPrintf():  # scanf fmt args
+            for arg in reversed(instr.IOArgList):
+                if arg.isVar():
+                    string += indent + "pushl $" + arg.operand.name + "\n"
+            string += indent + "pushl $" + instr.IOFmtStringAddr + "\n"
+            string += indent + "call scanf\n"
+            string += indent + "addl $" + str(4 * (len(instr.IOArgList) + 1)) + "%esp\n"
+##################################################### Unsupported instruction ##################################################
         else:
             globjects.halt(instr.LineNo, "unsupported instruction")
         print string
