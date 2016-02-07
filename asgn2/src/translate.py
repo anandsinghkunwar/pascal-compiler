@@ -114,7 +114,7 @@ def translateBlock(bb):
                 pass
             string += ".LABEL_" + str(instr.Target) + "\n"
         elif instr.isGoto():
-            pass
+            string += "jmp .LABEL_" + str(instr.Target) + "\n"
         elif instr.isCall():
             pass
         elif instr.isReturn():
