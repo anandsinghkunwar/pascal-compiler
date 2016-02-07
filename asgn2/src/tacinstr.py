@@ -155,6 +155,7 @@ class TACInstr(object):
             else:
                 # Error
                 pass
+
     # Types of operations
     ADD, SUB, MULT, DIV, EQ, GT, LT, GEQ, LEQ, NEQ, SHL, SHR, AND, NOT, OR, MOD, XOR = range(17)
 
@@ -169,12 +170,13 @@ class TACInstr(object):
             }
 
     # Types of instructions
-    ASSIGN, IFGOTO, GOTO, CALL, RETURN, LABEL = range(6)
+    ASSIGN, IFGOTO, GOTO, CALL, RETURN, LABEL, PRINTF, SCANF, EXIT = range(9)
 
     # Instruction map
     InstrMap = {
                 "="     : ASSIGN,      "ifgoto"     : IFGOTO,      "goto"     : GOTO,
-                "call"  : CALL,        "ret"        : RETURN,      "label"    : LABEL
+                "call"  : CALL,        "ret"        : RETURN,      "label"    : LABEL,
+                "printf": PRINTF,      "scanf"      : SCANF,       "exit"     : EXIT
                }
 
     # Methods to check type of the instruction 
@@ -192,6 +194,12 @@ class TACInstr(object):
         return self.InstrType == TACInstr.LABEL
     def isTarget(self):
         return self.LineNo in globjects.targetSet
+    def isPrintf(self):
+        return self.InstrType == TACInstr.PRINTF
+    def isScanf(self):
+        return self.InstrType == TACInstr.SCANF
+    def isExit(self):
+        return self.InstrType == TACInstr.EXIT
 
     # Auxiliary methods
     def getVarSet(self):
