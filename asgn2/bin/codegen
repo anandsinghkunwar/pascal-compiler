@@ -4,20 +4,23 @@ import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
 # Take input from the files specified on the cmdline
-import fileinput
+import fileinput, shlex
 from src import tacinstr, codegen, basicblock, globjects, machine
 
 # Parse the input and store it in the list IRCode.
 # Here, the line number of a TAC instruction is i+1,
 # where the index of the instruction in IRCode is i.
+# Using module shlex in order to handle format strings
+# for printf and scanf.
 IRCode = []
-for line in fileinput.input():
-    line = line.split(',')
-    globjects.data = machine.Data()
+globjects.data = machine.Data()
 
-    for i in range(len(line)):
-        line[i] = line[i].strip()
-    instr = tacinstr.TACInstr(line)
+for line in fileinput.input():
+    splitter = shlex.shlex(line, posix=True)
+    splitter.whitespace = ", "
+    splitter.whitespace_split = True
+    instr = tacinstr.TACInstr(list(splitter))
     IRCode.append(instr)
     # More stuff
+
 codeGen = codegen.Codegen(IRCode)
