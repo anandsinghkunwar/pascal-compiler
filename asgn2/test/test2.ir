@@ -1,0 +1,26 @@
+1, =, a, 2
+2, =, b, 7
+3, =, +, a, a, b
+4, ifgoto, leq, a, 20, 3
+5, =, call, a, foo
+6, printf, "The return from foo (expected = 2) is, %d", 
+7, call, bar
+8, printf, "Ending here\n"
+9, ret
+10, label, foo
+11, printf, "foo function starts. The answer (expected = 23), \t is %d\n",a
+12, goto, 14
+13, printf, "This will never be printed"
+14, =, c, 2
+15, ret, c
+16, label, bar
+17, printf, "This is bar function, enter a value please:"
+18, scanf, "%d ", a
+19, =, a, a, 1
+20, printf, "The inputted value + 1 is, %d \n", a
+21, printf, "Now we will check whether input + 1 is less than 29, if yes then we print Yes else No"
+22, ifgoto, <, a, 29, 23
+23, printf, "Yes \n"
+24, goto, 24
+25, printf, "No \n"
+26, ret
