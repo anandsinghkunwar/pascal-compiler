@@ -56,8 +56,26 @@ def translateBlock(bb):
                 else:   #error
                     pass
                 instr.Dest.operand.loadIntoRegister(loc.name)
-            else:           #basic assignment
-                pass
+            else:   #basic assignment   a = b
+                if instr.Src1.isInt():  #b is integer
+                    if instr.Dest.reg:  #a is in a register
+                        string += indent + "movl $" + str(instr.Src1.operand) + ",%" + instr.Dest.reg.name + "\n"
+                    else:   #a is in memory
+                        string += indent + "movl $" + str(instr.Src1.operand) + "," + instr.Dest.operand.name + "\n"
+                elif instr.Src1.reg:    #b is in a register
+                    if instr.Dest.reg:  #a is also in register. So spill a's register and indicate in b's that a is also stored there
+                        instr.Dest.reg.removeVar(instr.Dest.operand.name)
+                        instr.Src1.reg.addVar(instr.Dest.operand.name)
+                    else:   #a is in memory
+                        instr.Dest.operand.loadIntoRegister(instr.Src1.reg)
+                else:   #b is in memory
+                    if instr.Dest.reg:
+                        string += indent + "movl " + instr.Src1.operand.name + ",%" + instr.Dest.reg.name + "\n"
+                    else:   # both a and b are in memory
+                        loc = bb.getReg()
+                        loc = loc[0]
+                        string += indent + "movl " + instr.Src1.operand.name + ",%" + loc.name + "\n"
+                        instr.Dest.operand.loadIntoRegister(loc.name)
         elif instr.isIfGoto():
             pass
         elif instr.isGoto():
