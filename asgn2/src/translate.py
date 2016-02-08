@@ -12,7 +12,7 @@ def translateBlock(bb):
             for regName in G.regNames:
                 G.registerMap[regName].spill()
         G.currInstr = instr
-        G.text.string = ".LABEL_" + str(instr.LineNo) + ":\n"
+        G.text.string += ".LABEL_" + str(instr.LineNo) + ":\n"
 ######################################################  assignment instruction ###################################################
         if instr.isAssign():
             if instr.Src2:  #assignment with binary operator    x = y op z
@@ -251,7 +251,7 @@ def translateBlock(bb):
 ######################################################  isLabel instruction #####################################################
 
         elif instr.isLabel():   #label func_name
-            G.text.string = instr.Label + ":\n"
+            G.text.string += instr.Label + ":\n"
 
 ######################################################  Printf instruction ######################################################
 

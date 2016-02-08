@@ -27,14 +27,15 @@ class BasicBlock(object):
 #      tuple of (reg/memory, boolean)
 #          * true means that it returned y's register
     def getReg(self):
-        varName = G.currInstr.Src1.operand.name
-        if (not G.currInstr.SymTable[varName].isLive() and
-            G.currInstr.SymTable[varName].nextUse == None and
-            G.varMap[varName].reg and
-            len(G.varMap[varName].reg.varNames) == 1):
-                regName = G.varMap[varName].reg.name
-                G.varMap[varName].updateAddressDescriptor(None)
-                return G.registerMap[regName], True
+        if not G.currInstr.Src1.isInt():
+            varName = G.currInstr.Src1.operand.name
+            if (not G.currInstr.SymTable[varName].isLive() and
+                G.currInstr.SymTable[varName].nextUse == None and
+                G.varMap[varName].reg and
+                len(G.varMap[varName].reg.varNames) == 1):
+                    regName = G.varMap[varName].reg.name
+                    G.varMap[varName].updateAddressDescriptor(None)
+                    return G.registerMap[regName], True
 
         reg = self.getEmptyRegister()
         if reg:
