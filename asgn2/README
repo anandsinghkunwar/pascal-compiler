@@ -1,7 +1,7 @@
 Building is not required. The file bin/codegen is an executable script. Usage (within asgn2/ directory):
     bin/codegen <source-filename>.ir
 
-In order to save the output from a test file test.ir in an assembly code file use:
+In order to save the output from a test file test.ir in an assembly code file, use:
     bin/codegen test.ir > test.s
 
 To create executable binary from the test.s file created above, use:
@@ -10,3 +10,6 @@ To create executable binary from the test.s file created above, use:
   Note that we supplied the -m32 flag to gcc, because we output 32-bit assembly code (ia32 ISA).
   Furthermore, we have added a 'main' function as a wrapper for our program so that gcc can figure
   out the start point of the program.
+
+  To handle external library function calls such as printf and scanf, we have added a ".extern"
+  directive in our text section.
