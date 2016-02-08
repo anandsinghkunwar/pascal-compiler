@@ -194,7 +194,11 @@ def translateBlock(bb):
                 elif instr.Src2.operand.reg:
                     G.text.string += indent + "cmpl %" + instr.Src2.operand.reg.name + ", (%esp)\n"
                 else:
-                    G.text.string += indent + "cmpl " + instr.Src2.operand.name + ", (%esp)\n"
+                    locTuple = bb.getReg()
+                    loc = locTuple[0]
+                    G.text.string += indent + "movl " + instr.Src2.operand.name + ",%" + loc.name + "\n"
+                    G.text.string += indent + "cmpl %" + loc.name + ", (%esp)\n"
+                    instr.Src2.operand.loadIntoReg(loc.name)
 
                 # Remove the immediate from the stack
                 G.text.string += indent + "addl $4, %esp\n"
