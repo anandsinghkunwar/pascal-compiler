@@ -1,7 +1,7 @@
 1, =, a, 2
-2, =, +, a,  2, 2
+2, =, +, a, 2, 2
 3, printf, "Correct answer = %d, Our Answer = %d\n", 4, a
-4, =, -,a,  2, 5
+4, =, -,a, 2, 5
 5, printf, "Correct answer = -3, Our Answer = %d\n", a
 6, =, *, a, 2, 12
 7, printf, "Correct answer = 24, Our Answer = %d\n", a
