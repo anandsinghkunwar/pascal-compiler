@@ -213,6 +213,8 @@ class TACInstr(object):
         return self.InstrType == TACInstr.SCANF
     def isExit(self):
         return self.InstrType == TACInstr.EXIT
+    def isJump(self):
+        return self.isGoto() or self.isIfGoto() or self.isCall() or self.isReturn()
 
     # Auxiliary methods
     def getVarSet(self):
