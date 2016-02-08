@@ -33,7 +33,7 @@ class Register(object):
 
     def dump(self):
         for varName in self.varNames:
-            G.text.string += " "*4 + "movl %" + self.name + ", " + varName + " "*4 + "#Spilling register\n"
+            G.text.string += " "*4 + "movl %" + self.name + ", " + varName + " "*4 + "#Dumping register\n"
 
 # Class to implement the global data region. For now, we allow
 # only integers to be allocated.

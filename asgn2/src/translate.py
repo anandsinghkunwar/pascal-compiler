@@ -8,7 +8,7 @@ indent = " "*4
 def translateBlock(bb):
     for instr in bb.instrList:
         # If we have reached the last instruction in the basic block, spill all registers.
-        if instr == bb.instrList[-1]:
+        if instr == bb.instrList[-1] and instr.isJump():
             for regName in G.regNames:
                 G.registerMap[regName].spill()
         G.currInstr = instr
@@ -248,52 +248,6 @@ def translateBlock(bb):
                     G.text.string += indent + op + label + "\n"
                     instr.Src2.operand.loadIntoReg(loc.name)
 
-#            if instr.Src1.isInt():  # i is integer.
-#
-#                # Perform the comparison
-#                if instr.Src2.isInt():
-#                    # Push the immediate on the stack
-#                    G.text.string += indent + "pushl $" + str(instr.Src1.operand) + "\n"
-#                    G.text.string += indent + "cmpl $" + str(instr.Src2.operand) + ", (%esp)\n"
-#                    G.text.string += indent + op + " " + instr.Target
-#                elif instr.Src2.operand.reg:
-#                    G.text.string += indent + "cmpl $" + str(instr.Src1.operand) + ", %" + instr.Src2.operand.reg.name + "\n"
-#                else:
-#                    locTuple = bb.getReg()
-#                    loc = locTuple[0]
-#                    G.text.string += indent + "movl " + instr.Src2.operand.name + ", %" + loc.name + "\n"
-#                    G.text.string += indent + "cmpl %" + loc.name + ", (%esp)\n"
-#                    instr.Src2.operand.loadIntoReg(loc.name)
-#
-#                # Remove the immediate from the stack
-#                G.text.string += indent + "addl $4, %esp\n"
-#
-#            # If i is in a register
-#            elif instr.Src1.operand.reg:
-#                if instr.Src2.isInt():
-#                    G.text.string += indent + "cmpl $" + str(instr.Src2.operand)
-#                elif instr.Src2.operand.reg:
-#                    G.text.string += indent + "cmpl %" + instr.Src2.operand.reg.name
-#                else:
-#                    G.text.string += indent + "cmpl " + instr.Src2.operand.name
-#                G.text.string += ", %" + instr.Src1.operand.reg.name + "\n"
-#
-#            # If i is in memory
-#            else:
-#                if instr.Src2.isInt():
-#                    G.text.string += indent + "cmpl $" + str(instr.Src2.operand) + "," + instr.Src1.operand.name + "\n"
-#                elif instr.Src2.operand.reg:
-#                    G.text.string += indent + "cmpl %" + instr.Src2.operand.reg.name + "," + instr.Src1.operand.name + "\n"
-#                else:
-#                    locTuple = bb.getReg()
-#                    loc = locTuple[0]
-#                    G.text.string += indent + "movl " + instr.Src2.operand.name + ",%" + loc.name + "\n"
-#                    G.text.string += indent + "cmpl %" + loc.name + "," + instr.Src1.operand.name + "\n"
-#                    instr.Src2.operand.loadIntoReg(loc.name)
-#
-#            # Perform the jump
-#            G.text.string += indent + op + " .LABEL_" + str(instr.Target) + "\n"
-
 ######################################################  isGoto instruction #######################################################
 
         elif instr.isGoto():    #goto line_no
@@ -380,6 +334,12 @@ def translateBlock(bb):
 
         else:
             G.halt(instr.LineNo, "unsupported instruction")
+
+        # If last instruction is not jump, spill registers now.
+        if instr == bb.instrList[-1] and not instr.isJump():
+            for regName in G.regNames:
+                G.registerMap[regName].spill()
+
 
 def getMnemonic(op):
     if op == tacinstr.TACInstr.ADD:
