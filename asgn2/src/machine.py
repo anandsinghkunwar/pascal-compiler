@@ -53,7 +53,7 @@ class Data(object):
             if type(self.dataDict[key]) == int:
                 dataString += indent + ".long " + str(self.dataDict[key]) + "\n"
             elif type(self.dataDict[key]) == str:
-                dataString += indent + ".ascii " + str(self.dataDict[key]) + "\n"
+                dataString += indent + ".ascii \"" + str(self.dataDict[key]) + "\"\n"
         return dataString
 
     def printDataSection(self):
