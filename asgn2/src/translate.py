@@ -144,7 +144,7 @@ def translateBlock(bb):
                     # Updating register and address descriptors
                     instr.Dest.operand.loadIntoReg(loc.name)
 
-                elif instr.Op == tacinstr.TACInstr.CALL:   # a = call func_name
+                elif instr.Op == tacinstr.TACInstr.CALLOP:   # a = call func_name
                     G.text.string += indent + "call " + instr.TargetLabel + "\n"
                     # No need to check if a is in a register or not, since the current
                     # instruction will be the last of this basic block

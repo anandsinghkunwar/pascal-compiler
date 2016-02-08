@@ -101,7 +101,7 @@ class TACInstr(object):
                 else:
                     self.Dest = dest
                     self.Op = TACInstr.OpMap[instrTuple[2]]
-                    if self.Op == TACInstr.CALL:         # Special unary op: 9, =, call, a, foo
+                    if self.Op == TACInstr.CALLOP:         # Special unary op: 9, =, call, a, foo
                         self.TargetLabel = instrTuple[4]
                     else:               # Assignment with unary op: 2, =, -, g, f
                         src1 = Operand(instrTuple[4])
@@ -170,7 +170,7 @@ class TACInstr(object):
             globjects.halt(self.LineNo, "unsupported instruction")
 
     # Types of operations
-    ADD, SUB, MULT, DIV, EQ, GT, LT, GEQ, LEQ, NEQ, SHL, SHR, AND, NOT, OR, MOD, XOR, CALL = range(18)
+    ADD, SUB, MULT, DIV, EQ, GT, LT, GEQ, LEQ, NEQ, SHL, SHR, AND, NOT, OR, MOD, XOR, CALLOP = range(18)
 
     # Operation map
     OpMap = {
@@ -179,7 +179,7 @@ class TACInstr(object):
                 ">="    : GEQ,      "<="    : LEQ,      "<>"    : NEQ,
                 "<<"    : SHL,      ">>"    : SHR,      "and"   : AND,
                 "not"   : NOT,      "or"    : OR,       "mod"   : MOD,
-                "xor"   : XOR,      "=="    : EQ,       "call"  : CALL
+                "xor"   : XOR,      "=="    : EQ,       "call"  : CALLOP
             }
 
     # Types of instructions
