@@ -17,7 +17,6 @@ def translateBlock(bb):
         if instr.isAssign():
             if instr.Src2:  #assignment with binary operator    x = y op z
                 op = getMnemonic(instr.Op)
-                # TODO: Can we use getReg for DIV and MOD?
                 # DIV and MOD are special cases in x86. These require the 'idivl' instruction,
                 # which in turn, requires the dividend to be placed in edx:eax (64 bits)
                 if instr.Op == tacinstr.TACInstr.DIV or instr.Op == tacinstr.TACInstr.MOD:
@@ -267,45 +266,53 @@ def translateBlock(bb):
 ######################################################  Printf instruction ######################################################
 
         elif instr.isPrintf():  # printf fmt args
-            # Preserve the value of eax register, since printf will overwrite
-            # it with its return value
-            G.text.string += indent + "pushl %eax\n"
+            # Preserve the value of eax, ecx and edx registers, since printf
+            # considers these as trashable registers.
+            G.text.string += indent + "pushl %eax" + indent + "# Saving register on stack\n"
+            G.text.string += indent + "pushl %ecx" + indent + "# Saving register on stack\n"
+            G.text.string += indent + "pushl %edx" + indent + "# Saving register on stack\n"
 
             # Push arguments in reverse order
             for arg in reversed(instr.IOArgList):
                 if arg.isVar():
                     if arg.operand.reg:
-                        G.text.string += indent + "pushl %" + arg.operand.reg.name + "\n"
+                        G.text.string += indent + "pushl %" + arg.operand.reg.name  + indent + "# Pushing argument\n"
                     else:
-                        G.text.string += indent + "pushl " + arg.operand.name + "\n"
+                        G.text.string += indent + "pushl " + arg.operand.name + indent + "# Pushing argument\n"
                 elif arg.isInt():
-                    G.text.string += indent + "pushl $" + str(arg.operand) + "\n"
-            G.text.string += indent + "pushl $" + instr.IOFmtStringAddr + "\n"
+                    G.text.string += indent + "pushl $" + str(arg.operand) + indent + "# Pushing argument\n"
+            G.text.string += indent + "pushl $" + instr.IOFmtStringAddr + indent + "# Pushing argument\n"
             G.text.string += indent + "call printf\n"
             G.text.string += indent + "addl $" + str(4 * (len(instr.IOArgList) + 1)) + ", %esp\n"
 
-            # Restore the value of eax register saved before the call
-            G.text.string += indent + "popl %eax\n"
+            # Restore the value of registers saved before the call
+            G.text.string += indent + "popl %edx" + indent + "# Restoring register from stack\n"
+            G.text.string += indent + "popl %ecx" + indent + "# Restoring register from stack\n"
+            G.text.string += indent + "popl %eax" + indent + "# Restoring register from stack\n"
 
 ######################################################  Scanf instruction ######################################################
 
         elif instr.isScanf():  # scanf fmt args
-            # Preserve the value of eax register, since scanf will overwrite
-            # it with its return value
-            G.text.string += indent + "pushl %eax\n"
+            # Preserve the value of eax register, since scanf
+            # considers these as trashable registers.
+            G.text.string += indent + "pushl %eax" + indent + "# Saving register on stack\n"
+            G.text.string += indent + "pushl %ecx" + indent + "# Saving register on stack\n"
+            G.text.string += indent + "pushl %edx" + indent + "# Saving register on stack\n"
 
             # Push arguments in reverse order
             for arg in reversed(instr.IOArgList):
                 if arg.isVar():
                     # Discard the register value for arg
                     arg.operand.removeReg()
-                    G.text.string += indent + "pushl $" + arg.operand.name + "\n"
-            G.text.string += indent + "pushl $" + instr.IOFmtStringAddr + "\n"
+                    G.text.string += indent + "pushl $" + arg.operand.name + indent + "# Pushing argument\n"
+            G.text.string += indent + "pushl $" + instr.IOFmtStringAddr + indent + "# Pushing argument\n"
             G.text.string += indent + "call scanf\n"
             G.text.string += indent + "addl $" + str(4 * (len(instr.IOArgList) + 1)) + ", %esp\n"
 
-            # Restore the value of eax register saved before the call
-            G.text.string += indent + "popl %eax\n"
+            # Restore the value of registers saved before the call
+            G.text.string += indent + "popl %edx" + indent + "# Restoring register from stack\n"
+            G.text.string += indent + "popl %ecx" + indent + "# Restoring register from stack\n"
+            G.text.string += indent + "popl %eax" + indent + "# Restoring register from stack\n"
 
 ##################################################### Unsupported instruction ##################################################
 
