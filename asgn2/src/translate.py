@@ -113,7 +113,7 @@ def translateBlock(bb):
             elif instr.Op:  #assignment with unary operator a = op b
                 # Operation is NOT of the form a = call foo
                 if instr.Src1:
-                    locTuple = bb.getReg()  # error : need to modify it or getReg as Src1 can be immediate
+                    locTuple = bb.getReg()
                     loc = locTuple[0]
 
                     if not locTuple[1]:
