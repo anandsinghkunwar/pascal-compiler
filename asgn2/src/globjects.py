@@ -29,5 +29,5 @@ labelSet = set()
 
 # Error handling function
 def halt(lineNo, errorMsg):
-    print lineNo + ": " + errorMsg + "\n"
+    print str(lineNo) + ": " + errorMsg + "\n"
     exit()

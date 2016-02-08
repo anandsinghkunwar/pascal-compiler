@@ -11,6 +11,9 @@ class Codegen(object):
         for regName in globjects.regNames:
             globjects.registerMap[regName] = machine.Register(regName)
         self.computeBasicBlocks()
+        globjects.data.printDataSection()
+        print "\n"
+        globjects.text.printTextSection()
 
     # Method to compute basic blocks from the IR program
     def computeBasicBlocks(self):
@@ -23,7 +26,7 @@ class Codegen(object):
                 leaders.add(instr.LineNo + 1)
             if instr.isLabel():
                 leaders.add(instr.LineNo)
-            if instr.isAssign() and instr.Op = tacinstr.CALL:
+            if instr.isAssign() and instr.Op == tacinstr.TACInstr.CALL:
                 leaders.add(instr.LineNo + 1)
         for leaderPair in pairwise(leaders):
             bb = basicblock.BasicBlock(self.program[leaderPair[0]-1:leaderPair[1]-1])

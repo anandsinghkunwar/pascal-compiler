@@ -1,4 +1,4 @@
-import globjects
+import globjects as G
 
 # Contains a model of the machine assembly code
 #   - a class to implement machine registers
@@ -19,16 +19,16 @@ class Register(object):
 
     def addVar(self, varName):
         self.varNames.add(varName)
-        globjects.varMap[varName].reg = self
+        G.varMap[varName].reg = self
 
     def removeVar(self, varName):
         self.varNames.remove(varName)
-        globjects.varMap[varName].reg = None
+        G.varMap[varName].reg = None
 
     def spill(self):
         for varName in self.varNames:
-            globjects.varMap[varName].reg = None
-            print " "*4 + "movl %" + self.name + "," + varname + " "*4 + ";Spilling register\n"
+            G.varMap[varName].reg = None
+            G.text.string += " "*4 + "movl %" + self.name + "," + varName + " "*4 + "#Spilling register\n"
         self.varNames = set()
 
 
@@ -53,7 +53,7 @@ class Data(object):
             if type(self.dataDict[key]) == int:
                 dataString += indent + ".long " + str(self.dataDict[key]) + "\n"
             elif type(self.dataDict[key]) == str:
-                dataString += indent + ".ascii" + str(self.dataDict[key]) + "\n"
+                dataString += indent + ".ascii \"" + str(self.dataDict[key]) + "\"\n"
         return dataString
 
     def printDataSection(self):
