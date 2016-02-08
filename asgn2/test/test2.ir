@@ -3,7 +3,7 @@
 3, =, +, a, a, b
 4, ifgoto, <=, a, 20, 3
 5, =, call, a, foo
-6, printf, "The return from foo (expected = 2) is, %d", 
+6, printf, "The return from foo (expected = 2) is, %d",a
 7, call, bar
 8, printf, "Ending here\n"
 9, ret
@@ -19,8 +19,8 @@
 19, =, +, a, a, 1
 20, printf, "The inputted value + 1 is, %d \n", a
 21, printf, "Now we will check whether input + 1 is less than 29, if yes then we print Yes else No"
-22, ifgoto, <, a, 29, 23
-23, printf, "Yes \n"
-24, goto, 24
-25, printf, "No \n"
+22, ifgoto, <, a, 29, 25
+23, printf, "No \n"
+24, goto, 26
+25, printf, "Yes \n"
 26, ret
