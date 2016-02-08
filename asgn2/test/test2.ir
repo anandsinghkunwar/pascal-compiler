@@ -1,7 +1,7 @@
 1, =, a, 2
 2, =, b, 7
 3, =, +, a, a, b
-4, ifgoto, leq, a, 20, 3
+4, ifgoto, <=, a, 20, 3
 5, =, call, a, foo
 6, printf, "The return from foo (expected = 2) is, %d", 
 7, call, bar

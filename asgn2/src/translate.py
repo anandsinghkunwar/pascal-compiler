@@ -113,7 +113,7 @@ def translateBlock(bb):
             elif instr.Op:  #assignment with unary operator a = op b
                 # Operation is NOT of the form a = call foo
                 if instr.Src1:
-                    locTuple = bb.getReg()
+                    locTuple = bb.getReg()  # error : need to modify it or getReg as Src1 can be immediate
                     loc = locTuple[0]
 
                     if not locTuple[1]:
@@ -274,7 +274,7 @@ def translateBlock(bb):
             for arg in reversed(instr.IOArgList):
                 if arg.isVar():
                     # Discard the register value for arg
-                    arg.removeReg()
+                    arg.operand.removeReg()
                     G.text.string += indent + "pushl $" + arg.operand.name + "\n"
             G.text.string += indent + "pushl $" + instr.IOFmtStringAddr + "\n"
             G.text.string += indent + "call scanf\n"

@@ -11,6 +11,9 @@ class Codegen(object):
         for regName in globjects.regNames:
             globjects.registerMap[regName] = machine.Register(regName)
         self.computeBasicBlocks()
+        globjects.data.printDataSection()
+        print "\n"
+        globjects.text.printTextSection()
 
     # Method to compute basic blocks from the IR program
     def computeBasicBlocks(self):
