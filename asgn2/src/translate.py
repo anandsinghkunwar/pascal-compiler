@@ -259,6 +259,11 @@ def translateBlock(bb):
 ######################################################  Printf instruction ######################################################
 
         elif instr.isPrintf():  # printf fmt args
+            # Preserve the value of eax register, since printf will overwrite
+            # it with its return value
+            G.text.string += indent + "pushl %eax\n"
+
+            # Push arguments in reverse order
             for arg in reversed(instr.IOArgList):
                 if arg.isVar():
                     if arg.operand.reg:
@@ -271,9 +276,17 @@ def translateBlock(bb):
             G.text.string += indent + "call printf\n"
             G.text.string += indent + "addl $" + str(4 * (len(instr.IOArgList) + 1)) + ", %esp\n"
 
+            # Restore the value of eax register saved before the call
+            G.text.string += indent + "popl %eax\n"
+
 ######################################################  Scanf instruction ######################################################
 
         elif instr.isScanf():  # scanf fmt args
+            # Preserve the value of eax register, since scanf will overwrite
+            # it with its return value
+            G.text.string += indent + "pushl %eax\n"
+
+            # Push arguments in reverse order
             for arg in reversed(instr.IOArgList):
                 if arg.isVar():
                     # Discard the register value for arg
@@ -282,6 +295,9 @@ def translateBlock(bb):
             G.text.string += indent + "pushl $" + instr.IOFmtStringAddr + "\n"
             G.text.string += indent + "call scanf\n"
             G.text.string += indent + "addl $" + str(4 * (len(instr.IOArgList) + 1)) + ", %esp\n"
+
+            # Restore the value of eax register saved before the call
+            G.text.string += indent + "popl %eax\n"
 
 ##################################################### Unsupported instruction ##################################################
 
