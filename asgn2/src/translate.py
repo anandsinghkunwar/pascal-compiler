@@ -73,6 +73,8 @@ def translateBlock(bb):
                         G.text.string += indent + "addl $4, %esp\n"     # restoring stack so that z value on stack can be overwritten
                         G.text.string += indent + "popl %edx\n"         # restoring edx
                         G.text.string += indent + "popl %eax\n"         # restoring eax
+
+                # Operations other than DIV and MOD
                 else:
                     locTuple = bb.getReg()
                     loc = locTuple[0]
@@ -92,19 +94,21 @@ def translateBlock(bb):
 
                     # Case 2: Second operand is a variable in a register
                     elif instr.Src2.operand.reg:    #z exists in a register
-                        if instr.Src2.operand.reg.name != "ecx" and (instr.Op == tacinstr.TACInstr.SHL or instr.Op == tacinstr.TACInstr.SHR):
+                        if instr.Op == tacinstr.TACInstr.SHL or instr.Op == tacinstr.TACInstr.SHR:
                             G.text.string += indent + "xchgl %ecx, %" + instr.Src2.operand.reg.name + "\n"
-                        G.text.string += indent + op + " %cl, %" + loc.name + "\n"
-                        if instr.Src2.operand.reg.name != "ecx" and (instr.Op == tacinstr.TACInstr.SHL or instr.Op == tacinstr.TACInstr.SHR):
+                            G.text.string += indent + op + " %cl, %" + loc.name + "\n"
                             G.text.string += indent + "xchgl %ecx, %" + instr.Src2.operand.reg.name + "\n"
+                        else:
+                            G.text.string += indent + op + " %" + instr.Src2.operand.reg.name + ", %" + loc.name + "\n"
 
                     # Case 3: Second operand is a variable in memory
                     else:   #z doesn't exist in a register
                         if instr.Op == tacinstr.TACInstr.SHL or instr.Op == tacinstr.TACInstr.SHR:
                             G.text.string += indent + "xchgl %ecx, " + instr.Src2.operand.name + "\n"
-                        G.text.string += indent + op + " %cl, %" + loc.name + "\n"
-                        if instr.Op == tacinstr.TACInstr.SHL or instr.Op == tacinstr.TACInstr.SHR:
+                            G.text.string += indent + op + " %cl, %" + loc.name + "\n"
                             G.text.string += indent + "xchgl %ecx, " + instr.Src2.operand.name + "\n"
+                        else:
+                            G.text.string += indent + op + " " + instr.Src2.operand.name + ", %" + loc.name + "\n"
 
                     # Update register and address descriptors
                     instr.Dest.operand.loadIntoReg(loc.name)
