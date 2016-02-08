@@ -28,7 +28,7 @@ class Register(object):
     def spill(self):
         for varName in self.varNames:
             G.varMap[varName].reg = None
-            G.text.string += " "*4 + "movl %" + self.name + "," + varName + " "*4 + ";Spilling register\n"
+            G.text.string += " "*4 + "movl %" + self.name + "," + varName + " "*4 + "#Spilling register\n"
         self.varNames = set()
 
 

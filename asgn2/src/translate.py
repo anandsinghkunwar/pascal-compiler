@@ -23,7 +23,7 @@ def translateBlock(bb):
                 if instr.Op == tacinstr.TACInstr.DIV or instr.Op == tacinstr.TACInstr.MOD:
                     # Saving contents of eax and edx on the stack
                     G.text.string += indent + "pushl %eax\n"
-                    G.text.string += indent + "pushl %edx" + indent + ";clearing eax and edx for division\n"
+                    G.text.string += indent + "pushl %edx" + indent + "#clearing eax and edx for division\n"
 
                     # Moving the dividend into eax and the divisor onto the stack top
                     if instr.Src2.isInt():          # z is integer
@@ -38,7 +38,7 @@ def translateBlock(bb):
                         G.text.string += indent + "movl %" + instr.Src1.operand.reg.name + ", %eax\n"
                     else:                           # y is in memory
                         G.text.string += indent + "movl " + instr.Src1.operand.name + ", %eax\n"
-                    G.text.string += indent + "cltd" + indent + ";sign extending eax into edx:eax\n"
+                    G.text.string += indent + "cltd" + indent + "#sign extending eax into edx:eax\n"
 
                     # Performing the operation
                     G.text.string += indent + "idivl (%esp)\n"
@@ -56,7 +56,7 @@ def translateBlock(bb):
                             G.text.string += indent + "movl %edx," + instr.Dest.operand.name + "\n"
 
                     # Restoring the stack and registers
-                    G.text.string += indent + indent + ";restoring stack and registers\n"
+                    G.text.string += indent + indent + "#restoring stack and registers\n"
                     if instr.Dest.operand.reg:
                         if instr.Dest.operand.reg.name == "eax":
                             G.text.string += indent + "addl $4, %esp\n" # restoring stack so that z value on stack can be overwritten
@@ -212,12 +212,15 @@ def translateBlock(bb):
             # If i is in memory
             else:
                 if instr.Src2.isInt():
-                    G.text.string += indent + "cmpl $" + str(instr.Src2.operand)
+                    G.text.string += indent + "cmpl $" + str(instr.Src2.operand) + "," + instr.Src1.operand.name + "\n"
                 elif instr.Src2.operand.reg:
-                    G.text.string += indent + "cmpl %" + instr.Src2.operand.reg.name
+                    G.text.string += indent + "cmpl %" + instr.Src2.operand.reg.name + "," + instr.Src1.operand.name + "\n"
                 else:
-                    G.text.string += indent + "cmpl " + instr.Src2.operand.name
-                G.text.string += "," + instr.Src1.operand.name + "\n"
+                    locTuple = bb.getReg()
+                    loc = locTuple[0]
+                    G.text.string += indent + "movl " + instr.Src2.operand.name + ",%" + loc.name + "\n"
+                    G.text.string += indent + "cmpl %" + loc.name + "," + instr.Src1.operand.name + "\n"
+                    instr.Src2.operand.loadIntoReg(loc.name)
 
             # Perform the jump
             G.text.string += indent + op + " .LABEL_" + str(instr.Target) + "\n"
