@@ -1,21 +1,21 @@
-1,=,a,5
-2,printf,"a = %d\n",a
-3,=,-,b,3
-4,printf,"b = %d\n",b
-5,=,-,c,a
-6,printf,"c = %d\t actaual value should be -%d \n",c,a
-7,=,not,d,a
-8,printf,"d = %d\t value should be (not a)\n",d
-9,=,call,e,factorial
-10,printf,"%d! = %d\n",a,e
-11,ret
-12,label,factorial
-13,=,-,i,a,1
-14,=,c,a
-15,printf,"computing %d factorial\n",c
-16,ifgoto,>=,1,i,21
-17,=,*,c,c,i
-18,=,-,i,i,1
-19,printf,"partial = %d\n",c
-20,goto,16
-21,ret,c
+1, =, a, 5
+2, printf, "a = %d\n", a
+3, =, -, b, 3
+4, printf, "b = %d\n", b
+5, =, -, c, a
+6, printf, "c = %d\t actual value should be -%d \n", c, a
+7, =, not, d, a
+8, printf, "d = %d\t value should be (not a)\n", d
+9, =, call, e, factorial
+10, printf, "%d! = %d\n", a, e
+11, ret
+12, label, factorial
+13, =, -, i, a, 1
+14, =, c, a
+15, printf, "computing %d factorial\n", c
+16, ifgoto, >, 1, i, 21
+17, =, *, c, c, i
+18, =, -, i, i, 1
+19, printf, "partial = %d\n", c
+20, goto, 16
+21, ret, c
