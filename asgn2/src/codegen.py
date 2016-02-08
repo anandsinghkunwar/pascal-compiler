@@ -23,7 +23,7 @@ class Codegen(object):
                 leaders.add(instr.LineNo + 1)
             if instr.isLabel():
                 leaders.add(instr.LineNo)
-            if instr.isAssign() and instr.Op = tacinstr.CALL:
+            if instr.isAssign() and instr.Op == tacinstr.TACInstr.CALL:
                 leaders.add(instr.LineNo + 1)
         for leaderPair in pairwise(leaders):
             bb = basicblock.BasicBlock(self.program[leaderPair[0]-1:leaderPair[1]-1])

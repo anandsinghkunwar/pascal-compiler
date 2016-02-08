@@ -36,7 +36,8 @@ class AddrDescEntry(object):
         globjects.registerMap[regName].addVar(self.name)
 
     def removeReg(self):
-        self.reg.removeVar(self.name)
+        if self.reg:
+            self.reg.removeVar(self.name)
 
 # Class to handle instruction operands
 
