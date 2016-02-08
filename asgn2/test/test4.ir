@@ -13,7 +13,7 @@
 13,=,-,i,a,1
 14,=,c,a
 15,printf,"computing %d factorial\n",c
-16,ifgoto,<=,i,1,21
+16,ifgoto,>=,1,i,21
 17,=,*,c,c,i
 18,=,-,i,i,1
 19,printf,"partial = %d\n",c

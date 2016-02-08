@@ -94,7 +94,7 @@ def translateBlock(bb):
                     elif instr.Src2.operand.reg:    #z exists in a register
                         if instr.Src2.operand.reg.name != "ecx" and (instr.Op == tacinstr.TACInstr.SHL or instr.Op == tacinstr.TACInstr.SHR):
                             G.text.string += indent + "xchgl %ecx, %" + instr.Src2.operand.reg.name + "\n"
-                        G.text.string += indent + op + " %" + instr.Src2.operand.reg.name + ", %" + loc.name + "\n"
+                        G.text.string += indent + op + " %cl, %" + loc.name + "\n"
                         if instr.Src2.operand.reg.name != "ecx" and (instr.Op == tacinstr.TACInstr.SHL or instr.Op == tacinstr.TACInstr.SHR):
                             G.text.string += indent + "xchgl %ecx, %" + instr.Src2.operand.reg.name + "\n"
 
@@ -102,7 +102,7 @@ def translateBlock(bb):
                     else:   #z doesn't exist in a register
                         if instr.Op == tacinstr.TACInstr.SHL or instr.Op == tacinstr.TACInstr.SHR:
                             G.text.string += indent + "xchgl %ecx, " + instr.Src2.operand.name + "\n"
-                        G.text.string += indent + op + " " + instr.Src2.operand.name + ", %" + loc.name + "\n"
+                        G.text.string += indent + op + " %cl, %" + loc.name + "\n"
                         if instr.Op == tacinstr.TACInstr.SHL or instr.Op == tacinstr.TACInstr.SHR:
                             G.text.string += indent + "xchgl %ecx, " + instr.Src2.operand.name + "\n"
 
@@ -196,7 +196,7 @@ def translateBlock(bb):
                 else:
                     locTuple = bb.getReg()
                     loc = locTuple[0]
-                    G.text.string += indent + "movl " + instr.Src2.operand.name + ",%" + loc.name + "\n"
+                    G.text.string += indent + "movl " + instr.Src2.operand.name + ", %" + loc.name + "\n"
                     G.text.string += indent + "cmpl %" + loc.name + ", (%esp)\n"
                     instr.Src2.operand.loadIntoReg(loc.name)
 
