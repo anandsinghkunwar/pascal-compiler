@@ -32,10 +32,11 @@ class AddrDescEntry(object):
         self.dirty = False
 
     def loadIntoReg(self, regName):
+        self.removeReg()
         globjects.registerMap[regName].addVar(self.name)
 
-    def removeReg():
-        self.reg.varNames.remove(self.name)
+    def removeReg(self):
+        self.reg.removeVar(self.name)
 
 # Class to handle instruction operands
 
