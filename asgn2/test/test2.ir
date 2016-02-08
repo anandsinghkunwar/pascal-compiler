@@ -16,7 +16,7 @@
 16, label, bar
 17, printf, "This is bar function, enter a value please:"
 18, scanf, "%d", a
-19, =, a, a, 1
+19, =, +, a, a, 1
 20, printf, "The inputted value + 1 is, %d \n", a
 21, printf, "Now we will check whether input + 1 is less than 29, if yes then we print Yes else No"
 22, ifgoto, <, a, 29, 23
