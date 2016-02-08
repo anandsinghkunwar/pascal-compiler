@@ -182,7 +182,7 @@ def translateBlock(bb):
 ######################################################  isIfGoto instruction #####################################################
 
         elif instr.isIfGoto():  # if i relop j jump L
-            op = getMneumonic(instr.op)
+            op = getMnemonic(instr.Op)
             # cmpl instruction:  src1 relop src2 : cmpl src2, src1
             if instr.Src1.isInt():  # i is integer. cmpl should not have immediate as first argument
                 # Push the immediate on the stack
