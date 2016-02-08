@@ -17,12 +17,10 @@ globjects.data = machine.Data()
 globjects.text = machine.Text()
 
 for line in fileinput.input():
-    line = line.rstrip('\n')
     splitter = shlex.shlex(line, posix=True)
-    splitter.whitespace = ", "
+    splitter.whitespace += ','
     splitter.whitespace_split = True
     instr = tacinstr.TACInstr(list(splitter))
     IRCode.append(instr)
-    # More stuff
 
 codeGen = codegen.Codegen(IRCode)
