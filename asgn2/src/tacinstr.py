@@ -134,7 +134,7 @@ class TACInstr(object):
                 globjects.targetSet.add(self.Target)
             else:
                 globjects.halt(self.LineNo, "unsupported format for Goto instruction")
-        elif self.isCall(): # TODO: Calling to be implemented with label
+        elif self.isCall():
             if len(instrTuple) == 3:    # Tuple: 6, call, foo
                 self.TargetLabel = instrTuple[2]
             else:
