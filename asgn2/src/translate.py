@@ -186,27 +186,28 @@ def translateBlock(bb):
 
         elif instr.isIfGoto():  # if i relop j jump L
             op = getMnemonic(instr.Op)
+            label = " .LABEL_" + str(instr.Target)
             # cmpl instruction:  src1 relop src2 : cmpl src2, src1
             if instr.Src1.isInt() and instr.Src2.isInt():
                 # Just do the comparison
                 if instr.Src1.operand > instr.Src2.operand:
                     if instr.Op == tacinstr.TACInstr.GT:
-                        G.text.string += indent + "jmp " + instr.TargetLabel + "\n"
+                        G.text.string += indent + "jmp " + label + "\n"
                     elif instr.Op == tacinstr.TACInstr.GEQ:
-                        G.text.string += indent + "jmp " + instr.TargetLabel + "\n"
+                        G.text.string += indent + "jmp " + label + "\n"
                     else:
                         pass
 
                 elif instr.Src1.operand < instr.Src2.operand:
                     if instr.Op == tacinstr.TACInstr.LT:
-                        G.text.string += indent + "jmp " + instr.TargetLabel + "\n"
+                        G.text.string += indent + "jmp " + label + "\n"
                     elif instr.Op == tacinstr.TACInstr.LEQ:
-                        G.text.string += indent + "jmp " + instr.TargetLabel + "\n"
+                        G.text.string += indent + "jmp " + label + "\n"
                     else:
                         pass
                 else:
                     if instr.Op == tacinstr.TACInstr.EQ:
-                        G.text.string += indent + "jmp " + instr.TargetLabel + "\n"
+                        G.text.string += indent + "jmp " + label + "\n"
                     else:
                         pass
 
@@ -214,37 +215,37 @@ def translateBlock(bb):
                 op = getReversedMnemonic(instr.Op)
                 if instr.Src2.operand.reg:
                     G.text.string += indent + "cmpl $" + str(instr.Src1.operand) + ", %" + instr.Src2.operand.reg.name + "\n"
-                    G.text.string += indent + op + instr.TargetLabel + "\n" 
+                    G.text.string += indent + op + label + "\n" 
                 else:
                     G.text.string += indent + "cmpl $" + str(instr.Src1.operand) + ", " + instr.Src2.operand.name + "\n"
-                    G.text.string += indent + op + instr.TargetLabel + "\n" 
+                    G.text.string += indent + op + label + "\n" 
 
             elif instr.Src1.operand.reg and instr.Src2.isInt():
                 G.text.string += indent + "cmpl $" + str(instr.Src2.operand) + ", %" + instr.Src1.operand.reg.name + "\n"
-                G.text.string += indent + op + instr.TargetLabel + "\n"
+                G.text.string += indent + op + label + "\n"
 
             elif instr.Src1.operand.reg and instr.Src2.isVar():
                 if instr.Src2.operand.reg:
                     G.text.string += indent + "cmpl %" + instr.Src2.operand.reg.name + ", %" + instr.Src1.operand.reg.name + "\n"
-                    G.text.string += indent + op + instr.TargetLabel + "\n"
+                    G.text.string += indent + op + label + "\n"
                 else:
                     G.text.string += indent + "cmpl " + instr.Src2.operand.name + ", %" + instr.Src1.operand.reg.name + "\n"
-                    G.text.string += indent + op + instr.TargetLabel + "\n"
+                    G.text.string += indent + op + label + "\n"
 
             elif instr.Src1.isVar() and instr.Src2.isInt():
                 G.text.string += indent + "cmpl $" + str(instr.Src2.operand) + ", " + instr.Src1.operand.name + "\n"
-                G.text.string += indent + op + instr.TargetLabel + "\n"
+                G.text.string += indent + op + label + "\n"
 
             elif instr.Src1.isVar() and instr.Src2.isVar():
                 if instr.Src2.operand.reg:
                     G.text.string += indent + "cmpl %" + instr.Src2.operand.reg.name + ", " + instr.Src1.operand.name + "\n"
-                    G.text.string += indent + op + instr.TargetLabel + "\n"
+                    G.text.string += indent + op + label + "\n"
                 else:
                     locTuple = bb.getReg()
                     loc = locTuple[0]
                     G.text.string += indent + "movl " + instr.Src2.operand.name + ", %" + loc.name + "\n"
                     G.text.string += indent + "cmpl %" + loc.name + "," + instr.Src1.operand.name + "\n"
-                    G.text.string += indent + op + instr.TargelLabel + "\n"
+                    G.text.string += indent + op + label + "\n"
                     instr.Src2.operand.loadIntoReg(loc.name)
 
 #            if instr.Src1.isInt():  # i is integer.
@@ -417,17 +418,17 @@ def getMnemonic(op):
         pass
 
 def getReversedMnemonic(op):
-    if op == tacinstr.TACInstr.EQ
+    if op == tacinstr.TACInstr.EQ:
         return "je"
-    elif op == tacinstr.TACInstr.NEQ
+    elif op == tacinstr.TACInstr.NEQ:
         return "jne"
-    elif op == tacinstr.TACInstr.GEQ
+    elif op == tacinstr.TACInstr.GEQ:
         return "jle"
-    elif op == tacinstr.TACInstr.GT
+    elif op == tacinstr.TACInstr.GT:
         return "jl"
-    elif op == tacinstr.TACInstr.LEQ
+    elif op == tacinstr.TACInstr.LEQ:
         return "jge"
-    elif op == tacinstr.TACInstr.LT
+    elif op == tacinstr.TACInstr.LT:
         return "jg"
     else:
         pass
