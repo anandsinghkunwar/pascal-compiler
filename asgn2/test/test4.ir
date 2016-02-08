@@ -1,0 +1,5 @@
+1,=,a,4
+2,printf,"a = %d\n",a
+3,=,+,a,a,5
+4,printf,"a + 5 = %d\n",a
+5,ret
