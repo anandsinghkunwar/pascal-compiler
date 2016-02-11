@@ -44,9 +44,9 @@ reserved = {
     'xor':'OP_XOR'
     }
 tokens = [
-    'IDENTIFIER','TYPE',
+    'IDENTIFIER','TYPE','ERRONEOUS_IDENTIFIER',
 #literals
-    'CONSTANT_INTEGER','CONSTANT_STRING','CONSTANT_REAL',
+    'CONSTANT_INTEGER','CONSTANT_STRING','CONSTANT_REAL','ERRONEOUS_CONSTANT_REAL'
     'CONSTANT_STRING_LEADSPACE','CONSTANT_ESCAPE_STRING', #for handling escaping apostrophe
     'CONSTANT_BINARY', 'CONSTANT_OCTAL', 'CONSTANT_HEX',
 #operators
@@ -83,11 +83,17 @@ t_DOT = r'\.'
 t_OP_POINTER = r'\^'
 t_OP_ADDRESS = r'@'
 
+def t_ERRONEOUS_IDENTIFIER(t):
+    r'[0-9][a-zA-Z_]+'
+    t_error(t)
 def t_IDENTIFIER(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
     t.value = t.value.lower()
     t.type = reserved.get(t.value,'IDENTIFIER')    # Check for reserved words
     return t
+def t_ERRONEOUS_CONSTANT_REAL(t):
+    r'[0-9]+\.[0-9]+\.[0-9]*' # Checked for form 123.123 123.123e-123 123e-231
+    t_error(t)
 def t_CONSTANT_REAL(t):
     r'(?i)([0-9]+(\.[0-9]+)(e[\+-]?[0-9]+)?)|([0-9]+(e[\+-]?[0-9]+))' # Checked for form 123.123 123.123e-123 123e-231
     t.value = float(t.value)
@@ -131,6 +137,6 @@ def t_NEWLINE(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
 def t_error(t):
-    print("\nERROR: Illegal character '%s' on line number %d\n" % (t.value[0], t.lineno))
+    print("\nERROR: Illegal input '%s' on line number %d\n" % (t.value.split('\n')[0], t.lineno))
     exit()
 lexer = lex.lex()
