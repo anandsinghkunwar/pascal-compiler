@@ -80,6 +80,7 @@ t_RIGHT_SQUARE_BRACKETS = r'\]'
 t_EQUAL = r'='
 t_ignore_SPACE = r'\s'
 t_DOT = r'\.'
+t_DOTDOT = r'\.\.'
 t_OP_POINTER = r'\^'
 t_OP_ADDRESS = r'@'
 
