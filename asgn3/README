@@ -1,0 +1,2 @@
+Building is not required. The file bin/parser is an executable script. Usage (within asgn3/ directory):
+    bin/parser <source-file>
