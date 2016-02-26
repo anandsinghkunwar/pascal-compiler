@@ -128,6 +128,7 @@ def t_CONSTANT_ESCAPE_STRING(t):
     if(t.value[0]!='#'):
         error(t)
     else:
+        t.value = int(t.value[1:])
         return t
 def t_COMMENTS(t):
     r'(\(\*.*\*\))|({.*})|(//.*)'
