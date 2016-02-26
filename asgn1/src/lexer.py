@@ -54,7 +54,7 @@ tokens = [
     'OP_NEQ','OP_GT','OP_LT','OP_GEQ','OP_LEQ',
     'OP_POINTER','OP_ADDRESS',
     'COMMA','SEMICOLON','COLON','COLON_EQUAL','LEFT_PARENTHESIS','RIGHT_PARENTHESIS','LEFT_SQUARE_BRACKETS','RIGHT_SQUARE_BRACKETS','EQUAL','DOT',
-    'COMMENTS', 'NEWLINE','SPACE'
+    'DOTDOT', 'COMMENTS', 'NEWLINE','SPACE'
     ] + list(reserved.values())
 #have to take care of comments
 
