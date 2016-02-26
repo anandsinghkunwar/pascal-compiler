@@ -4,20 +4,59 @@ import ply.yacc as yacc
 from lexer import tokens
 
 def p_start(p):
-    'start : program_statement block DOT'
+    'start : program_statement declarations func_proc_defs block DOT'
 
 def p_program_statement(p):
     '''program_statement : KEYWORD_PROGRAM IDENTIFIER SEMICOLON
                          | empty'''
 
-def p_block(p):
-    'block : declarations func_proc_defs KEYWORD_BEGIN statements KEYWORD_END'
-
 def p_declarations(p):
-    ''
+    'declarations : const_declarations type_declarations var_declarations'
+
+def p_const_declarations(p):
+    '''const_declarations : KEYWORD_CONST const_statements
+                          | empty'''
+
+def p_const_statements(p):
+    '''const_statements : const_statements const_statement
+                        | const_statement'''
+
+def p_const_statement(p):
+    'const_statement : IDENTIFIER EQUAL constant SEMICOLON'
+
+def p_constant(p):
+    '''constant : CONSTANT_INTEGER
+                | CONSTANT_REAL
+                | CONSTANT_HEX
+                | CONSTANT_BINARY
+                | CONSTANT_OCTAL
+                | CONSTANT_NIL
+                | CONSTANT_BOOLEAN_TRUE
+                | CONSTANT_BOOLEAN_FALSE
+                | string'''
+
+def p_string(p):
+    '''string : CONSTANT_STRING_LEADSPACE substring
+              | CONSTANT_STRING_LEADSPACE
+              | substring'''
+
+def p_substring(p):
+    '''substring : substring substring
+                 | CONSTANT_STRING
+                 | CONSTANT_SPECIAL_CHAR'''
+
+def p_type_declarations(p):
+    '''type_declarations : KEYWORD_TYPE IDENTIFIER EQUAL
+                         | empty'''
 
 def p_func_proc_defs(p):
-    ''
+    pass
+
+def p_block(p):
+    'block : KEYWORD_BEGIN statements KEYWORD_END'
+
+def p_statements(p):
+    pass
 
 def p_empty(p):
     'empty :'

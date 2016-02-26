@@ -47,7 +47,7 @@ tokens = [
     'IDENTIFIER','TYPE','ERRONEOUS_IDENTIFIER',
 #literals
     'CONSTANT_INTEGER','CONSTANT_STRING','CONSTANT_REAL','ERRONEOUS_CONSTANT_REAL',
-    'CONSTANT_STRING_LEADSPACE','CONSTANT_ESCAPE_STRING', #for handling escaping apostrophe
+    'CONSTANT_STRING_LEADSPACE','CONSTANT_SPECIAL_CHAR', #for handling escaping apostrophe
     'CONSTANT_BINARY', 'CONSTANT_OCTAL', 'CONSTANT_HEX',
 #operators
     'OP_PLUS','OP_MINUS','OP_MULT','OP_DIV_REAL',
@@ -123,7 +123,7 @@ def t_CONSTANT_STRING(t):
     r'\'.*?\''
     t.value = t.value.split('\'')[1]
     return t
-def t_CONSTANT_ESCAPE_STRING(t):
+def t_CONSTANT_SPECIAL_CHAR(t):
     r'\s*\#[0-9]+'
     if(t.value[0]!='#'):
         error(t)
