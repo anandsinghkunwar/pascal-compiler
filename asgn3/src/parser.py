@@ -10,7 +10,9 @@ def p_program_statement(p):
 def p_expression_plus(p):
     'expression : expression PLUS term'
     p[0] = p[1] + p[3]
-
+def p_empty(p):
+    'empty :'
+    pass
 # Error rule for syntax errors
 def p_error(p):
     print("Syntax error in input!")
