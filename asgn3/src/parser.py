@@ -3,6 +3,8 @@ import ply.yacc as yacc
 # Get the token map from the lexer.  This is required.
 from lexer import tokens
 
+# TODO: PRECEDENCE ERROR
+
 def p_start(p):
     'start : program_statement declarations func_proc_defs block DOT'
 
@@ -46,8 +48,15 @@ def p_substring(p):
                  | CONSTANT_SPECIAL_CHAR'''
 
 def p_type_declarations(p):
-    '''type_declarations : KEYWORD_TYPE IDENTIFIER EQUAL
+    '''type_declarations : KEYWORD_TYPE type_statements
                          | empty'''
+
+def p_type_statements(p):
+    '''type_statements : type_statements type_statement
+                       | type_statement'''
+
+def p_type_statement(p):
+    'type_statement : IDENTIFIER EQUAL type SEMICOLON'
 
 def p_func_proc_defs(p):
     pass
