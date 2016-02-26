@@ -85,15 +85,15 @@ t_OP_ADDRESS = r'@'
 
 def t_ERRONEOUS_IDENTIFIER(t):
     r'[0-9][a-zA-Z_]+'
-    t_error(t)
+    error(t)
 def t_IDENTIFIER(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
     t.value = t.value.lower()
     t.type = reserved.get(t.value,'IDENTIFIER')    # Check for reserved words
     return t
 def t_ERRONEOUS_CONSTANT_REAL(t):
-    r'[0-9]+\.[0-9]+\.[0-9]*' # Checked for form 123.123 123.123e-123 123e-231
-    t_error(t)
+    r'[0-9]+\.[0-9]+(\.[0-9]*)+' # Checked for form 123.123 123.123e-123 123e-231
+    error(t)
 def t_CONSTANT_REAL(t):
     r'(?i)([0-9]+(\.[0-9]+)(e[\+-]?[0-9]+)?)|([0-9]+(e[\+-]?[0-9]+))' # Checked for form 123.123 123.123e-123 123e-231
     t.value = float(t.value)
@@ -125,7 +125,7 @@ def t_CONSTANT_STRING(t):
 def t_CONSTANT_ESCAPE_STRING(t):
     r'\s*\#[0-9]+'
     if(t.value[0]!='#'):
-        t_error(t)
+        error(t)
     else:
         return t
 def t_COMMENTS(t):
@@ -136,7 +136,9 @@ def t_COMMENTS(t):
 def t_NEWLINE(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
+def error(t):
+    print("\nERROR: Illegal input '%s' on line number %d\n" % (t.value, t.lineno))
 def t_error(t):
-    print("\nERROR: Illegal input '%s' on line number %d\n" % (t.value.split('\n')[0], t.lineno))
-    exit()
+    print("\nERROR: Illegal input '%s' on line number %d\n" % (t.value[0], t.lineno))
+    t.lexer.skip(1)
 lexer = lex.lex()
