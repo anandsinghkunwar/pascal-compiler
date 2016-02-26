@@ -4,15 +4,25 @@ import ply.yacc as yacc
 from lexer import tokens
 
 def p_start(p):
-    'start : program_statement declarations KEYWORD_BEGIN statement_list KEYWORD_END DOT'
+    'start : program_statement block DOT'
+
 def p_program_statement(p):
-    'KEYWORD_PROGRAM IDENTIFIER SEMICOLON'
-def p_expression_plus(p):
-    'expression : expression PLUS term'
-    p[0] = p[1] + p[3]
+    '''program_statement : KEYWORD_PROGRAM IDENTIFIER SEMICOLON
+                         | empty'''
+
+def p_block(p):
+    'block : declarations func_proc_defs KEYWORD_BEGIN statements KEYWORD_END'
+
+def p_declarations(p):
+    ''
+
+def p_func_proc_defs(p):
+    ''
+
 def p_empty(p):
     'empty :'
     pass
+
 # Error rule for syntax errors
 def p_error(p):
     print("Syntax error in input!")
