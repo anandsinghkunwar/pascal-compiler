@@ -56,7 +56,56 @@ def p_type_statements(p):
                        | type_statement'''
 
 def p_type_statement(p):
-    'type_statement : IDENTIFIER EQUAL type SEMICOLON'
+    'type_statement : identifiers EQUAL type SEMICOLON'
+
+def p_identifiers(p):
+    '''identifiers : identifiers COMMA IDENTIFIER
+                   | IDENTIFIER'''
+
+def p_type(p):
+    '''type : type_identifier
+            | array_declaration
+            | string_declaration'''
+
+def p_type_identifier(p):
+    'type_identifier : IDENTIFIER'
+
+def p_array_declaration(p):
+    '''array_declaration : KEYWORD_ARRAY LEFT_SQUARE_BRACKETS array_ranges RIGHT_SQUARE_BRACKETS KEYWORD_OF type'''
+
+def p_array_ranges(p):
+    '''array_ranges : array_ranges COMMA array_range
+                    | array_range'''
+
+def p_array_range(p):
+    '''array_range : CONSTANT_INTEGER DOTDOT CONSTANT_INTEGER
+
+                   | char DOTDOT char
+
+                   | CONSTANT_BOOLEAN_FALSE DOTDOT CONSTANT_BOOLEAN_FALSE
+                   | CONSTANT_BOOLEAN_FALSE DOTDOT CONSTANT_BOOLEAN_TRUE
+                   | CONSTANT_BOOLEAN_TRUE DOTDOT CONSTANT_BOOLEAN_TRUE'''
+
+def p_char(p):
+    '''char : CONSTANT_STRING
+            | CONSTANT_STRING_LEADSPACE'''
+
+def p_string_declaration(p):
+    '''string_declaration : KEYWORD_STRING
+                          | KEYWORD_STRING LEFT_SQUARE_BRACKETS CONSTANT_INTEGER RIGHT_SQUARE_BRACKETS'''
+
+
+def p_var_declarations(p):
+    '''var_declarations : KEYWORD_VAR var_statements
+                        | empty'''
+
+def p_var_statements(p):
+    '''var_statements : var_statements var_statement
+                      | var_statement'''
+
+def p_var_statement(p):
+    '''var_statement : identifiers COLON type SEMICOLON
+                     | IDENTIFIER COLON type EQUAL constant'''
 
 def p_func_proc_defs(p):
     pass
