@@ -13,7 +13,10 @@ def p_program_statement(p):
                          | empty'''
 
 def p_declarations(p):
-    'declarations : const_declarations type_declarations var_declarations'
+    '''declarations : declarations const_declarations
+                    | declarations type_declarations
+                    | declarations var_declarations
+                    | empty'''
 
 def p_const_declarations(p):
     '''const_declarations : KEYWORD_CONST const_statements
@@ -43,7 +46,8 @@ def p_string(p):
               | substring'''
 
 def p_substring(p):
-    '''substring : substring substring
+    '''substring : CONSTANT_STRING substring
+                 | CONSTANT_SPECIAL_CHAR substring
                  | CONSTANT_STRING
                  | CONSTANT_SPECIAL_CHAR'''
 
@@ -66,11 +70,11 @@ def p_type(p):
     '''type : type_identifier
             | array_declaration
             | string_declaration
-            | OP_POINTER type_identifier
-            | OP_POINTER KEYWORD_STRING'''
+            | OP_POINTER type_identifier'''
 
 def p_type_identifier(p):
-    'type_identifier : IDENTIFIER'
+    '''type_identifier : IDENTIFIER
+                       | KEYWORD_STRING'''
 
 def p_array_declaration(p):
     '''array_declaration : KEYWORD_ARRAY LEFT_SQUARE_BRACKETS array_ranges RIGHT_SQUARE_BRACKETS KEYWORD_OF type'''
@@ -93,8 +97,7 @@ def p_char(p):
             | CONSTANT_STRING_LEADSPACE'''
 
 def p_string_declaration(p):
-    '''string_declaration : KEYWORD_STRING
-                          | KEYWORD_STRING LEFT_SQUARE_BRACKETS CONSTANT_INTEGER RIGHT_SQUARE_BRACKETS'''
+    '''string_declaration : KEYWORD_STRING LEFT_SQUARE_BRACKETS CONSTANT_INTEGER RIGHT_SQUARE_BRACKETS'''
 
 
 def p_var_declarations(p):
@@ -107,12 +110,43 @@ def p_var_statements(p):
 
 def p_var_statement(p):
     '''var_statement : identifiers COLON type SEMICOLON
-                     | IDENTIFIER COLON type EQUAL constant'''
+                     | IDENTIFIER COLON type EQUAL constant SEMICOLON'''
 
 def p_func_proc_defs(p):
     '''func_proc_defs : func_proc_defs func_def
                       | func_proc_defs proc_def
                       | empty'''
+def p_proc_def(p):
+    '''proc_def : proc_head SEMICOLON declarations block SEMICOLON'''
+
+def p_proc_head(p):
+    'proc_head : KEYWORD_PROCEDURE IDENTIFIER parameter_list'
+
+def p_func_def(p):
+    '''func_def : func_head SEMICOLON declarations block SEMICOLON'''
+
+def p_func_head(p):
+    '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list COLON type_identifier'''
+
+def p_parameter_list(p):
+    '''parameter_list : LEFT_PARENTHESIS parameter_declarations RIGHT_PARENTHESIS
+                      | LEFT_PARENTHESIS RIGHT_PARENTHESIS'''
+
+def p_parameter_declarations(p):
+    '''parameter_declarations : parameter_declarations SEMICOLON value_parameter
+                              | parameter_declarations SEMICOLON var_parameter
+                              | var_parameter
+                              | value_parameter'''
+
+def p_var_parameter(p):
+    '''var_parameter : KEYWORD_VAR identifiers
+                     | KEYWORD_VAR identifiers COLON type_identifier
+                     | KEYWORD_VAR identifiers COLON KEYWORD_ARRAY KEYWORD_OF type_identifier'''
+
+def p_value_parameter(p):
+    '''value_parameter : identifiers COLON type_identifier
+                       | identifiers COLON KEYWORD_ARRAY KEYWORD_OF type_identifier
+                       | IDENTIFIER COLON type_identifier EQUAL constant'''
 
 def p_block(p):
     'block : KEYWORD_BEGIN statements KEYWORD_END'
