@@ -65,7 +65,9 @@ def p_identifiers(p):
 def p_type(p):
     '''type : type_identifier
             | array_declaration
-            | string_declaration'''
+            | string_declaration
+            | OP_POINTER type_identifier
+            | OP_POINTER KEYWORD_STRING'''
 
 def p_type_identifier(p):
     'type_identifier : IDENTIFIER'
@@ -108,7 +110,9 @@ def p_var_statement(p):
                      | IDENTIFIER COLON type EQUAL constant'''
 
 def p_func_proc_defs(p):
-    pass
+    '''func_proc_defs : func_proc_defs func_def
+                      | func_proc_defs proc_def
+                      | empty'''
 
 def p_block(p):
     'block : KEYWORD_BEGIN statements KEYWORD_END'
