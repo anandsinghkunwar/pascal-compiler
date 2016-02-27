@@ -152,7 +152,17 @@ def p_block(p):
     'block : KEYWORD_BEGIN statements KEYWORD_END'
 
 def p_statements(p):
-    pass
+    '''statements : statements SEMICOLON statement
+                  | statement'''
+
+def p_statement(p):
+    '''statement : simple_statement
+                 | structured_statement
+                 | empty'''
+
+def p_simple_statement(p):
+    '''simple_statement : assignment_statement
+                        | procedure_statement'''
 
 def p_empty(p):
     'empty :'
