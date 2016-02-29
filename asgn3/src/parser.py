@@ -27,7 +27,10 @@ def p_const_statements(p):
                         | const_statement'''
 
 def p_const_statement(p):
-    'const_statement : IDENTIFIER EQUAL constant SEMICOLON'
+    'const_statement : constant_identifier EQUAL expression SEMICOLON'
+
+def p_constant_identifier(p):
+    'constant_identifier : IDENTIFIER'
 
 def p_constant(p):
     '''constant : CONSTANT_INTEGER
@@ -110,7 +113,7 @@ def p_var_statements(p):
 
 def p_var_statement(p):
     '''var_statement : identifiers COLON type SEMICOLON
-                     | IDENTIFIER COLON type EQUAL constant SEMICOLON'''
+                     | IDENTIFIER COLON type EQUAL expression SEMICOLON'''
 
 def p_func_proc_defs(p):
     '''func_proc_defs : func_proc_defs func_def
@@ -163,6 +166,58 @@ def p_statement(p):
 def p_simple_statement(p):
     '''simple_statement : assignment_statement
                         | procedure_statement'''
+
+def p_assignment_statement(p):
+    '''assignment_statement : IDENTIFIER COLON_EQUAL expression'''
+
+def p_expression(p):
+    '''expression : simple_expression relational_operator simple_expression
+                  | simple_expression OP_MULT simple_expression
+                  | simple_expression'''
+
+def p_relational_operator(p):
+    '''relational_operator : KEYWORD_IN
+                           | OP_NEQ
+                           | OP_GT
+                           | OP_LT
+                           | OP_GEQ
+                           | OP_LEQ
+                           | EQUAL'''
+
+def p_simple_expression(p):
+    '''simple_expression : term OP_PLUS simple_expression
+                         | term OP_MINUS simple_expression
+                         | term OP_OR simple_expression
+                         | term OP_XOR simple_expression
+                         | term'''
+
+def p_term(p):
+    '''term : factor OP_MULT term
+            | factor OP_DIV term
+            | factor OP_DIV_REAL term
+            | factor OP_MOD term
+            | factor OP_AND term
+            | factor OP_SHIFTLEFT term
+            | factor OP_SHIFTRIGHT term
+            | factor'''
+
+def p_factor(p):
+    '''factor : LEFT_PARENTHESIS expression RIGHT_PARENTHESIS
+              | sign factor
+              | OP_NOT factor
+              | unsigned_constant
+              | function_call
+              | ''' # TODO: Add variable reference
+
+def p_sign_factor(p):
+    '''sign_factor : OP_PLUS
+                   | OP_MINUS'''
+
+def p_unsigned_constant(p):
+    '''unsigned_constant : unsigned_number
+                         | string
+                         | constant_identifier
+                         | CONSTANT_NIL'''
 
 def p_empty(p):
     'empty :'
