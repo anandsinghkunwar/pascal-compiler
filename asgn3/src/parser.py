@@ -126,14 +126,7 @@ def p_parameter_list(p):
 
 def p_parameter_declarations(p):
     '''parameter_declarations : parameter_declarations SEMICOLON value_parameter
-                              | parameter_declarations SEMICOLON var_parameter
-                              | var_parameter
                               | value_parameter'''
-
-def p_var_parameter(p):
-    '''var_parameter : KEYWORD_VAR identifiers
-                     | KEYWORD_VAR identifiers COLON type_identifier
-                     | KEYWORD_VAR identifiers COLON KEYWORD_ARRAY KEYWORD_OF type_identifier'''
 
 def p_value_parameter(p):
     '''value_parameter : identifiers COLON type_identifier
@@ -166,8 +159,7 @@ def p_expression(p):
                   | simple_expression'''
 
 def p_relational_operator(p):
-    '''relational_operator : KEYWORD_IN
-                           | OP_NEQ
+    '''relational_operator : OP_NEQ
                            | OP_GT
                            | OP_LT
                            | OP_GEQ
@@ -184,7 +176,6 @@ def p_simple_expression(p):
 def p_term(p):
     '''term : factor OP_MULT term
             | factor OP_DIV term
-            | factor OP_DIV_REAL term
             | factor OP_MOD term
             | factor OP_AND term
             | factor OP_SHIFTLEFT term
@@ -205,7 +196,6 @@ def p_sign(p):
 
 def p_unsigned_constant(p):
     '''unsigned_constant : CONSTANT_INTEGER
-                         | CONSTANT_REAL
                          | CONSTANT_HEX
                          | CONSTANT_BINARY
                          | CONSTANT_OCTAL
