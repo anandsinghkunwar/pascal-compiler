@@ -133,7 +133,7 @@ def p_value_parameter(p):
                        | IDENTIFIER COLON type_identifier
                        | identifiers COLON KEYWORD_ARRAY KEYWORD_OF type_identifier
                        | IDENTIFIER COLON KEYWORD_ARRAY KEYWORD_OF type_identifier
-                       | IDENTIFIER COLON type_identifier EQUAL constant'''
+                       | IDENTIFIER COLON type_identifier EQUAL unsigned_constant'''
 
 def p_block(p):
     'block : KEYWORD_BEGIN statements KEYWORD_END'
@@ -149,7 +149,7 @@ def p_statement(p):
 
 def p_simple_statement(p):
     '''simple_statement : assignment_statement
-                        | procedure_statement'''
+                        | func_proc_statement'''
 
 def p_assignment_statement(p):
     '''assignment_statement : IDENTIFIER COLON_EQUAL expression'''
@@ -183,7 +183,11 @@ def p_factor(p):
               | unsigned_constant'''
 
 def p_function_call(p):
-    pass
+    '''function_call : IDENTIFIER LEFT_PARENTHESIS expression_list RIGHT_PARENTHESIS'''
+
+def p_expression_list(p):
+    '''expression_list : expression_list COMMA expression
+                       | empty'''
 
 def p_variable_reference(p):
     '''variable_reference : IDENTIFIER
@@ -195,7 +199,7 @@ def p_array_index(p):
                    | expression COMMA expression'''
 
 def p_array_index_cstyle(p):
-    '''array_index : array_index LEFT_SQUARE_BRACKETS expression RIGHT_SQUARE_BRACKETS
+    '''array_index_cstyle : array_index_cstyle LEFT_SQUARE_BRACKETS expression RIGHT_SQUARE_BRACKETS
                    | LEFT_SQUARE_BRACKETS expression RIGHT_SQUARE_BRACKETS'''
 
 def p_sign(p):
@@ -219,6 +223,36 @@ def p_relational_operator(p):
                            | OP_GEQ
                            | OP_LEQ
                            | EQUAL'''
+
+def p_func_proc_statement(p):
+    '''func_proc_statement : IDENTIFIER LEFT_PARENTHESIS expression_list RIGHT_PARENTHESIS'''
+
+def p_structured_statement(p):
+    '''structured_statement : block
+                            | cond_statement
+                            | loop_statement'''
+
+def p_cond_statement(p):
+    '''cond_statement : KEYWORD_IF expression KEYWORD_THEN statement else_statement'''
+
+def p_else_statement(p):
+    '''else_statement : KEYWORD_ELSE statement
+                      | empty'''
+
+def p_loop_statement(p):
+    '''loop_statement : for_statement
+                      | repeat_statement
+                      | while_statement'''
+
+def p_for_statement(p):
+    '''for_statement : KEYWORD_FOR IDENTIFIER COLON_EQUAL expression KEYWORD_TO expression KEYWORD_DO statement
+                     | KEYWORD_FOR IDENTIFIER COLON_EQUAL expression KEYWORD_DOWNTO expression KEYWORD_DO statement'''
+
+def p_repeat_statement(p):
+    '''repeat_statement : KEYWORD_REPEAT statements KEYWORD_UNTIL expression'''
+
+def p_while_statement(p):
+    '''while_statement : KEYWORD_WHILE expression KEYWORD_DO statement'''
 
 def p_empty(p):
     'empty :'
