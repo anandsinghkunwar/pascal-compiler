@@ -19,29 +19,14 @@ def p_declarations(p):
                     | empty'''
 
 def p_const_declarations(p):
-    '''const_declarations : KEYWORD_CONST const_statements
-                          | empty'''
+    '''const_declarations : KEYWORD_CONST const_statements'''
 
 def p_const_statements(p):
     '''const_statements : const_statements const_statement
                         | const_statement'''
 
 def p_const_statement(p):
-    'const_statement : constant_identifier EQUAL expression SEMICOLON'
-
-def p_constant_identifier(p):
-    'constant_identifier : IDENTIFIER'
-
-def p_constant(p):
-    '''constant : CONSTANT_INTEGER
-                | CONSTANT_REAL
-                | CONSTANT_HEX
-                | CONSTANT_BINARY
-                | CONSTANT_OCTAL
-                | CONSTANT_NIL
-                | CONSTANT_BOOLEAN_TRUE
-                | CONSTANT_BOOLEAN_FALSE
-                | string'''
+    'const_statement : IDENTIFIER EQUAL expression SEMICOLON'
 
 def p_string(p):
     '''string : CONSTANT_STRING_LEADSPACE substring
@@ -55,8 +40,7 @@ def p_substring(p):
                  | CONSTANT_SPECIAL_CHAR'''
 
 def p_type_declarations(p):
-    '''type_declarations : KEYWORD_TYPE type_statements
-                         | empty'''
+    '''type_declarations : KEYWORD_TYPE type_statements'''
 
 def p_type_statements(p):
     '''type_statements : type_statements type_statement
@@ -67,7 +51,7 @@ def p_type_statement(p):
 
 def p_identifiers(p):
     '''identifiers : identifiers COMMA IDENTIFIER
-                   | IDENTIFIER'''
+                   | IDENTIFIER COMMA IDENTIFIER'''
 
 def p_type(p):
     '''type : type_identifier
@@ -97,6 +81,7 @@ def p_array_range(p):
 
 def p_char(p):
     '''char : CONSTANT_STRING
+            | CONSTANT_SPECIAL_CHAR
             | CONSTANT_STRING_LEADSPACE'''
 
 def p_string_declaration(p):
@@ -104,8 +89,7 @@ def p_string_declaration(p):
 
 
 def p_var_declarations(p):
-    '''var_declarations : KEYWORD_VAR var_statements
-                        | empty'''
+    '''var_declarations : KEYWORD_VAR var_statements'''
 
 def p_var_statements(p):
     '''var_statements : var_statements var_statement
@@ -113,6 +97,7 @@ def p_var_statements(p):
 
 def p_var_statement(p):
     '''var_statement : identifiers COLON type SEMICOLON
+                     | IDENTIFIER COLON type SEMICOLON
                      | IDENTIFIER COLON type EQUAL expression SEMICOLON'''
 
 def p_func_proc_defs(p):
@@ -148,7 +133,9 @@ def p_var_parameter(p):
 
 def p_value_parameter(p):
     '''value_parameter : identifiers COLON type_identifier
+                       | IDENTIFIER COLON type_identifier
                        | identifiers COLON KEYWORD_ARRAY KEYWORD_OF type_identifier
+                       | IDENTIFIER COLON KEYWORD_ARRAY KEYWORD_OF type_identifier
                        | IDENTIFIER COLON type_identifier EQUAL constant'''
 
 def p_block(p):
@@ -172,7 +159,6 @@ def p_assignment_statement(p):
 
 def p_expression(p):
     '''expression : simple_expression relational_operator simple_expression
-                  | simple_expression OP_MULT simple_expression
                   | simple_expression'''
 
 def p_relational_operator(p):
@@ -205,19 +191,24 @@ def p_factor(p):
     '''factor : LEFT_PARENTHESIS expression RIGHT_PARENTHESIS
               | sign factor
               | OP_NOT factor
-              | unsigned_constant
               | function_call
-              | ''' # TODO: Add variable reference
+              | variable_reference
+              | unsigned_constant'''
 
 def p_sign_factor(p):
     '''sign_factor : OP_PLUS
                    | OP_MINUS'''
 
 def p_unsigned_constant(p):
-    '''unsigned_constant : unsigned_number
-                         | string
-                         | constant_identifier
-                         | CONSTANT_NIL'''
+    '''unsigned_constant : CONSTANT_INTEGER
+                         | CONSTANT_REAL
+                         | CONSTANT_HEX
+                         | CONSTANT_BINARY
+                         | CONSTANT_OCTAL
+                         | CONSTANT_NIL
+                         | CONSTANT_BOOLEAN_TRUE
+                         | CONSTANT_BOOLEAN_FALSE
+                         | string'''
 
 def p_empty(p):
     'empty :'
