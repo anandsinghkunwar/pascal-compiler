@@ -187,7 +187,6 @@ def p_function_call(p):
 
 def p_variable_reference(p):
     '''variable_reference : IDENTIFIER
-                          | IDENTIFIER LEFT_SQUARE_BRACKETS expression RIGHT_SQUARE_BRACKETS
                           | IDENTIFIER LEFT_SQUARE_BRACKETS array_index RIGHT_SQUARE_BRACKETS
                           | IDENTIFIER array_index_cstyle'''
 
