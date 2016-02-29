@@ -158,14 +158,6 @@ def p_expression(p):
     '''expression : simple_expression relational_operator simple_expression
                   | simple_expression'''
 
-def p_relational_operator(p):
-    '''relational_operator : OP_NEQ
-                           | OP_GT
-                           | OP_LT
-                           | OP_GEQ
-                           | OP_LEQ
-                           | EQUAL'''
-
 def p_simple_expression(p):
     '''simple_expression : term OP_PLUS simple_expression
                          | term OP_MINUS simple_expression
@@ -190,6 +182,23 @@ def p_factor(p):
               | variable_reference
               | unsigned_constant'''
 
+def p_function_call(p):
+    pass
+
+def p_variable_reference(p):
+    '''variable_reference : IDENTIFIER
+                          | IDENTIFIER LEFT_SQUARE_BRACKETS expression RIGHT_SQUARE_BRACKETS
+                          | IDENTIFIER LEFT_SQUARE_BRACKETS array_index RIGHT_SQUARE_BRACKETS
+                          | IDENTIFIER array_index_cstyle'''
+
+def p_array_index(p):
+    '''array_index : array_index COMMA expression
+                   | expression COMMA expression'''
+
+def p_array_index_cstyle(p):
+    '''array_index : array_index LEFT_SQUARE_BRACKETS expression RIGHT_SQUARE_BRACKETS
+                   | LEFT_SQUARE_BRACKETS expression RIGHT_SQUARE_BRACKETS'''
+
 def p_sign(p):
     '''sign : OP_PLUS
             | OP_MINUS'''
@@ -203,6 +212,14 @@ def p_unsigned_constant(p):
                          | CONSTANT_BOOLEAN_TRUE
                          | CONSTANT_BOOLEAN_FALSE
                          | string'''
+
+def p_relational_operator(p):
+    '''relational_operator : OP_NEQ
+                           | OP_GT
+                           | OP_LT
+                           | OP_GEQ
+                           | OP_LEQ
+                           | EQUAL'''
 
 def p_empty(p):
     'empty :'
