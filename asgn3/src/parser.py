@@ -6,17 +6,19 @@ from lexer import tokens
 # TODO: PRECEDENCE ERROR
 
 def p_start(p):
-    'start : program_statement declarations func_proc_defs block DOT'
+    'start : program_statement global_decs_defs block DOT'
 
 def p_program_statement(p):
     '''program_statement : KEYWORD_PROGRAM IDENTIFIER SEMICOLON
                          | empty'''
 
-def p_declarations(p):
-    '''declarations : declarations const_declarations
-                    | declarations type_declarations
-                    | declarations var_declarations
-                    | empty'''
+def p_global_decs_defs(p):
+    '''global_decs_defs : global_decs_defs const_declarations
+                        | global_decs_defs type_declarations
+                        | global_decs_defs var_declarations
+                        | global_decs_defs func_def
+                        | global_decs_defs proc_def
+                        | empty'''
 
 def p_const_declarations(p):
     '''const_declarations : KEYWORD_CONST const_statements'''
@@ -100,10 +102,6 @@ def p_var_statement(p):
                      | IDENTIFIER COLON type SEMICOLON
                      | IDENTIFIER COLON type EQUAL expression SEMICOLON'''
 
-def p_func_proc_defs(p):
-    '''func_proc_defs : func_proc_defs func_def
-                      | func_proc_defs proc_def
-                      | empty'''
 def p_proc_def(p):
     '''proc_def : proc_head SEMICOLON declarations block SEMICOLON'''
 
@@ -115,6 +113,12 @@ def p_func_def(p):
 
 def p_func_head(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list COLON type_identifier'''
+
+def p_declarations(p):
+    '''declarations : declarations const_declarations
+                    | declarations type_declarations
+                    | declarations var_declarations
+                    | empty'''
 
 def p_parameter_list(p):
     '''parameter_list : LEFT_PARENTHESIS parameter_declarations RIGHT_PARENTHESIS
@@ -195,9 +199,9 @@ def p_factor(p):
               | variable_reference
               | unsigned_constant'''
 
-def p_sign_factor(p):
-    '''sign_factor : OP_PLUS
-                   | OP_MINUS'''
+def p_sign(p):
+    '''sign : OP_PLUS
+            | OP_MINUS'''
 
 def p_unsigned_constant(p):
     '''unsigned_constant : CONSTANT_INTEGER
