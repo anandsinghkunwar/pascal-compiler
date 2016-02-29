@@ -143,9 +143,18 @@ def p_statements(p):
                   | statement'''
 
 def p_statement(p):
-    '''statement : simple_statement
-                 | structured_statement
-                 | empty'''
+    '''statement : matched_statement
+                 | unmatched_statement'''
+
+def p_matched_statement(p):
+    '''matched_statement : simple_statement
+                         | structured_statement
+                         | KEYWORD_IF expression KEYWORD_THEN matched_statement KEYWORD_ELSE matched_statement
+                         | empty'''
+
+def p_unmatched_statement(p):
+    '''unmatched_statement : KEYWORD_IF expression KEYWORD_THEN statement
+                           | KEYWORD_IF expression KEYWORD_THEN matched_statement KEYWORD_ELSE unmatched_statement'''
 
 def p_simple_statement(p):
     '''simple_statement : assignment_statement
@@ -229,15 +238,7 @@ def p_func_proc_statement(p):
 
 def p_structured_statement(p):
     '''structured_statement : block
-                            | cond_statement
                             | loop_statement'''
-
-def p_cond_statement(p):
-    '''cond_statement : KEYWORD_IF expression KEYWORD_THEN statement else_statement'''
-
-def p_else_statement(p):
-    '''else_statement : KEYWORD_ELSE statement
-                      | empty'''
 
 def p_loop_statement(p):
     '''loop_statement : for_statement
