@@ -150,11 +150,24 @@ def p_matched_statement(p):
     '''matched_statement : simple_statement
                          | structured_statement
                          | KEYWORD_IF expression KEYWORD_THEN matched_statement KEYWORD_ELSE matched_statement
+                         | loop_header matched_statement
                          | empty'''
 
 def p_unmatched_statement(p):
     '''unmatched_statement : KEYWORD_IF expression KEYWORD_THEN statement
-                           | KEYWORD_IF expression KEYWORD_THEN matched_statement KEYWORD_ELSE unmatched_statement'''
+                           | KEYWORD_IF expression KEYWORD_THEN matched_statement KEYWORD_ELSE unmatched_statement
+                           | loop_header unmatched_statement'''
+
+def p_loop_header(p):
+    '''loop_header : for_loop_header
+                   | while_loop_header'''
+
+def p_for_loop_header(p):
+    '''for_loop_header : KEYWORD_FOR IDENTIFIER COLON_EQUAL expression KEYWORD_TO expression KEYWORD_DO
+                       | KEYWORD_FOR IDENTIFIER COLON_EQUAL expression KEYWORD_DOWNTO expression KEYWORD_DO'''
+
+def p_while_loop_header(p):
+    '''while_loop_header : KEYWORD_WHILE expression KEYWORD_DO'''
 
 def p_simple_statement(p):
     '''simple_statement : assignment_statement
@@ -238,22 +251,10 @@ def p_func_proc_statement(p):
 
 def p_structured_statement(p):
     '''structured_statement : block
-                            | loop_statement'''
-
-def p_loop_statement(p):
-    '''loop_statement : for_statement
-                      | repeat_statement
-                      | while_statement'''
-
-def p_for_statement(p):
-    '''for_statement : KEYWORD_FOR IDENTIFIER COLON_EQUAL expression KEYWORD_TO expression KEYWORD_DO statement
-                     | KEYWORD_FOR IDENTIFIER COLON_EQUAL expression KEYWORD_DOWNTO expression KEYWORD_DO statement'''
+                            | repeat_statement'''
 
 def p_repeat_statement(p):
     '''repeat_statement : KEYWORD_REPEAT statements KEYWORD_UNTIL expression'''
-
-def p_while_statement(p):
-    '''while_statement : KEYWORD_WHILE expression KEYWORD_DO statement'''
 
 def p_empty(p):
     'empty :'
