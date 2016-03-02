@@ -1,6 +1,4 @@
 import ply.yacc as yacc
-import types
-import sys
 
 # Get the token map from the lexer.  This is required.
 from lexer import tokens
@@ -11,12 +9,6 @@ class Rule(object):
     def __init__(self, name, production):
         self.name = name
         self.production = production
-    def printName(self):
-        print self.name
-    def printProduction(self):
-        if self.production[0] and type(self.production[0]) != types.ClassType:
-            for ele in self.production[0]:
-                print ele
 
 def p_start(p):
     'start : program_statement global_decs_defs block DOT'
@@ -341,22 +333,50 @@ def get_production(p):
         production.append(p[i])
     return production
 
+def print_derivation(form):
+    nonterm_to_reduce = None
+    for item in reversed(form):
+        if type(item) is Rule:
+            nonterm_to_reduce = item
+            nonterm_index = form.index(item)
+            break
+
+    if not nonterm_to_reduce:
+        return
+
+    left_list = form[:nonterm_index]
+    right_list = form[nonterm_index+1:]
+
+    derived_form = left_list + nonterm_to_reduce.production + right_list
+
+    # Print the LHS of the derivation
+    for item in form:
+        if type(item) is Rule:
+            if item == nonterm_to_reduce:
+                print '<b>', item.name, '</b>',
+            else:
+                print item.name,
+        elif type(item) is str:
+            print item,
+    print '->',
+
+    # Print the RHS of the derivation
+    for item in derived_form:
+        if type(item) is Rule:
+            print item.name,
+        elif type(item) is str:
+            print item,
+
+    print '<br><br>'
+
+    print_derivation(derived_form)
+
+def generate_html(start):
+    print '<html>'
+    print '<body>'
+    print_derivation([start])
+    print '</body>'
+    print '</html>'
+
 # Build the parser
 parser = yacc.yacc()
-
-string = "program Lesson1_Program1;Begin Write('Hello World. Prepare to learn PASCAL!!');End."
-
-#print parser.parse(string)
-
-def printRule(rule):
-    sys.stdout.write(rule.name + ' -> ')
-    for element in rule.production:
-        if type(element) == types.StringType:
-            sys.stdout.write(element + ' ')
-        elif type(element) != types.ListType:
-            sys.stdout.write(element.name + ' ')
-        else:
-            for ele in element:
-                sys.stdout.write(ele + ' ')
-    sys.stdout.write('\n')
-
