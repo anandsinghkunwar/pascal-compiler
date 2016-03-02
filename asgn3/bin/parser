@@ -1,0 +1,24 @@
+#!/usr/bin/python
+
+import sys, os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+
+from src import parser as parserModule
+
+cmdLine = sys.argv
+
+if len(cmdLine) != 2:
+    print("Usage: bin/parser <source-file>")
+    quit()
+else:
+    fileName = cmdLine[1]
+    sourceFile = open(fileName, "r")
+    outFileName = fileName.split('/')[-1].split('.')[0] + '.html'
+    print outFileName
+    outFile = open(outFileName, "w")
+    sys.stdout = outFile
+    data = sourceFile.read()
+
+# Give the parser some input
+start = parserModule.parser.parse(data)
+parserModule.generate_html(start)
