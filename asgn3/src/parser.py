@@ -218,7 +218,7 @@ def p_simple_statement(p):
     p[0] = Rule('simple_statement', get_production(p))
 
 def p_assignment_statement(p):
-    '''assignment_statement : IDENTIFIER COLON_EQUAL expression'''
+    '''assignment_statement : variable_reference COLON_EQUAL expression'''
     p[0] = Rule('assignment_statement', get_production(p))
 
 def p_expression(p):
@@ -325,7 +325,7 @@ def p_empty(p):
 
 # Error rule for syntax errors
 def p_error(p):
-    print("Syntax error in input!")
+    print("Syntax error in input!", p.lineno, p.type)
 
 def get_production(p):
     production = []
@@ -350,21 +350,23 @@ def print_derivation(form):
     derived_form = left_list + nonterm_to_reduce.production + right_list
 
     # Print the LHS of the derivation
+    print '<span style="color:blue">',
     for item in form:
         if type(item) is Rule:
             if item == nonterm_to_reduce:
                 print '<b>', item.name, '</b>',
             else:
                 print item.name,
-        elif type(item) is str:
+        else:
             print item,
-    print '->',
+    print '</span>',
+    print '<b>==></b>',
 
     # Print the RHS of the derivation
     for item in derived_form:
         if type(item) is Rule:
             print item.name,
-        elif type(item) is str:
+        else:
             print item,
 
     print '<br><br>'
