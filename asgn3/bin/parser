@@ -14,8 +14,7 @@ else:
     fileName = cmdLine[1]
     sourceFile = open(fileName, "r")
     outFileName = fileName.split('/')[-1].split('.')[0] + '.html'
-    print outFileName
-    outFile = open(outFileName, "w")
+    outFile = open(outFileName, "w+")
     sys.stdout = outFile
     data = sourceFile.read()
 

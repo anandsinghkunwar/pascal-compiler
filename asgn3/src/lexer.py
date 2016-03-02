@@ -1,4 +1,5 @@
 import ply.lex as lex
+import sys
 
 #tokens
 reserved = {
@@ -139,8 +140,8 @@ def t_NEWLINE(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
 def error(t):
-    print("\nERROR: Illegal input '%s' on line number %d\n" % (t.value, t.lineno))
+    print >> sys.stderr, "\nERROR: Illegal input '%s' on line number %d\n" % (t.value, t.lineno)
 def t_error(t):
-    print("\nERROR: Illegal input '%s' on line number %d\n" % (t.value[0], t.lineno))
+    print >> sys.stderr, "\nERROR: Illegal input '%s' on line number %d\n" % (t.value[0], t.lineno)
     t.lexer.skip(1)
 lexer = lex.lex()

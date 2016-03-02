@@ -1,4 +1,5 @@
 import ply.yacc as yacc
+import sys
 
 # Get the token map from the lexer.  This is required.
 from lexer import tokens
@@ -325,7 +326,7 @@ def p_empty(p):
 
 # Error rule for syntax errors
 def p_error(p):
-    print("Syntax error in input!", p.lineno, p.type)
+    print >> sys.stderr, "Syntax error in input!", p.lineno, p.type
 
 def get_production(p):
     production = []
