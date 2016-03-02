@@ -1,4 +1,6 @@
 import ply.yacc as yacc
+import types
+import sys
 
 # Get the token map from the lexer.  This is required.
 from lexer import tokens
@@ -9,6 +11,12 @@ class Rule(object):
     def __init__(self, name, production):
         self.name = name
         self.production = production
+    def printName(self):
+        print self.name
+    def printProduction(self):
+        if self.production[0] and type(self.production[0]) != types.ClassType:
+            for ele in self.production[0]:
+                print ele
 
 def p_start(p):
     'start : program_statement global_decs_defs block DOT'
@@ -338,4 +346,17 @@ parser = yacc.yacc()
 
 string = "program Lesson1_Program1;Begin Write('Hello World. Prepare to learn PASCAL!!');End."
 
-print parser.parse(string)
+#print parser.parse(string)
+
+def printRule(rule):
+    sys.stdout.write(rule.name + ' -> ')
+    for element in rule.production:
+        if type(element) == types.StringType:
+            sys.stdout.write(element + ' ')
+        elif type(element) != types.ListType:
+            sys.stdout.write(element.name + ' ')
+        else:
+            for ele in element:
+                sys.stdout.write(ele + ' ')
+    sys.stdout.write('\n')
+
