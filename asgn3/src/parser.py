@@ -249,12 +249,13 @@ def p_factor(p):
     p[0] = ('factor', get_production(p))
 
 def p_function_call(p):
-    '''function_call : IDENTIFIER LEFT_PARENTHESIS expression_list RIGHT_PARENTHESIS'''
+    '''function_call : IDENTIFIER LEFT_PARENTHESIS expression_list RIGHT_PARENTHESIS
+                     | IDENTIFIER LEFT_PARENTHESIS RIGHT_PARENTHESIS'''
     p[0] = ('function_call', get_production(p))
 
 def p_expression_list(p):
     '''expression_list : expression_list COMMA expression
-                       | empty'''
+                       | expression'''
     p[0] = ('expression_list', get_production(p))
 
 def p_variable_reference(p):
@@ -299,7 +300,9 @@ def p_relational_operator(p):
     p[0] = ('relational_operator', get_production(p))
 
 def p_func_proc_statement(p):
-    '''func_proc_statement : IDENTIFIER LEFT_PARENTHESIS expression_list RIGHT_PARENTHESIS'''
+    '''func_proc_statement : IDENTIFIER LEFT_PARENTHESIS expression_list RIGHT_PARENTHESIS
+                           | IDENTIFIER LEFT_PARENTHESIS RIGHT_PARENTHESIS
+                           | IDENTIFIER'''
     p[0] = ('func_proc_statement', get_production(p))
 
 def p_structured_statement(p):
@@ -327,3 +330,7 @@ def get_production(p):
 
 # Build the parser
 parser = yacc.yacc()
+
+string = "program Lesson1_Program1;Begin Write('Hello World. Prepare to learn PASCAL!!');End."
+
+print parser.parse(string)
