@@ -19,5 +19,5 @@ else:
     data = sourceFile.read()
 
 # Give the parser some input
-start = parserModule.parser.parse(data)
+start = parserModule.parser.parse(data, tracking=True)
 parserModule.generate_html(start)

@@ -170,7 +170,14 @@ def p_proc_def_block_error(p):
     '''proc_def : proc_head SEMICOLON declarations block'''
     p[0] = Rule('proc_def', get_production(p))
     #Line number reported from block
-    print >> sys.stderr, "Missing ';' near line", p.lineno(4)
+    print >> sys.stderr, "Missing matching 'end;' for 'begin' in line", p.lineno(4)
+
+def p_proc_def_head_block_error(p):
+    '''proc_def : proc_head declarations block'''
+    p[0] = Rule('proc_def', get_production(p))
+    #Line number reported from proc_head and block
+    print >> sys.stderr, "Missing ';' in line", p.lineno(1)
+    print >> sys.stderr, "Missing matching 'end;' for 'begin' in line", p.lineno(3)
 
 def p_proc_head(p):
     'proc_head : KEYWORD_PROCEDURE IDENTIFIER parameter_list'
@@ -179,6 +186,25 @@ def p_proc_head(p):
 def p_func_def(p):
     '''func_def : func_head SEMICOLON declarations block SEMICOLON'''
     p[0] = Rule('func_def', get_production(p))
+
+def p_func_def_head_error(p):
+    '''func_def : func_head declarations block SEMICOLON'''
+    p[0] = Rule('func_def', get_production(p))
+    #Line number reported from func_head
+    print >> sys.stderr, "Missing ';' in line", p.lineno(1)
+
+def p_func_def_block_error(p):
+    '''func_def : func_head SEMICOLON declarations block'''
+    p[0] = Rule('func_def', get_production(p))
+    #Line number reported from block
+    print >> sys.stderr, "Missing matching 'end;' for 'begin' in line", p.lineno(4)
+
+def p_func_def_head_block_error(p):
+    '''func_def : func_head declarations block'''
+    p[0] = Rule('func_def', get_production(p))
+    #Line number reported from func_head and block
+    print >> sys.stderr, "Missing ';' in line", p.lineno(1)
+    print >> sys.stderr, "Missing matching 'end;' for 'begin' in line", p.lineno(3)
 
 def p_func_head(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list COLON type_identifier'''
