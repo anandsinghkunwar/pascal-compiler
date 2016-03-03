@@ -20,6 +20,12 @@ def p_program_statement(p):
                          | empty'''
     p[0] = Rule('program_statement', get_production(p))
 
+def p_program_statement_error(p):
+    '''program_statement : KEYWORD_PROGRAM IDENTIFIER'''
+    p[0] = Rule('program_statement', get_production(p))
+    #Line number reported from KEYWORD_PROGRAM token
+    print >> sys.stderr, "Missing ';' in line", p.lineno(1)
+
 def p_global_decs_defs(p):
     '''global_decs_defs : global_decs_defs const_declarations
                         | global_decs_defs type_declarations
@@ -41,6 +47,12 @@ def p_const_statements(p):
 def p_const_statement(p):
     'const_statement : IDENTIFIER EQUAL expression SEMICOLON'
     p[0] = Rule('const_statement', get_production(p))
+
+def p_const_statement_error(p):
+    'const_statement : IDENTIFIER EQUAL expression'
+    p[0] = Rule('const_statement', get_production(p))
+    #Line number reported from EQUAL token
+    print >> sys.stderr, "Missing ';' in line", p.lineno(2)
 
 def p_string(p):
     '''string : CONSTANT_STRING_LEADSPACE substring
@@ -67,6 +79,12 @@ def p_type_statements(p):
 def p_type_statement(p):
     'type_statement : identifiers EQUAL type SEMICOLON'
     p[0] = Rule('type_statement', get_production(p))
+
+def p_type_statement_error(p):
+    'type_statement : identifiers EQUAL type'
+    p[0] = Rule('type_statement', get_production(p))
+    #Line number reported from EQUAL token
+    print >> sys.stderr, "Missing ';' in line", p.lineno(2)
 
 def p_identifiers(p):
     '''identifiers : identifiers COMMA IDENTIFIER
@@ -129,6 +147,14 @@ def p_var_statement(p):
                      | IDENTIFIER COLON type SEMICOLON
                      | IDENTIFIER COLON type EQUAL expression SEMICOLON'''
     p[0] = Rule('var_statement', get_production(p))
+
+def p_var_statement_error(p):
+    '''var_statement : identifiers COLON type
+                     | IDENTIFIER COLON type
+                     | IDENTIFIER COLON type EQUAL expression'''
+    p[0] = Rule('var_statement', get_production(p))
+    #Line number reported from COLON token
+    print >> sys.stderr, "Missing ';' in line", p.lineno(2)
 
 def p_proc_def(p):
     '''proc_def : proc_head SEMICOLON declarations block SEMICOLON'''
