@@ -1,4 +1,4 @@
-Program Test3;
+Program Test4;
 var
     a : integer = 1;
     b : array [1..25] of integer;
@@ -10,7 +10,7 @@ Begin
             writeln('Done')
         else
             if a = 1 then
-                writeln('Dangling')
+                writeln('Dangling');
 
     c['s'] := 123;
     b[a+23-3*3] := 12332;
