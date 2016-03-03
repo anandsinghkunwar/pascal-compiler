@@ -228,20 +228,20 @@ def p_expression(p):
     p[0] = Rule('expression', get_production(p))
 
 def p_simple_expression(p):
-    '''simple_expression : term OP_PLUS simple_expression
-                         | term OP_MINUS simple_expression
-                         | term OP_OR simple_expression
-                         | term OP_XOR simple_expression
+    '''simple_expression : simple_expression OP_PLUS term
+                         | simple_expression OP_MINUS term
+                         | simple_expression OP_OR term
+                         | simple_expression OP_XOR term
                          | term'''
     p[0] = Rule('simple_expression', get_production(p))
 
 def p_term(p):
-    '''term : factor OP_MULT term
-            | factor OP_DIV term
-            | factor OP_MOD term
-            | factor OP_AND term
-            | factor OP_SHIFTLEFT term
-            | factor OP_SHIFTRIGHT term
+    '''term : term OP_MULT factor
+            | term OP_DIV factor
+            | term OP_MOD factor
+            | term OP_AND factor
+            | term OP_SHIFTLEFT factor
+            | term OP_SHIFTRIGHT factor
             | factor'''
     p[0] = Rule('term', get_production(p))
 

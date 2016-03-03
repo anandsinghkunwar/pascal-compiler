@@ -1,4 +1,5 @@
 import ply.lex as lex
+import sys
 
 #tokens
 reserved = {
@@ -61,7 +62,7 @@ tokens = [
 t_OP_PLUS = r'\+'
 t_OP_MINUS = r'-'
 t_OP_MULT = r'\*'
-t_OP_DIV_REAL = r'/'
+t_OP_DIV = r'/'
 t_OP_NEQ = r'<>'
 t_OP_GT = r'>'
 t_OP_LT = r'<'
@@ -139,8 +140,8 @@ def t_NEWLINE(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
 def error(t):
-    print("\nERROR: Illegal input '%s' on line number %d\n" % (t.value, t.lineno))
+    print >> sys.stderr, "\nERROR: Illegal input '%s' on line number %d\n" % (t.value, t.lineno)
 def t_error(t):
-    print("\nERROR: Illegal input '%s' on line number %d\n" % (t.value[0], t.lineno))
+    print >> sys.stderr, "\nERROR: Illegal input '%s' on line number %d\n" % (t.value[0], t.lineno)
     t.lexer.skip(1)
 lexer = lex.lex()
