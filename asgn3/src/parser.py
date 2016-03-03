@@ -326,6 +326,12 @@ def p_for_loop_header(p):
                        | KEYWORD_FOR IDENTIFIER COLON_EQUAL expression KEYWORD_DOWNTO expression KEYWORD_DO'''
     p[0] = Rule('for_loop_header', get_production(p))
 
+def p_for_loop_header_error(p):
+    '''for_loop_header : KEYWORD_FOR IDENTIFIER error expression KEYWORD_TO expression KEYWORD_DO
+                       | KEYWORD_FOR IDENTIFIER error expression KEYWORD_DOWNTO expression KEYWORD_DO'''
+    p[0] = Rule('for_loop_header', get_production(p))
+    print_error("\tExpected ':='")
+
 def p_while_loop_header(p):
     '''while_loop_header : KEYWORD_WHILE expression KEYWORD_DO'''
     p[0] = Rule('while_loop_header', get_production(p))
@@ -338,6 +344,12 @@ def p_simple_statement(p):
 def p_assignment_statement(p):
     '''assignment_statement : variable_reference COLON_EQUAL expression'''
     p[0] = Rule('assignment_statement', get_production(p))
+
+def p_assignment_statement_error(p):
+    '''assignment_statement : variable_reference EQUAL expression'''
+    p[0] = Rule('assignment_statement', get_production(p))
+    print_error("Syntax error in line", p.lineno(2))
+    print_error("\tExpected ':='")
 
 def p_expression(p):
     '''expression : simple_expression relational_operator simple_expression
