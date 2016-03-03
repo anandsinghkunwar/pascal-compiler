@@ -346,7 +346,8 @@ def p_assignment_statement(p):
     p[0] = Rule('assignment_statement', get_production(p))
 
 def p_assignment_statement_error(p):
-    '''assignment_statement : variable_reference EQUAL expression'''
+    '''assignment_statement : variable_reference EQUAL expression
+                            | variable_reference COLON expression'''
     p[0] = Rule('assignment_statement', get_production(p))
     print_error("Syntax error in line", p.lineno(2))
     print_error("\tExpected ':='")
