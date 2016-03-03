@@ -151,7 +151,14 @@ def p_var_statement(p):
                      | IDENTIFIER COLON type EQUAL expression SEMICOLON'''
     p[0] = Rule('var_statement', get_production(p))
 
-def p_var_statement_error(p):
+def p_var_statement_colon_error(p):
+    '''var_statement : identifiers error type SEMICOLON
+                     | IDENTIFIER error type SEMICOLON
+                     | IDENTIFIER error type EQUAL expression SEMICOLON'''
+    p[0] = Rule('var_statement', get_production(p))
+    print_error("\tExpected ':'")
+
+def p_var_statement_semicolon_error(p):
     '''var_statement : identifiers COLON type
                      | IDENTIFIER COLON type
                      | IDENTIFIER COLON type EQUAL expression'''
@@ -159,6 +166,15 @@ def p_var_statement_error(p):
     #Line number reported from COLON token
     print_error("Syntax error in line", p.lineno(2))
     print_error("\tMissing ';'")
+
+def p_var_statement_error(p):
+    '''var_statement : identifiers type
+                     | IDENTIFIER type
+                     | IDENTIFIER type EQUAL expression'''
+    p[0] = Rule('var_statement', get_production(p))
+    #Line number reported from type
+    print_error("Syntax error in line", p.lineno(2))
+    print_error("\tMissing ':' and ';'")
 
 def p_proc_def(p):
     '''proc_def : proc_head SEMICOLON declarations block SEMICOLON'''
@@ -222,6 +238,12 @@ def p_func_head(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list COLON type_identifier'''
     p[0] = Rule('func_head', get_production(p))
 
+def p_func_head_error(p):
+    '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list error type_identifier'''
+    p[0] = Rule('func_head', get_production(p))
+    #Line number reported from KEYWORD_FUNCTION token
+    print_error("\tExpected :'")
+
 def p_declarations(p):
     '''declarations : declarations const_declarations
                     | declarations type_declarations
@@ -251,6 +273,15 @@ def p_value_parameter(p):
                        | IDENTIFIER COLON KEYWORD_ARRAY KEYWORD_OF type_identifier
                        | IDENTIFIER COLON type_identifier EQUAL unsigned_constant'''
     p[0] = Rule('value_parameter', get_production(p))
+
+def p_value_parameter_error(p):
+    '''value_parameter : identifiers error type_identifier
+                       | IDENTIFIER error type_identifier
+                       | identifiers error KEYWORD_ARRAY KEYWORD_OF type_identifier
+                       | IDENTIFIER error KEYWORD_ARRAY KEYWORD_OF type_identifier
+                       | IDENTIFIER error type_identifier EQUAL unsigned_constant'''
+    p[0] = Rule('value_parameter', get_production(p))
+    print_error("\tExpected ':'")
 
 def p_block(p):
     'block : KEYWORD_BEGIN statements KEYWORD_END'
