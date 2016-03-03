@@ -160,6 +160,18 @@ def p_proc_def(p):
     '''proc_def : proc_head SEMICOLON declarations block SEMICOLON'''
     p[0] = Rule('proc_def', get_production(p))
 
+def p_proc_def_head_error(p):
+    '''proc_def : proc_head declarations block SEMICOLON'''
+    p[0] = Rule('proc_def', get_production(p))
+    #Line number reported from proc_head
+    print >> sys.stderr, "Missing ';' in line", p.lineno(1)
+
+def p_proc_def_block_error(p):
+    '''proc_def : proc_head SEMICOLON declarations block'''
+    p[0] = Rule('proc_def', get_production(p))
+    #Line number reported from block
+    print >> sys.stderr, "Missing ';' near line", p.lineno(4)
+
 def p_proc_head(p):
     'proc_head : KEYWORD_PROCEDURE IDENTIFIER parameter_list'
     p[0] = Rule('proc_head', get_production(p))
