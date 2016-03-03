@@ -7,7 +7,6 @@ reserved = {
     'array':'KEYWORD_ARRAY',
     'begin':'KEYWORD_BEGIN',
     'break':'KEYWORD_BREAK',
-    'case':'KEYWORD_CASE',
     'const':'KEYWORD_CONST',
     'continue':'KEYWORD_CONTINUE',
     'div':'OP_DIV',
@@ -16,11 +15,9 @@ reserved = {
     'else':'KEYWORD_ELSE',
     'end':'KEYWORD_END',
     'false':'CONSTANT_BOOLEAN_FALSE',
-    'file':'KEYWORD_FILE',
     'for':'KEYWORD_FOR',
     'function':'KEYWORD_FUNCTION',
     'if':'KEYWORD_IF',
-    'in':'KEYWORD_IN',
     'mod':'OP_MOD',
     'nil':'CONSTANT_NIL',
     'not':'OP_NOT',
@@ -28,7 +25,6 @@ reserved = {
     'or':'OP_OR',
     'procedure':'KEYWORD_PROCEDURE',
     'program':'KEYWORD_PROGRAM',
-    'record':'KEYWORD_RECORD',
     'repeat':'KEYWORD_REPEAT',
     'shl':'OP_SHIFTLEFT',
     'shr':'OP_SHIFTRIGHT',
@@ -38,22 +34,19 @@ reserved = {
     'true':'CONSTANT_BOOLEAN_TRUE',
     'type':'KEYWORD_TYPE',
     'until':'KEYWORD_UNTIL',
-    'uses':'KEYWORD_USES',
     'var':'KEYWORD_VAR',
     'while':'KEYWORD_WHILE',
-    'with':'KEYWORD_WITH',
     'xor':'OP_XOR'
     }
 tokens = [
-    'IDENTIFIER','TYPE','ERRONEOUS_IDENTIFIER',
+    'IDENTIFIER','ERRONEOUS_IDENTIFIER',
 #literals
-    'CONSTANT_INTEGER','CONSTANT_STRING','CONSTANT_REAL','ERRONEOUS_CONSTANT_REAL',
+    'CONSTANT_INTEGER','CONSTANT_STRING',
     'CONSTANT_STRING_LEADSPACE','CONSTANT_SPECIAL_CHAR', #for handling escaping apostrophe
     'CONSTANT_BINARY', 'CONSTANT_OCTAL', 'CONSTANT_HEX',
 #operators
-    'OP_PLUS','OP_MINUS','OP_MULT','OP_DIV_REAL',
+    'OP_PLUS','OP_MINUS','OP_MULT',
     'OP_NEQ','OP_GT','OP_LT','OP_GEQ','OP_LEQ',
-    'OP_POINTER','OP_ADDRESS',
     'COMMA','SEMICOLON','COLON','COLON_EQUAL','LEFT_PARENTHESIS','RIGHT_PARENTHESIS','LEFT_SQUARE_BRACKETS','RIGHT_SQUARE_BRACKETS','EQUAL','DOT',
     'DOTDOT', 'COMMENTS', 'NEWLINE','SPACE'
     ] + list(reserved.values())
@@ -82,8 +75,6 @@ t_EQUAL = r'='
 t_ignore_SPACE = r'\s'
 t_DOT = r'\.'
 t_DOTDOT = r'\.\.'
-t_OP_POINTER = r'\^'
-t_OP_ADDRESS = r'@'
 
 def t_ERRONEOUS_IDENTIFIER(t):
     r'[0-9][a-zA-Z_]+'
@@ -92,13 +83,6 @@ def t_IDENTIFIER(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
     t.value = t.value.lower()
     t.type = reserved.get(t.value,'IDENTIFIER')    # Check for reserved words
-    return t
-def t_ERRONEOUS_CONSTANT_REAL(t):
-    r'[0-9]+\.[0-9]+(\.[0-9]*)+' # Checked for form 123.123 123.123e-123 123e-231
-    error(t)
-def t_CONSTANT_REAL(t):
-    r'(?i)([0-9]+(\.[0-9]+)(e[\+-]?[0-9]+)?)|([0-9]+(e[\+-]?[0-9]+))' # Checked for form 123.123 123.123e-123 123e-231
-    t.value = float(t.value)
     return t
 def t_CONSTANT_INTEGER(t):
     r'[0-9]+'

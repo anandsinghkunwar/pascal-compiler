@@ -20,5 +20,5 @@ end;
 begin
     a := func(1, 2, 'c');
     proc(1, 2, 'd');
-    proc2;
+    proc2();
 end.

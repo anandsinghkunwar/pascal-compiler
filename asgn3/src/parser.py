@@ -97,8 +97,7 @@ def p_identifiers(p):
 def p_type(p):
     '''type : type_identifier
             | array_declaration
-            | string_declaration
-            | OP_POINTER type_identifier'''
+            | string_declaration'''
     p[0] = Rule('type', get_production(p))
 
 def p_type_identifier(p):
@@ -307,6 +306,8 @@ def p_matched_statement(p):
                          | structured_statement
                          | KEYWORD_IF expression KEYWORD_THEN matched_statement KEYWORD_ELSE matched_statement
                          | loop_header matched_statement
+                         | KEYWORD_BREAK
+                         | KEYWORD_CONTINUE
                          | empty'''
     p[0] = Rule('matched_statement', get_production(p))
 
@@ -346,11 +347,9 @@ def p_assignment_statement(p):
     p[0] = Rule('assignment_statement', get_production(p))
 
 def p_assignment_statement_error(p):
-    '''assignment_statement : variable_reference EQUAL expression
-                            | variable_reference COLON expression'''
+    '''assignment_statement : variable_reference error expression'''
     p[0] = Rule('assignment_statement', get_production(p))
-    print_error("Syntax error in line", p.lineno(2))
-    print_error("\tExpected ':='")
+    print_error("\tIllegal Expression")
 
 def p_expression(p):
     '''expression : simple_expression relational_operator simple_expression
@@ -437,8 +436,7 @@ def p_relational_operator(p):
 
 def p_func_proc_statement(p):
     '''func_proc_statement : IDENTIFIER LEFT_PARENTHESIS expression_list RIGHT_PARENTHESIS
-                           | IDENTIFIER LEFT_PARENTHESIS RIGHT_PARENTHESIS
-                           | IDENTIFIER'''
+                           | IDENTIFIER LEFT_PARENTHESIS RIGHT_PARENTHESIS'''
     p[0] = Rule('func_proc_statement', get_production(p))
 
 def p_structured_statement(p):
@@ -518,4 +516,4 @@ def print_error(string, *args):
         print >> sys.stderr, string
 
 # Build the parser
-parser = yacc.yacc()
+parser = yacc.yacc(errorlog=yacc.NullLogger())
