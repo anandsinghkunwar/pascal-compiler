@@ -79,11 +79,13 @@ def p_type_statements(p):
     p[0] = Rule('type_statements', get_production(p))
 
 def p_type_statement(p):
-    'type_statement : identifiers EQUAL type SEMICOLON'
+    '''type_statement : identifiers EQUAL type SEMICOLON
+                      | IDENTIFIER EQUAL type SEMICOLON'''
     p[0] = Rule('type_statement', get_production(p))
 
 def p_type_statement_error(p):
-    'type_statement : identifiers EQUAL type'
+    '''type_statement : identifiers EQUAL type
+                      | IDENTIFIER EQUAL type'''
     p[0] = Rule('type_statement', get_production(p))
     #Line number reported from EQUAL token
     print_error("Syntax error in line", p.lineno(2))
