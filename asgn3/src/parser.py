@@ -454,7 +454,10 @@ def p_empty(p):
 
 # Error rule for syntax errors
 def p_error(p):
-    print_error("Syntax error in line", p.lineno)
+    if p:
+        print_error("Syntax error in line", p.lineno)
+    else:
+        print_error("Syntax error at end of file")
 
 def get_production(p):
     production = []
