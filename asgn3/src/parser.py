@@ -24,7 +24,7 @@ def p_program_statement_error(p):
     '''program_statement : KEYWORD_PROGRAM IDENTIFIER'''
     p[0] = Rule('program_statement', get_production(p))
     #Line number reported from KEYWORD_PROGRAM token
-    print_error("Syntax error in line", p.lineno(1))
+    print_error("Syntax error at line", p.lineno(1))
     print_error("\tMissing ';'")
 
 def p_global_decs_defs(p):
@@ -53,7 +53,7 @@ def p_const_statement_error(p):
     'const_statement : IDENTIFIER EQUAL expression'
     p[0] = Rule('const_statement', get_production(p))
     #Line number reported from EQUAL token
-    print_error("Syntax error in line", p.lineno(2))
+    print_error("Syntax error at line", p.lineno(2))
     print_error("\tMissing ';'")
 
 def p_string(p):
@@ -88,7 +88,7 @@ def p_type_statement_error(p):
                       | IDENTIFIER EQUAL type'''
     p[0] = Rule('type_statement', get_production(p))
     #Line number reported from EQUAL token
-    print_error("Syntax error in line", p.lineno(2))
+    print_error("Syntax error at line", p.lineno(2))
     print_error("\tMissing ';'")
 
 def p_identifiers(p):
@@ -165,7 +165,7 @@ def p_var_statement_semicolon_error(p):
                      | IDENTIFIER COLON type EQUAL expression'''
     p[0] = Rule('var_statement', get_production(p))
     #Line number reported from COLON token
-    print_error("Syntax error in line", p.lineno(2))
+    print_error("Syntax error at line", p.lineno(2))
     print_error("\tMissing ';'")
 
 def p_var_statement_error(p):
@@ -174,7 +174,7 @@ def p_var_statement_error(p):
                      | IDENTIFIER type EQUAL expression'''
     p[0] = Rule('var_statement', get_production(p))
     #Line number reported from type
-    print_error("Syntax error in line", p.lineno(2))
+    print_error("Syntax error at line", p.lineno(2))
     print_error("\tMissing ':' and ';'")
 
 def p_proc_def(p):
@@ -185,23 +185,23 @@ def p_proc_def_head_error(p):
     '''proc_def : proc_head declarations block SEMICOLON'''
     p[0] = Rule('proc_def', get_production(p))
     #Line number reported from proc_head
-    print_error("Syntax error in line", p.lineno(1))
+    print_error("Syntax error at line", p.lineno(1))
     print_error("\tMissing ';'")
 
 def p_proc_def_block_error(p):
     '''proc_def : proc_head SEMICOLON declarations block'''
     p[0] = Rule('proc_def', get_production(p))
     #Line number reported from block
-    print_error("Syntax error in line", p.lineno(4))
+    print_error("Syntax error at line", p.lineno(4))
     print_error("\tMissing matching 'end;' for 'begin'")
 
 def p_proc_def_head_block_error(p):
     '''proc_def : proc_head declarations block'''
     p[0] = Rule('proc_def', get_production(p))
     #Line number reported from proc_head and block
-    print_error("Syntax error in line", p.lineno(1))
+    print_error("Syntax error at line", p.lineno(1))
     print_error("\tMissing ';'")
-    print_error("Syntax error in line", p.lineno(3))
+    print_error("Syntax error at line", p.lineno(3))
     print_error("\tMissing matching 'end;' for 'begin'")
 
 def p_proc_head(p):
@@ -216,23 +216,23 @@ def p_func_def_head_error(p):
     '''func_def : func_head declarations block SEMICOLON'''
     p[0] = Rule('func_def', get_production(p))
     #Line number reported from func_head
-    print_error("Syntax error in line", p.lineno(1))
+    print_error("Syntax error at line", p.lineno(1))
     print_error("\tMissing ';'")
 
 def p_func_def_block_error(p):
     '''func_def : func_head SEMICOLON declarations block'''
     p[0] = Rule('func_def', get_production(p))
     #Line number reported from block
-    print_error("Syntax error in line", p.lineno(4))
+    print_error("Syntax error at line", p.lineno(4))
     print_error("\tMissing matching 'end;' for 'begin'")
 
 def p_func_def_head_block_error(p):
     '''func_def : func_head declarations block'''
     p[0] = Rule('func_def', get_production(p))
     #Line number reported from func_head and block
-    print_error("Syntax error in line", p.lineno(1))
+    print_error("Syntax error at line", p.lineno(1))
     print_error("\tMissing ';'")
-    print_error("Syntax error in line", p.lineno(3))
+    print_error("Syntax error at line", p.lineno(3))
     print_error("\tMissing matching 'end;' for 'begin'")
 
 def p_func_head(p):
@@ -457,7 +457,7 @@ def p_empty(p):
 # Error rule for syntax errors
 def p_error(p):
     if p:
-        print_error("Syntax error in line", p.lineno)
+        print_error("Syntax error at line", p.lineno)
     else:
         print_error("Syntax error at end of file")
 
@@ -497,12 +497,23 @@ def print_derivation(form):
     print '<b>==></b>',
 
     # Print the RHS of the derivation
-    for item in derived_form:
+    for item in left_list:
         if type(item) is Rule:
             print item.name,
         else:
             print item,
-
+    print '<b>'
+    for item in nonterm_to_reduce.production:
+        if type(item) is Rule:
+            print item.name,
+        else:
+            print item,
+    print '</b>'
+    for item in right_list:
+        if type(item) is Rule:
+            print item.name,
+        else:
+            print item,
     print '<br><br>'
 
     print_derivation(derived_form)
