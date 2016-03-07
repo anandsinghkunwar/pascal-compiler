@@ -275,7 +275,7 @@ def p_parameter_declarations(p):
 def p_parameter_declarations_error(p):
     '''parameter_declarations : parameter_declarations error value_parameter'''
     p[0] = Rule('parameter_declarations', get_production(p))
-    print_error("\tMissing ';'")
+    print_error("\tExpected ';', Found " + p[2].type)
 
 def p_value_parameter(p):
     '''value_parameter : identifiers COLON type_identifier
@@ -292,7 +292,7 @@ def p_value_parameter_error(p):
                        | IDENTIFIER error KEYWORD_ARRAY KEYWORD_OF type_identifier
                        | IDENTIFIER error type_identifier EQUAL unsigned_constant'''
     p[0] = Rule('value_parameter', get_production(p))
-    print_error("\tExpected ':'")
+    print_error("\tExpected ':', Found " + p[2].type)
 
 def p_block(p):
     'block : KEYWORD_BEGIN statements KEYWORD_END'
@@ -306,7 +306,7 @@ def p_statements(p):
 def p_statements_error(p):
     '''statements : statements error statement'''
     p[0] = Rule('statements', get_production(p))
-    print_error("\tMissing ';'")
+    print_error("\tExpected ';', Found " + p[2].type)
 
 def p_statement(p):
     '''statement : matched_statement
@@ -343,7 +343,7 @@ def p_for_loop_header_error(p):
     '''for_loop_header : KEYWORD_FOR IDENTIFIER error expression KEYWORD_TO expression KEYWORD_DO
                        | KEYWORD_FOR IDENTIFIER error expression KEYWORD_DOWNTO expression KEYWORD_DO'''
     p[0] = Rule('for_loop_header', get_production(p))
-    print_error("\tExpected ':='")
+    print_error("\tExpected ':=', Found " + p[3].type)
 
 def p_while_loop_header(p):
     '''while_loop_header : KEYWORD_WHILE expression KEYWORD_DO'''
