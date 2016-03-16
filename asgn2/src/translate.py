@@ -84,7 +84,10 @@ def translateBlock(bb):
                     elif locTuple[1]:   # y is variable and getReg returned y's register. so loc has y's value
                         pass
                     else:   # y is a variable and loc doesn't have y's value
-                        G.text.string += indent + "movl " + instr.Src1.operand.name + ", %" + loc.name + "\n"
+                        if instr.Src1.operand.reg:      # y exists in a non disposable register
+                            G.text.string += indent + "movl %" + instr.Src1.operand.reg.name + ", %" + loc.name + "\n"
+                        else:   # y is a variable only in memory
+                            G.text.string += indent + "movl " + instr.Src1.operand.name + ", %" + loc.name + "\n"
 
                     # Performing the operation
                     # Case 1: Second operand is an immediate

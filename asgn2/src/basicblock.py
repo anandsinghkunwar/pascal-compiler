@@ -34,7 +34,7 @@ class BasicBlock(object):
                 G.varMap[varName].reg and
                 len(G.varMap[varName].reg.varNames) == 1):
                     regName = G.varMap[varName].reg.name
-                    G.varMap[varName].updateAddressDescriptor(None)
+                    G.registerMap[regName].removeVar(varName)
                     return G.registerMap[regName], True
 
         reg = self.getEmptyRegister()
