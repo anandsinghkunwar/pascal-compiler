@@ -53,7 +53,9 @@ class BasicBlock(object):
 
     def getOccupiedRegister(self):
         maxNextUse = 0
-        unavailableReg = [G.varMap[varName].reg.name for varName in G.currInstr.getVarSet()]
+        unavailableReg = [G.varMap[varName].reg.name
+                          for varName in G.currInstr.getVarSet()
+                          if G.varMap[varName].reg is not None]
         for regName in G.regNames:
             if regName in unavailableReg:
                 continue
