@@ -171,7 +171,7 @@ def translateBlock(bb):
                 elif instr.Src1.operand.reg:    #b is in a register
                     # No matter where a is stored, its new location will be the
                     # register of b.
-                    instr.Dest.operand.loadIntoReg(instr.Src1.operand.reg)
+                    instr.Dest.operand.loadIntoReg(instr.Src1.operand.reg.name)
 
                 # Case 3: b is in memory
                 else:   # b is in memory
