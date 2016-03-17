@@ -21,8 +21,7 @@ class BasicBlock(object):
 #          For assignment of the form x = y op z does the following
 #          * Returns y's register(if has only y) when y not live and no next use
 #          * If not returns empty register
-#          * If not, x has no next use then spills furthest use register and returns
-#          * If not, returns memory location of x
+#          * If no empty register, then spills furthest use register and returns it
 #  Returns:
 #      tuple of (reg/memory, boolean)
 #          * true means that it returned y's register
@@ -67,12 +66,14 @@ class BasicBlock(object):
                 if nextUseList:
                     minNextUseReg = min(nextUseList)
                 else:
+                    # G.text.string += '# Spilling Register ' + regName + ' Variables ' + str(G.registerMap[regName].varNames) + '\n'
                     G.registerMap[regName].spill()
                     return G.registerMap[regName]
 
                 if maxNextUse < minNextUseReg:
                     maxNextRegName = regName
                     maxNextUse = minNextUseReg
+        # G.text.string += '# Spilling Register ' + regName + ' Variables ' + str(G.registerMap[regName].varNames) + '\n'
         G.registerMap[maxNextRegName].spill()
         return G.registerMap[maxNextRegName]
 
