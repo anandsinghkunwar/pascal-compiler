@@ -1,0 +1,4 @@
+Building is not required. The file bin/parser is an executable script. Usage (within asgn3/ directory):
+    bin/parser <source-file>
+
+If the above is run on a file named test.pas, the output will be a file named test.html. When opened in a browser, the rightmost derivation of the input program will be displayed. The blue text is the left hand side. The non terminal being reduced is in boldface. The string of terminals and non terminals produced is also shown in boldface on the right hand side.
