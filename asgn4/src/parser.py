@@ -19,7 +19,7 @@ def p_program_statement(p):
     '''program_statement : KEYWORD_PROGRAM IDENTIFIER SEMICOLON
                          | empty'''
 #    p[0] = Rule('program_statement', get_production(p))
-    ST.currSymTab.addVar(p[2], ST.SymTabEntry.PROGRAM)
+    ST.currSymTab.addVar(p[2], ST.Type('program', ST.Type.PROGRAM))
     p[0] = p[2]
 
 def p_program_statement_error(p):
@@ -53,7 +53,7 @@ def p_const_statements(p):
 def p_const_statement(p):
     'const_statement : IDENTIFIER EQUAL expression SEMICOLON'
     #p[0] = Rule('const_statement', get_production(p))
-    ST.currSymTab.addVar(p[1], p[3].type, const=True)
+    ST.currSymTab.addVar(p[1], p[3].type, isConst=True)
     # TODO what about p[0]?
 
 def p_const_statement_error(p):
@@ -150,32 +150,72 @@ def p_type_identifier(p):
                        | KEYWORD_STRING'''
     #p[0] = Rule('type_identifier', get_production(p))
     p[0] = IG.Node()
-    p[0].type = p[1]
+    p[0].type = ST.Type(p[1], ST.Type.TYPE)
 
 def p_array_declaration(p):
     '''array_declaration : KEYWORD_ARRAY LEFT_SQUARE_BRACKETS array_ranges RIGHT_SQUARE_BRACKETS KEYWORD_OF type'''
-    p[0] = Rule('array_declaration', get_production(p))
+    #p[0] = Rule('array_declaration', get_production(p))
+    p[0] = IG.Node()
+    p[0].type = ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[6].type)
 
 def p_array_ranges(p):
     '''array_ranges : array_ranges COMMA array_range
                     | array_range'''
-    p[0] = Rule('array_ranges', get_production(p))
+    #p[0] = Rule('array_ranges', get_production(p))
+    p[0] = IG.Node()
+    if len(p) == 4:
+        p[0].arrayBeginList = p[1].arrayBeginList + p[3].arrayBeginList
+    else:
+        p[0].arrayBeginList = p[1].arrayBeginList
 
 def p_array_range(p):
-    '''array_range : CONSTANT_INTEGER DOTDOT CONSTANT_INTEGER
+    '''array_range : integer_range
+                   | char_range
+                   | boolean_range'''
+    #p[0] = Rule('array_range', get_production(p))
+    p[0] = p[1]
 
-                   | char DOTDOT char
+def p_integer_range(p):
+    '''integer_range : CONSTANT_INTEGER DOTDOT CONSTANT_INTEGER'''
 
-                   | CONSTANT_BOOLEAN_FALSE DOTDOT CONSTANT_BOOLEAN_FALSE
-                   | CONSTANT_BOOLEAN_FALSE DOTDOT CONSTANT_BOOLEAN_TRUE
-                   | CONSTANT_BOOLEAN_TRUE DOTDOT CONSTANT_BOOLEAN_TRUE'''
-    p[0] = Rule('array_range', get_production(p))
+    p[0] = IG.Node()
+    if (p[1] <= p[3]):
+        p[0].arrayBeginList = [p[1]]
+        p[0].arrayEndList = [p[3]]
+    else:
+        # TODO Handle error
+
+def p_char_range(p):
+    '''char_range : char DOTDOT char'''
+
+    p[0] = IG.Node()
+    if (p[1] <= p[3]):
+        p[0].arrayBeginList = [p[1]]
+        p[0].arrayEndList = [p[3]]
+    else:
+        # TODO Handle error
+
+def p_boolean_range(p):
+    '''boolean_range : CONSTANT_BOOLEAN_FALSE DOTDOT CONSTANT_BOOLEAN_FALSE
+                     | CONSTANT_BOOLEAN_FALSE DOTDOT CONSTANT_BOOLEAN_TRUE
+                     | CONSTANT_BOOLEAN_TRUE DOTDOT CONSTANT_BOOLEAN_TRUE'''
+
+    p[0] = IG.Node()
+    p[0].arrayBeginList = [p[1]]
+    p[0].arrayEndList = [p[3]]
 
 def p_char(p):
     '''char : CONSTANT_STRING
             | CONSTANT_SPECIAL_CHAR
             | CONSTANT_STRING_LEADSPACE'''
-    p[0] = Rule('char', get_production(p))
+    #p[0] = Rule('char', get_production(p))
+    if type(p[1]) == int:
+        p[0] = chr(p[1])
+    else:
+        if len(p[1]) == 1:
+            p[0] = p[1]
+        else:
+            # TODO: Handle error
 
 def p_string_declaration(p):
     '''string_declaration : KEYWORD_STRING LEFT_SQUARE_BRACKETS CONSTANT_INTEGER RIGHT_SQUARE_BRACKETS'''

@@ -1,47 +1,61 @@
 # Module to implement symbol tables
 
+# Class to define data types.
+class Type(object):
+    def __init__(self, name, type, baseType = None, arrayBeginIndexList = [], arrayEndIndexList = [], arrayBaseType = None):
+        self.name = name
+        self.type = type            # From the enumeration
+        self.baseType = baseType    # For custom defined types
+        self.arrayBeginIndexList = arrayBeginIndexList
+        self.arrayEndIndexList = arrayEndIndexList
+        self.arrayBaseType = arrayBaseType   # Array of WHAT?
+
+    # Enumeration for types
+    # TODO: Pointers
+    INT, BOOL, CHAR, STRING, ARRAY, FUNCTION, PROCEDURE, KEYWORD, TYPE, PROGRAM = range(10)
+
+    # TODO: Is this redundant...
+    def isBuiltin(self):
+        return self.baseType == None
+
+# Class to implement a symbol table entry.
 class SymTabEntry(object):
-    def __init__(self, name, type=None, mySymTab=None, nextSymTab=None, isConst=False, isPredefined=False):
+    def __init__(self, name, type, mySymTab, nextSymTab=None, isConst=False):
         self.name = name
         self.type = type
         self.mySymTab = mySymTab
         self.nextSymTab = nextSymTab
         self.isConst = isConst
-        self.isPredefined = isPredefined
-    
-    # Enumeration for types
-    # TODO: Pointers
-    INT, BOOL, CHAR, STRING, ARRAY, FUNCTION, PROCEDURE, KEYWORD, TYPE, PROGRAM = range(10)
 
     def scope(self):
         return self.mySymTab.scope
 
     # Type checking methods
     def isInt(self):
-        return self.type == SymTabEntry.INT
+        return self.type == Type.INT
     def isBool(self):
-        return self.type == SymTabEntry.BOOL
+        return self.type == Type.BOOL
     def isChar(self):
-        return self.type == SymTabEntry.CHAR
+        return self.type == Type.CHAR
     def isString(self):
-        return self.type == SymTabEntry.STRING
+        return self.type == Type.STRING
     def isArray(self):
-        return self.type == SymTabEntry.ARRAY
+        return self.type == Type.ARRAY
     def isFunction(self):
-        return self.type == SymTabEntry.FUNCTION
+        return self.type == Type.FUNCTION
     def isProcedure(self):
-        return self.type == SymTabEntry.PROCEDURE
+        return self.type == Type.PROCEDURE
     def isKeyword(self):
-        return self.type == SymTabEntry.KEYWORD
+        return self.type == Type.KEYWORD
     def isType(self):
-        return self.type == SymTabEntry.TYPE
+        return self.type == Type.TYPE
     def isProgram(self):
-        return self.type == SymTabEntry.PROGRAM
+        return self.type == Type.PROGRAM
     def isConstant(self):
         return self.isConst
     # Predefined = Overridable
     def isPredefined(self):
-        return self.isPredefined
+        return self.type.isBuiltin()
 
 class SymTab(object):
     def __init__(self, previousTable):
@@ -65,14 +79,14 @@ class SymTab(object):
 
     def addProcedure(self, procName):
         if not self.entryExists(procName):
-            self.entries[procName] = SymTabEntry(procName, SymTabEntry.PROCEDURE, self, SymTab(self))
+            self.entries[procName] = SymTabEntry(procName, Type('procedure', Type.PROCEDURE), self, nextSymTab=SymTab(self))
         else:
             # TODO: Handle error?
             pass
 
     def addFunction(self, funcName):
         if not self.entryExists(funcName):
-            self.entries[funcName] = SymTabEntry(funcName, SymTabEntry.FUNCTION, self, SymTab(self))
+            self.entries[funcName] = SymTabEntry(funcName, Type('function', Type.FUNCTION), self, nextSymTab=SymTab(self))
         else:
             # TODO: Handle error?
             pass
