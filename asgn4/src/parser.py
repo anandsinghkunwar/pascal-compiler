@@ -156,7 +156,8 @@ def p_array_declaration(p):
     '''array_declaration : KEYWORD_ARRAY LEFT_SQUARE_BRACKETS array_ranges RIGHT_SQUARE_BRACKETS KEYWORD_OF type'''
     #p[0] = Rule('array_declaration', get_production(p))
     p[0] = IG.Node()
-    p[0].type = ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[6].type)
+    p[0].type = ST.Type('array', ST.Type.ARRAY, arrayBeginList=p[3].arrayBeginList,
+                        arrayEndList=p[3].arrayEndList, arrayBaseType=p[6].type)
 
 def p_array_ranges(p):
     '''array_ranges : array_ranges COMMA array_range
@@ -219,23 +220,36 @@ def p_char(p):
 
 def p_string_declaration(p):
     '''string_declaration : KEYWORD_STRING LEFT_SQUARE_BRACKETS CONSTANT_INTEGER RIGHT_SQUARE_BRACKETS'''
-    p[0] = Rule('string_declaration', get_production(p))
-
+    #p[0] = Rule('string_declaration', get_production(p))
+    p[0] = IG.Node()
+    p[0].type = ST.Type('string', ST.Type.STRING, strLen=p[3])
 
 def p_var_declarations(p):
     '''var_declarations : KEYWORD_VAR var_statements'''
-    p[0] = Rule('var_declarations', get_production(p))
+    #p[0] = Rule('var_declarations', get_production(p))
+    # TODO ??
 
 def p_var_statements(p):
     '''var_statements : var_statements var_statement
                       | var_statement'''
-    p[0] = Rule('var_statements', get_production(p))
+    #p[0] = Rule('var_statements', get_production(p))
+    # TODO ??
 
 def p_var_statement(p):
     '''var_statement : identifiers COLON type SEMICOLON
                      | IDENTIFIER COLON type SEMICOLON
                      | IDENTIFIER COLON type EQUAL expression SEMICOLON'''
-    p[0] = Rule('var_statement', get_production(p))
+    #p[0] = Rule('var_statement', get_production(p))
+    # TODO p[0] ???
+    if len(p) == 5:
+        if type(p[1]) == IG.Node:
+            for item in p[1].items:
+                ST.currSymTab.addVar(item, p[3].type)
+                # TODO Handle arrays
+        else:
+            ST.currSymTab.addVar(p[1], p[3].type)
+    else:
+        ST.currSymTab.addVar(p[1], p[3].type)
 
 def p_var_statement_colon_error(p):
     '''var_statement : identifiers error type SEMICOLON

@@ -2,13 +2,14 @@
 
 # Class to define data types.
 class Type(object):
-    def __init__(self, name, type, baseType = None, arrayBeginIndexList = [], arrayEndIndexList = [], arrayBaseType = None):
+    def __init__(self, name, type, baseType = None, arrayBeginList = [], arrayEndList = [], arrayBaseType = None, strLen = None):
         self.name = name
         self.type = type            # From the enumeration
         self.baseType = baseType    # For custom defined types
-        self.arrayBeginIndexList = arrayBeginIndexList
-        self.arrayEndIndexList = arrayEndIndexList
+        self.arrayBeginList = arrayBeginList
+        self.arrayEndList = arrayEndList
         self.arrayBaseType = arrayBaseType   # Array of WHAT?
+        self.strLen = strLen
 
     # Enumeration for types
     # TODO: Pointers
