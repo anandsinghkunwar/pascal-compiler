@@ -1,15 +1,16 @@
 # Module to implement symbol tables
 
 class SymTabEntry(object):
-    def __init__(self, name, type=None, mySymTab=None, nextSymTab=None):
+    def __init__(self, name, type=None, mySymTab=None, nextSymTab=None, const=False):
         self.name = name
         self.type = type
         self.mySymTab = mySymTab
         self.nextSymTab = nextSymTab
+        self.const = const
     
     # Enumeration for types
     # TODO: Pointers
-    INT, BOOL, CHAR, STRING, ARRAY, FUNCTION, PROCEDURE, KEYWORD, TYPE = range(9)
+    INT, BOOL, CHAR, STRING, ARRAY, FUNCTION, PROCEDURE, KEYWORD, TYPE, PROGRAM = range(10)
 
     def scope(self):
         return self.mySymTab.scope
@@ -33,6 +34,10 @@ class SymTabEntry(object):
         return self.type == SymTabEntry.KEYWORD
     def isType(self):
         return self.type == SymTabEntry.TYPE
+    def isProgram(self):
+        return self.type == SymTabEntry.PROGRAM
+    def isConstant(self):
+        return self.const
 
 class SymTab(object):
     def __init__(self, previousTable):
@@ -71,3 +76,6 @@ class SymTab(object):
 # Global variables
 # The root symbol table in the tree structure.
 rootSymTab = SymTab(None)
+
+# The current symbol table that is being used.
+currSymTab = rootSymTab

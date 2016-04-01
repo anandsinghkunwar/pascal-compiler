@@ -1,10 +1,10 @@
 import ply.yacc as yacc
 import sys
+import symbol_table as ST
+import ircodegen as IG
 
-# Get the token map from the lexer.  This is required.
+# Get the token map from the lexer. This is required.
 from lexer import tokens
-
-# TODO: PRECEDENCE ERROR
 
 class Rule(object):
     def __init__(self, name, production):
@@ -18,11 +18,13 @@ def p_start(p):
 def p_program_statement(p):
     '''program_statement : KEYWORD_PROGRAM IDENTIFIER SEMICOLON
                          | empty'''
-    p[0] = Rule('program_statement', get_production(p))
+#    p[0] = Rule('program_statement', get_production(p))
+    ST.currSymTab.addVar(p[2], ST.SymTabEntry.PROGRAM)
+    p[0] = p[2]
 
 def p_program_statement_error(p):
     '''program_statement : KEYWORD_PROGRAM IDENTIFIER'''
-    p[0] = Rule('program_statement', get_production(p))
+    #p[0] = Rule('program_statement', get_production(p))
     #Line number reported from IDENTIFIER token
     print_error("Syntax error at line", p.lineno(2))
     print_error("\tMissing ';'")
@@ -34,24 +36,29 @@ def p_global_decs_defs(p):
                         | global_decs_defs func_def
                         | global_decs_defs proc_def
                         | empty'''
-    p[0] = Rule('global_decs_defs', get_production(p))
+    #p[0] = Rule('global_decs_defs', get_production(p))
+    # TODO ??
 
 def p_const_declarations(p):
     '''const_declarations : KEYWORD_CONST const_statements'''
-    p[0] = Rule('const_declarations', get_production(p))
+    #p[0] = Rule('const_declarations', get_production(p))
+    # TODO ??
 
 def p_const_statements(p):
     '''const_statements : const_statements const_statement
                         | const_statement'''
-    p[0] = Rule('const_statements', get_production(p))
+    #p[0] = Rule('const_statements', get_production(p))
+    # TODO ??
 
 def p_const_statement(p):
     'const_statement : IDENTIFIER EQUAL expression SEMICOLON'
-    p[0] = Rule('const_statement', get_production(p))
+    #p[0] = Rule('const_statement', get_production(p))
+    ST.currSymTab.addVar(p[1], p[3].type, const=True)
+    # TODO what about p[0]?
 
 def p_const_statement_error(p):
     'const_statement : IDENTIFIER EQUAL expression'
-    p[0] = Rule('const_statement', get_production(p))
+    #p[0] = Rule('const_statement', get_production(p))
     #Line number reported from expression nonterminal
     print_error("Syntax error at line", p.linespan(3)[1])
     print_error("\tMissing ';'")
@@ -60,28 +67,51 @@ def p_string(p):
     '''string : CONSTANT_STRING_LEADSPACE substring
               | CONSTANT_STRING_LEADSPACE
               | substring'''
-    p[0] = Rule('string', get_production(p))
+    #p[0] = Rule('string', get_production(p))
+    p[0] = IG.Node()
+
+    if len(p) == 3:
+        p[0].value = p[1] + p[2].value
+    elif len(p) == 2:
+        if type(p[1]) == IG.Node:
+            p[0].value = p[1].value
+        else:
+            p[0].value = p[1]
 
 def p_substring(p):
     '''substring : CONSTANT_STRING substring
                  | CONSTANT_SPECIAL_CHAR substring
                  | CONSTANT_STRING
                  | CONSTANT_SPECIAL_CHAR'''
-    p[0] = Rule('substring', get_production(p))
+    #p[0] = Rule('substring', get_production(p))
+    p[0] = IG.Node()
+
+    if len(p) == 3:
+        if type(p[1]) == str:
+            p[0].value = p[1] + p[2].value
+        else:
+            p[0].value = chr(p[1]) + p[2].value
+    elif len(p) == 2:
+        if type(p[1]) == str:
+            p[0].value = p[1]
+        else:
+            p[0].value = chr(p[1])
 
 def p_type_declarations(p):
     '''type_declarations : KEYWORD_TYPE type_statements'''
-    p[0] = Rule('type_declarations', get_production(p))
+    #p[0] = Rule('type_declarations', get_production(p))
+    # TODO ??
 
 def p_type_statements(p):
     '''type_statements : type_statements type_statement
                        | type_statement'''
-    p[0] = Rule('type_statements', get_production(p))
+    #p[0] = Rule('type_statements', get_production(p))
+    # TODO ??
 
 def p_type_statement(p):
     '''type_statement : identifiers EQUAL type SEMICOLON
                       | IDENTIFIER EQUAL type SEMICOLON'''
-    p[0] = Rule('type_statement', get_production(p))
+    #p[0] = Rule('type_statement', get_production(p))
 
 def p_type_statement_error(p):
     '''type_statement : identifiers EQUAL type
