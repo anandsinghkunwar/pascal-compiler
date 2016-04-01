@@ -542,4 +542,4 @@ def print_error(string, *args):
         print >> sys.stderr, string
 
 # Build the parser
-parser = yacc.yacc(errorlog=yacc.NullLogger())
+parser = yacc.yacc()
