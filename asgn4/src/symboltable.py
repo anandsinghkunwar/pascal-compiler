@@ -1,10 +1,11 @@
 # Module to implement symbol tables
 
 class SymTabEntry(object):
-    def __init__(self, name, type=None):
+    def __init__(self, name, type=None, symTab=None):
         self.name = name
         self.type = type
         self.scope = None
+        self.symTab = symTab
     
     # Enumeration for types
     # TODO: Pointers
@@ -38,3 +39,27 @@ class SymTab(object):
 
     # Class variables for allocation
     nextScope = 0
+
+    def addVar(self, varName, varType):
+        if not self.entryExists(varName):
+            self.entries[varName] = SymTabEntry(varName, varType)
+        else:
+            # TODO: Handle error?
+            pass
+
+    def entryExists(self, varName):
+        return varName in self.entries.keys()
+
+    def addProcedure(self, procName):
+        if not self.entryExists(procName):
+            self.entries[procName] = SymTabEntry(procName, SymTabEntry.PROCEDURE, self)
+        else:
+            # TODO: Handle error?
+            pass
+
+    def addFunction(self, funcName):
+        if not self.entryExists(funcName):
+            self.entries[funcName] = SymTabEntry(funcName, SymTabEntry.FUNCTION, self)
+        else:
+            # TODO: Handle error?
+            pass
