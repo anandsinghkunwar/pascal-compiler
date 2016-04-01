@@ -1,12 +1,13 @@
 # Module to implement symbol tables
 
 class SymTabEntry(object):
-    def __init__(self, name, type=None, mySymTab=None, nextSymTab=None, const=False):
+    def __init__(self, name, type=None, mySymTab=None, nextSymTab=None, isConst=False, isPredefined=False):
         self.name = name
         self.type = type
         self.mySymTab = mySymTab
         self.nextSymTab = nextSymTab
-        self.const = const
+        self.isConst = isConst
+        self.isPredefined = isPredefined
     
     # Enumeration for types
     # TODO: Pointers
@@ -37,7 +38,10 @@ class SymTabEntry(object):
     def isProgram(self):
         return self.type == SymTabEntry.PROGRAM
     def isConstant(self):
-        return self.const
+        return self.isConst
+    # Predefined = Overridable
+    def isPredefined(self):
+        return self.isPredefined
 
 class SymTab(object):
     def __init__(self, previousTable):

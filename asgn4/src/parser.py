@@ -112,11 +112,18 @@ def p_type_statement(p):
     '''type_statement : identifiers EQUAL type SEMICOLON
                       | IDENTIFIER EQUAL type SEMICOLON'''
     #p[0] = Rule('type_statement', get_production(p))
+    # TODO p[0]???
+    if type(p[1]) == IG.Node:
+        for item in p[1].items:
+            ST.currSymTab.addVar(item, p[3].type)
+            # TODO Handle arrays
+    else:
+        ST.currSymTab.addVar(p[1], p[3].type)
 
 def p_type_statement_error(p):
     '''type_statement : identifiers EQUAL type
                       | IDENTIFIER EQUAL type'''
-    p[0] = Rule('type_statement', get_production(p))
+    #p[0] = Rule('type_statement', get_production(p))
     #Line number reported from type nonterminal
     print_error("Syntax error at line", p.linespan(3)[1])
     print_error("\tMissing ';'")
@@ -124,18 +131,26 @@ def p_type_statement_error(p):
 def p_identifiers(p):
     '''identifiers : identifiers COMMA IDENTIFIER
                    | IDENTIFIER COMMA IDENTIFIER'''
-    p[0] = Rule('identifiers', get_production(p))
+    #p[0] = Rule('identifiers', get_production(p))
+    p[0] = IG.Node()
+    if type(p[1]) == IG.Node:
+        p[0].items = p[1].items + [p[3]]
+    else:
+        p[0].items = [p[1], p[3]]
 
 def p_type(p):
     '''type : type_identifier
             | array_declaration
             | string_declaration'''
-    p[0] = Rule('type', get_production(p))
+    #p[0] = Rule('type', get_production(p))
+    p[0] = p[1]
 
 def p_type_identifier(p):
     '''type_identifier : IDENTIFIER
                        | KEYWORD_STRING'''
-    p[0] = Rule('type_identifier', get_production(p))
+    #p[0] = Rule('type_identifier', get_production(p))
+    p[0] = IG.Node()
+    p[0].type = p[1]
 
 def p_array_declaration(p):
     '''array_declaration : KEYWORD_ARRAY LEFT_SQUARE_BRACKETS array_ranges RIGHT_SQUARE_BRACKETS KEYWORD_OF type'''
