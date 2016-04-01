@@ -1,9 +1,5 @@
 # Module to implement symbol tables
 
-# Global variables
-# The root symbol table in the tree structure.
-rootSymTab = SymTab(None)
-
 class SymTabEntry(object):
     def __init__(self, name, type=None, mySymTab=None, nextSymTab=None):
         self.name = name
@@ -71,3 +67,7 @@ class SymTab(object):
         else:
             # TODO: Handle error?
             pass
+
+# Global variables
+# The root symbol table in the tree structure.
+rootSymTab = SymTab(None)
