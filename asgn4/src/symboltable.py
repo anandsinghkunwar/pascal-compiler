@@ -1,16 +1,24 @@
 # Module to implement symbol tables
 
+# Global variables
+# The root symbol table in the tree structure.
+rootSymTab = SymTab(None)
+
 class SymTabEntry(object):
-    def __init__(self, name, type=None, symTab=None):
+    def __init__(self, name, type=None, mySymTab=None, nextSymTab=None):
         self.name = name
         self.type = type
-        self.scope = None
-        self.symTab = symTab
+        self.mySymTab = mySymTab
+        self.nextSymTab = nextSymTab
     
     # Enumeration for types
     # TODO: Pointers
     INT, BOOL, CHAR, STRING, ARRAY, FUNCTION, PROCEDURE, KEYWORD, TYPE = range(9)
 
+    def scope(self):
+        return self.mySymTab.scope
+
+    # Type checking methods
     def isInt(self):
         return self.type == SymTabEntry.INT
     def isBool(self):
@@ -42,7 +50,7 @@ class SymTab(object):
 
     def addVar(self, varName, varType):
         if not self.entryExists(varName):
-            self.entries[varName] = SymTabEntry(varName, varType)
+            self.entries[varName] = SymTabEntry(varName, varType, self)
         else:
             # TODO: Handle error?
             pass
@@ -52,14 +60,14 @@ class SymTab(object):
 
     def addProcedure(self, procName):
         if not self.entryExists(procName):
-            self.entries[procName] = SymTabEntry(procName, SymTabEntry.PROCEDURE, self)
+            self.entries[procName] = SymTabEntry(procName, SymTabEntry.PROCEDURE, self, SymTab(self))
         else:
             # TODO: Handle error?
             pass
 
     def addFunction(self, funcName):
         if not self.entryExists(funcName):
-            self.entries[funcName] = SymTabEntry(funcName, SymTabEntry.FUNCTION, self)
+            self.entries[funcName] = SymTabEntry(funcName, SymTabEntry.FUNCTION, self, SymTab(self))
         else:
             # TODO: Handle error?
             pass
