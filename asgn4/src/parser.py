@@ -289,6 +289,7 @@ def p_var_statement_error(p):
 def p_proc_def(p):
     '''proc_def : proc_head SEMICOLON declarations block SEMICOLON'''
     #p[0] = Rule('proc_def', get_production(p))
+    ST.currSymTab = ST.currSymTab.previousTable
     # TODO ??
 
 def p_proc_def_head_error(p):
@@ -317,10 +318,13 @@ def p_proc_def_head_block_error(p):
 def p_proc_head(p):
     'proc_head : KEYWORD_PROCEDURE IDENTIFIER parameter_list'
     #p[0] = Rule('proc_head', get_production(p))
+    ST.currSymTab.addVar(p[2], ST.Type('procedure', ST.Type.PROCEDURE))
+    ST.currSymTab = new ST.SymTab(ST.currSymTab)
 
 def p_func_def(p):
     '''func_def : func_head SEMICOLON declarations block SEMICOLON'''
     #p[0] = Rule('func_def', get_production(p))
+    ST.currSymTab = ST.currSymTab.previousTable
     # TODO ??
 
 def p_func_def_head_error(p):
@@ -349,7 +353,10 @@ def p_func_def_head_block_error(p):
 def p_func_head(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list COLON type_identifier'''
     #p[0] = Rule('func_head', get_production(p))
+    ST.currSymTab.addVar(p[2], ST.Type('function', ST.Type.FUNCTION))
+    ST.currSymTab = new ST.SymTab(ST.currSymTab)
     # TODO ??
+
 
 def p_func_head_error(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list error type_identifier'''
@@ -483,12 +490,24 @@ def p_unmatched_statement(p):
 def p_loop_header(p):
     '''loop_header : for_loop_header
                    | while_loop_header'''
-    p[0] = Rule('loop_header', get_production(p))
+    # p[0] = Rule('loop_header', get_production(p))
+    p[0] = p[1]
 
 def p_for_loop_header(p):
-    '''for_loop_header : KEYWORD_FOR IDENTIFIER COLON_EQUAL expression KEYWORD_TO expression KEYWORD_DO
-                       | KEYWORD_FOR IDENTIFIER COLON_EQUAL expression KEYWORD_DOWNTO expression KEYWORD_DO'''
-    p[0] = Rule('for_loop_header', get_production(p))
+    '''for_loop_header : for_loop_to
+                       | for_loop_downto'''
+    # p[0] = Rule('for_loop_header', get_production(p))
+    p[0] = p[1]
+
+def p_for_loop_to(p):
+    '''for_loop_to : KEYWORD_FOR IDENTIFIER COLON_EQUAL expression KEYWORD_TO expression KEYWORD_DO'''
+    p[0] = IG.Node()
+    # TODO generate code
+
+def p_for_loop_downto(p):
+    '''for_loop_downto : KEYWORD_FOR IDENTIFIER COLON_EQUAL expression KEYWORD_DOWNTO expression KEYWORD_DO'''
+    p[0] = IG.Node()
+    # TODO generate code
 
 def p_for_loop_header_error(p):
     '''for_loop_header : KEYWORD_FOR IDENTIFIER error expression KEYWORD_TO expression KEYWORD_DO
@@ -498,16 +517,21 @@ def p_for_loop_header_error(p):
 
 def p_while_loop_header(p):
     '''while_loop_header : KEYWORD_WHILE expression KEYWORD_DO'''
-    p[0] = Rule('while_loop_header', get_production(p))
+    # p[0] = Rule('while_loop_header', get_production(p))
+    p[0] = IG.Node()
+    # TODO generate code
 
 def p_simple_statement(p):
     '''simple_statement : assignment_statement
                         | func_proc_statement'''
-    p[0] = Rule('simple_statement', get_production(p))
+    # p[0] = Rule('simple_statement', get_production(p))
+    p[0] = p[1]
 
 def p_assignment_statement(p):
     '''assignment_statement : variable_reference COLON_EQUAL expression'''
-    p[0] = Rule('assignment_statement', get_production(p))
+    # p[0] = Rule('assignment_statement', get_production(p))
+    p[0] = IG.Node()
+    # TODO generate code
 
 def p_assignment_statement_error(p):
     '''assignment_statement : variable_reference error expression'''
@@ -517,7 +541,9 @@ def p_assignment_statement_error(p):
 def p_expression(p):
     '''expression : simple_expression relational_operator simple_expression
                   | simple_expression'''
-    p[0] = Rule('expression', get_production(p))
+    # p[0] = Rule('expression', get_production(p))
+    p[0] = IG.Node()
+    # TODO generate code
 
 def p_simple_expression(p):
     '''simple_expression : simple_expression OP_PLUS term
