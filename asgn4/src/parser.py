@@ -318,7 +318,7 @@ def p_proc_def_head_block_error(p):
 def p_proc_head(p):
     'proc_head : KEYWORD_PROCEDURE IDENTIFIER parameter_list'
     #p[0] = Rule('proc_head', get_production(p))
-    ST.currSymTab.addVar(p[2], ST.Type('procedure', ST.Type.PROCEDURE))
+    ST.currSymTab.addProcedure(p[2])
     ST.currSymTab = new ST.SymTab(ST.currSymTab)
 
 def p_func_def(p):
@@ -353,8 +353,8 @@ def p_func_def_head_block_error(p):
 def p_func_head(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list COLON type_identifier'''
     #p[0] = Rule('func_head', get_production(p))
-    ST.currSymTab.addVar(p[2], ST.Type('function', ST.Type.FUNCTION))
-    ST.currSymTab = new ST.SymTab(ST.currSymTab)
+    ST.currSymTab.addFunction(p[2])
+    ST.currSymTab = new ST.SymTab(ST.currSymTab)string
     # TODO ??
 
 
