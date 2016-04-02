@@ -9,3 +9,5 @@ class Node(object):
         self.place = None
         self.items = []
         self.type = None
+        self.arrayBeginList = []
+        self.arrayEndList = []

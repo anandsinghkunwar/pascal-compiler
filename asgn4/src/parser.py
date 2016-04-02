@@ -255,14 +255,14 @@ def p_var_statement_colon_error(p):
     '''var_statement : identifiers error type SEMICOLON
                      | IDENTIFIER error type SEMICOLON
                      | IDENTIFIER error type EQUAL expression SEMICOLON'''
-    p[0] = Rule('var_statement', get_production(p))
+    #p[0] = Rule('var_statement', get_production(p))
     print_error("\tExpected ':'")
 
 def p_var_statement_semicolon_error(p):
     '''var_statement : identifiers COLON type
                      | IDENTIFIER COLON type
                      | IDENTIFIER COLON type EQUAL expression'''
-    p[0] = Rule('var_statement', get_production(p))
+    #p[0] = Rule('var_statement', get_production(p))
 
     if len(p) == 4:
         #Line number reported from type nonterminal
@@ -276,7 +276,7 @@ def p_var_statement_error(p):
     '''var_statement : identifiers type
                      | IDENTIFIER type
                      | IDENTIFIER type EQUAL expression'''
-    p[0] = Rule('var_statement', get_production(p))
+    #p[0] = Rule('var_statement', get_production(p))
 
     if len(p) == 4:
         #Line number reported from type nonterminal
@@ -288,25 +288,26 @@ def p_var_statement_error(p):
 
 def p_proc_def(p):
     '''proc_def : proc_head SEMICOLON declarations block SEMICOLON'''
-    p[0] = Rule('proc_def', get_production(p))
+    #p[0] = Rule('proc_def', get_production(p))
+    # TODO ??
 
 def p_proc_def_head_error(p):
     '''proc_def : proc_head declarations block SEMICOLON'''
-    p[0] = Rule('proc_def', get_production(p))
+    #p[0] = Rule('proc_def', get_production(p))
     #Line number reported from proc_head
     print_error("Syntax error at line", p.linespan(1)[1])
     print_error("\tMissing ';'")
 
 def p_proc_def_block_error(p):
     '''proc_def : proc_head SEMICOLON declarations block'''
-    p[0] = Rule('proc_def', get_production(p))
+    #p[0] = Rule('proc_def', get_production(p))
     #Line number reported from block
     print_error("Syntax error at line", p.linespan(4)[1])
     print_error("\tMissing ';'")
 
 def p_proc_def_head_block_error(p):
     '''proc_def : proc_head declarations block'''
-    p[0] = Rule('proc_def', get_production(p))
+    #p[0] = Rule('proc_def', get_production(p))
     #Line number reported from proc_head and block
     print_error("Syntax error at line", p.linespan(1)[1])
     print_error("\tMissing ';'")
@@ -315,29 +316,30 @@ def p_proc_def_head_block_error(p):
 
 def p_proc_head(p):
     'proc_head : KEYWORD_PROCEDURE IDENTIFIER parameter_list'
-    p[0] = Rule('proc_head', get_production(p))
+    #p[0] = Rule('proc_head', get_production(p))
 
 def p_func_def(p):
     '''func_def : func_head SEMICOLON declarations block SEMICOLON'''
-    p[0] = Rule('func_def', get_production(p))
+    #p[0] = Rule('func_def', get_production(p))
+    # TODO ??
 
 def p_func_def_head_error(p):
     '''func_def : func_head declarations block SEMICOLON'''
-    p[0] = Rule('func_def', get_production(p))
+    #p[0] = Rule('func_def', get_production(p))
     #Line number reported from func_head
     print_error("Syntax error at line", p.linespan(1)[1])
     print_error("\tMissing ';'")
 
 def p_func_def_block_error(p):
     '''func_def : func_head SEMICOLON declarations block'''
-    p[0] = Rule('func_def', get_production(p))
+    #p[0] = Rule('func_def', get_production(p))
     #Line number reported from block
     print_error("Syntax error at line", p.linespan(4)[1])
     print_error("\tMissing ';'")
 
 def p_func_def_head_block_error(p):
     '''func_def : func_head declarations block'''
-    p[0] = Rule('func_def', get_production(p))
+    #p[0] = Rule('func_def', get_production(p))
     #Line number reported from func_head and block
     print_error("Syntax error at line", p.linespan(1)[1])
     print_error("\tMissing ';'")
@@ -346,11 +348,12 @@ def p_func_def_head_block_error(p):
 
 def p_func_head(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list COLON type_identifier'''
-    p[0] = Rule('func_head', get_production(p))
+    #p[0] = Rule('func_head', get_production(p))
+    # TODO ??
 
 def p_func_head_error(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list error type_identifier'''
-    p[0] = Rule('func_head', get_production(p))
+    #p[0] = Rule('func_head', get_production(p))
     #Line number reported from KEYWORD_FUNCTION token
     print_error("\tExpected :'")
 
@@ -359,21 +362,28 @@ def p_declarations(p):
                     | declarations type_declarations
                     | declarations var_declarations
                     | empty'''
-    p[0] = Rule('declarations', get_production(p))
+    #p[0] = Rule('declarations', get_production(p))
+    # TODO ??
 
 def p_parameter_list(p):
     '''parameter_list : LEFT_PARENTHESIS parameter_declarations RIGHT_PARENTHESIS
                       | LEFT_PARENTHESIS RIGHT_PARENTHESIS'''
-    p[0] = Rule('parameter_list', get_production(p))
+    #p[0] = Rule('parameter_list', get_production(p))
+    # TODO ??
 
 def p_parameter_declarations(p):
     '''parameter_declarations : parameter_declarations SEMICOLON value_parameter
                               | value_parameter'''
-    p[0] = Rule('parameter_declarations', get_production(p))
+    #p[0] = Rule('parameter_declarations', get_production(p))
+    p[0] = IG.Node()
+    if len(p) == 4:
+        p[0].code = p[1].code + p[3].code
+    else:
+        p[0].code = p[1].code
 
 def p_parameter_declarations_error(p):
     '''parameter_declarations : parameter_declarations error value_parameter'''
-    p[0] = Rule('parameter_declarations', get_production(p))
+    #p[0] = Rule('parameter_declarations', get_production(p))
     print_error("\tExpected ';', Found " + p[2].type)
 
 def p_value_parameter(p):
@@ -382,7 +392,24 @@ def p_value_parameter(p):
                        | identifiers COLON KEYWORD_ARRAY KEYWORD_OF type_identifier
                        | IDENTIFIER COLON KEYWORD_ARRAY KEYWORD_OF type_identifier
                        | IDENTIFIER COLON type_identifier EQUAL unsigned_constant'''
-    p[0] = Rule('value_parameter', get_production(p))
+    #p[0] = Rule('value_parameter', get_production(p))
+    p[0] = IG.Node()
+    # TODO Add parameters to new symbol table
+    if len(p) == 4:
+        if type(p[1]) == IG.Node:
+            for item in p[1].items:
+                ST.currSymTab.addVar(item, p[3].type)
+        else:
+            ST.currSymTab.addVar(p[1], p[3].type)
+    elif len(p) == 5:
+        if type(p[1]) == IG.Node:
+            for item in p[1].items:
+                ST.currSymTab.addVar(item, ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[5].type))
+        else:
+            if type(p[3]) == IG.Node:
+                # Defaulted parameter value - TODO
+            else:
+                ST.currSymTab.addVar(p[1], ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[5].type))
 
 def p_value_parameter_error(p):
     '''value_parameter : identifiers error type_identifier
@@ -390,27 +417,34 @@ def p_value_parameter_error(p):
                        | identifiers error KEYWORD_ARRAY KEYWORD_OF type_identifier
                        | IDENTIFIER error KEYWORD_ARRAY KEYWORD_OF type_identifier
                        | IDENTIFIER error type_identifier EQUAL unsigned_constant'''
-    p[0] = Rule('value_parameter', get_production(p))
+    #p[0] = Rule('value_parameter', get_production(p))
     print_error("\tExpected ':', Found " + p[2].type)
 
 def p_block(p):
     'block : KEYWORD_BEGIN statements KEYWORD_END'
-    p[0] = Rule('block', get_production(p))
+    #p[0] = Rule('block', get_production(p))
+    p[0] = p[1]
 
 def p_statements(p):
     '''statements : statements SEMICOLON statement
                   | statement'''
-    p[0] = Rule('statements', get_production(p))
+    #p[0] = Rule('statements', get_production(p))
+    p[0] = IG.Node()
+    if len(p) == 4:
+        p[0].code = p[1].code + p[3].code
+    else:
+        p[0].code = p[1].code
 
 def p_statements_error(p):
     '''statements : statements error statement'''
-    p[0] = Rule('statements', get_production(p))
+    #p[0] = Rule('statements', get_production(p))
     print_error("\tExpected ';', Found " + p[2].type)
 
 def p_statement(p):
     '''statement : matched_statement
                  | unmatched_statement'''
-    p[0] = Rule('statement', get_production(p))
+    #p[0] = Rule('statement', get_production(p))
+    p[0] = p[1]
 
 def p_matched_statement(p):
     '''matched_statement : simple_statement
@@ -420,13 +454,31 @@ def p_matched_statement(p):
                          | KEYWORD_BREAK
                          | KEYWORD_CONTINUE
                          | empty'''
-    p[0] = Rule('matched_statement', get_production(p))
+    #p[0] = Rule('matched_statement', get_production(p))
+    p[0] = IG.Node()
+    if len(p) == 2:
+        if type(p[1]) == IG.Node:
+            p[0] = p[1]
+        else:
+            # TODO: Handle empty production
+            # TODO: Generate code for break and continue
+    elif len(p) == 7:
+        # TODO Generate code
+    elif len(p) == 3:
+        p[0].code = p[1].code + p[2].code
 
 def p_unmatched_statement(p):
     '''unmatched_statement : KEYWORD_IF expression KEYWORD_THEN statement
                            | KEYWORD_IF expression KEYWORD_THEN matched_statement KEYWORD_ELSE unmatched_statement
                            | loop_header unmatched_statement'''
-    p[0] = Rule('unmatched_statement', get_production(p))
+    #p[0] = Rule('unmatched_statement', get_production(p))
+    p[0] = IG.Node()
+    if len(p) == 5:
+        # TODO generate if else code
+    elif len(p) == 7:
+        # TODO generate if else code
+    elif len(p) == 3:
+        p[0].code = p[1].code + p[2].code
 
 def p_loop_header(p):
     '''loop_header : for_loop_header
