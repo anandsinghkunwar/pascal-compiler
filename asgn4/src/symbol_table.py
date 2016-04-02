@@ -100,3 +100,15 @@ rootSymTab = SymTab(None)
 
 # The current symbol table that is being used.
 currSymTab = rootSymTab
+
+# Helper Functions
+def lookup(identifier):
+    tempSymTab = currSymTab
+
+    while tempSymTab != None:
+        if identifier in tempSymTab.keys():
+            return tempSymTab[identifier]   # Found identifier
+        tempSymTab = tempSymTab.previousTable
+
+    # Identifier not found
+    # TODO Throw Error
