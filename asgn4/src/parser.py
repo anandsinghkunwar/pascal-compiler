@@ -13,19 +13,25 @@ class Rule(object):
 
 def p_start(p):
     'start : program_statement global_decs_defs block DOT'
-    p[0] = Rule('start', get_production(p))
+    # p[0] = Rule('start', get_production(p))
+    p[0] = IG.Node()
+    p[0].code = p[2].code + p[3].code
 
 def p_program_statement(p):
     '''program_statement : KEYWORD_PROGRAM IDENTIFIER SEMICOLON
                          | empty'''
-#    p[0] = Rule('program_statement', get_production(p))
-    ST.currSymTab.addVar(p[2], ST.Type('program', ST.Type.PROGRAM))
-    p[0] = p[2]
+    # p[0] = Rule('program_statement', get_production(p))
+    if len(p) == 4:
+        ST.currSymTab.addVar(p[2], ST.Type('program', ST.Type.PROGRAM))
+    elif len(p) == 2:
+        pass
+    # TODO Check if anything else required
+    # p[0] = p[2]
 
 def p_program_statement_error(p):
     '''program_statement : KEYWORD_PROGRAM IDENTIFIER'''
-    #p[0] = Rule('program_statement', get_production(p))
-    #Line number reported from IDENTIFIER token
+    # p[0] = Rule('program_statement', get_production(p))
+    # Line number reported from IDENTIFIER token
     print_error("Syntax error at line", p.lineno(2))
     print_error("\tMissing ';'")
 
@@ -38,6 +44,9 @@ def p_global_decs_defs(p):
                         | empty'''
     #p[0] = Rule('global_decs_defs', get_production(p))
     # TODO ??
+    p[0] = IG.Node()
+    p[0].code = p[1].code + p[2].code   # Assuming type_declarations
+                                        # is a node with code
 
 def p_const_declarations(p):
     '''const_declarations : KEYWORD_CONST const_statements'''
@@ -397,9 +406,9 @@ def p_value_parameter(p):
     '''value_parameter : identifiers COLON type_identifier
                        | IDENTIFIER COLON type_identifier
                        | identifiers COLON KEYWORD_ARRAY KEYWORD_OF type_identifier
-                       | IDENTIFIER COLON KEYWORD_ARRAY KEYWORD_OF type_identifier
-                       | IDENTIFIER COLON type_identifier EQUAL unsigned_constant'''
+                       | IDENTIFIER COLON KEYWORD_ARRAY KEYWORD_OF type_identifier'''
     #p[0] = Rule('value_parameter', get_production(p))
+    # TODO Add default parameters if possible
     p[0] = IG.Node()
     # TODO Add parameters to new symbol table
     if len(p) == 4:
