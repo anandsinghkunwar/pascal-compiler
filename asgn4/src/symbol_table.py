@@ -35,25 +35,25 @@ class SymTabEntry(object):
 
     # Type checking methods
     def isInt(self):
-        return self.type == Type.INT
+        return self.type.type == Type.INT
     def isBool(self):
-        return self.type == Type.BOOL
+        return self.type.type == Type.BOOL
     def isChar(self):
-        return self.type == Type.CHAR
+        return self.type.type == Type.CHAR
     def isString(self):
-        return self.type == Type.STRING
+        return self.type.type == Type.STRING
     def isArray(self):
-        return self.type == Type.ARRAY
+        return self.type.type == Type.ARRAY
     def isFunction(self):
-        return self.type == Type.FUNCTION
+        return self.type.type == Type.FUNCTION
     def isProcedure(self):
-        return self.type == Type.PROCEDURE
+        return self.type.type == Type.PROCEDURE
     def isKeyword(self):
-        return self.type == Type.KEYWORD
+        return self.type.type == Type.KEYWORD
     def isType(self):
-        return self.type == Type.TYPE
+        return self.type.type == Type.TYPE
     def isProgram(self):
-        return self.type == Type.PROGRAM
+        return self.type.type == Type.PROGRAM
     def isConstant(self):
         return self.isConst
     # Predefined = Overridable
