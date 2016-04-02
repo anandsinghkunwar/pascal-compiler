@@ -354,7 +354,7 @@ def p_func_head(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list COLON type_identifier'''
     #p[0] = Rule('func_head', get_production(p))
     ST.currSymTab.addFunction(p[2])
-    ST.currSymTab = new ST.SymTab(ST.currSymTab)string
+    ST.currSymTab = new ST.SymTab(ST.currSymTab)
     # TODO ??
 
 
