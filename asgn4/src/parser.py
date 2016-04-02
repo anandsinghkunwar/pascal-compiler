@@ -46,24 +46,31 @@ def p_global_decs_defs(p):
     # TODO ??
     p[0] = IG.Node()
     p[0].code = p[1].code + p[2].code   # Assuming type_declarations
-                                        # is a node with code
+                                        # is also a node with code
 
 def p_const_declarations(p):
     '''const_declarations : KEYWORD_CONST const_statements'''
     #p[0] = Rule('const_declarations', get_production(p))
+    p[0] = p[1]
     # TODO ??
 
 def p_const_statements(p):
     '''const_statements : const_statements const_statement
                         | const_statement'''
     #p[0] = Rule('const_statements', get_production(p))
+    p[0] = IG.Node()
+    if len(p) == 3:
+        p[0].code = p[1].code + p[2].code
+    elif len(p) == 2:
+        p[0].code = p[1].code
     # TODO ??
 
 def p_const_statement(p):
     'const_statement : IDENTIFIER EQUAL expression SEMICOLON'
     #p[0] = Rule('const_statement', get_production(p))
     ST.currSymTab.addVar(p[1], p[3].type, isConst=True)
-    # TODO what about p[0]?
+    p[0] = IG.Node()
+    # TODO Generate code in p[0]
 
 def p_const_statement_error(p):
     'const_statement : IDENTIFIER EQUAL expression'
@@ -109,6 +116,8 @@ def p_substring(p):
 def p_type_declarations(p):
     '''type_declarations : KEYWORD_TYPE type_statements'''
     #p[0] = Rule('type_declarations', get_production(p))
+    p[0] = IG.Node()    # This is being created for uniformity
+    p[0].code = []      # in creating code in global_decs_defs
     # TODO ??
 
 def p_type_statements(p):
@@ -448,7 +457,7 @@ def p_statements(p):
     p[0] = IG.Node()
     if len(p) == 4:
         p[0].code = p[1].code + p[3].code
-    else:
+    elif len(p) == 2:
         p[0].code = p[1].code
 
 def p_statements_error(p):
