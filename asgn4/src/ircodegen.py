@@ -1,11 +1,14 @@
 # Module for IR code generation.
 import symbol_table as ST
 
+# Global Variables
+InstrList = []
+
 # Dummy class to enable parser to use attributes
 class Node(object):
     def __init__(self):
         self.value = None
-        self.code = ''
+        self.code = []
         self.place = None
         self.items = []
         self.type = None
@@ -63,38 +66,26 @@ class Operand(object):
 
 # Class to define a Three Address Code Instruction (TACInstr).
 class TACInstr(object):
-    def __init__(self, instrType, op, target=None, src1=None, src2=None, dest=None, label=None, targetLabel=None, lineNo=None, ioArgList=None):
-        self.InstrType = None
-        self.Target = None
-        self.Op = None
+    def __init__(self, instrType, op=None, target=None, src1=None, src2=None, dest=None, label=None, targetLabel=None, lineNo=None, ioArgList=None):
+        self.InstrType = instrType
+        self.Target = target
+        self.Op = op
         self.Src1 = None
         self.Src2 = None
         self.Dest = None
         #self.SymTable = None
-        self.Label = None
-        self.TargetLabel = None
-        self.LineNo = None
+        self.Label = label
+        self.TargetLabel = targetLabel
+        self.LineNo = lineno
         self.IOFmtStringAddr = None
-        self.IOArgList = []
+        self.IOArgList = ioArgList
 
-        self.InstrType = instrType
-        if target:
-            self.Target = int(target)
-        self.Op = op
         if src1:
             self.Src1 = Operand(src1)
         if src2:
             self.Src2 = Operand(src2)
         if dest:
             self.Dest = Operand(dest)
-        if label:
-            self.Label = label
-        if targetLabel:
-            self.TargetLabel = targetLabel
-        if lineNo:
-            self.LineNo = int(lineno)
-        if ioArgList:
-            self.IOArgList = ioArgList
 
     # Types of operations
     ADD, SUB, MULT, DIV, EQ, GT, LT, GEQ, LEQ, NEQ, SHL, SHR, AND, NOT, OR, MOD, XOR, CALLOP = range(18)

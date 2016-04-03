@@ -6,31 +6,32 @@ import ircodegen as IG
 # Get the token map from the lexer. This is required.
 from lexer import tokens
 
-class Rule(object):
-    def __init__(self, name, production):
-        self.name = name
-        self.production = production
+# Global Variables, Functions
+nextQuad = 1
+
+def backpatch(instrList, target):
+    for instr in instrList:
+        if instr == IG.InstrList[instr].LineNo:
+            IG.InstrList[instr].Target = target
+        else:
+            print 'Why is this happening!', instr
 
 def p_start(p):
     'start : program_statement global_decs_defs block DOT'
-    # p[0] = Rule('start', get_production(p))
     p[0] = IG.Node()
     p[0].code = p[2].code + p[3].code
 
 def p_program_statement(p):
     '''program_statement : KEYWORD_PROGRAM IDENTIFIER SEMICOLON
                          | empty'''
-    # p[0] = Rule('program_statement', get_production(p))
     if len(p) == 4:
         ST.currSymTab.addVar(p[2], ST.Type('program', ST.Type.PROGRAM))
     elif len(p) == 2:
         pass
     # TODO Check if anything else required
-    # p[0] = p[2]
 
 def p_program_statement_error(p):
     '''program_statement : KEYWORD_PROGRAM IDENTIFIER'''
-    # p[0] = Rule('program_statement', get_production(p))
     # Line number reported from IDENTIFIER token
     print_error("Syntax error at line", p.lineno(2))
     print_error("\tMissing ';'")
@@ -42,34 +43,29 @@ def p_global_decs_defs(p):
                         | global_decs_defs func_def
                         | global_decs_defs proc_def
                         | empty'''
-    #p[0] = Rule('global_decs_defs', get_production(p))
-    # TODO ??
     p[0] = IG.Node()
     p[0].code = p[1].code + p[2].code   # Assuming type_declarations
                                         # is also a node with code
 
 def p_const_declarations(p):
     '''const_declarations : KEYWORD_CONST const_statements'''
-    #p[0] = Rule('const_declarations', get_production(p))
     p[0] = p[1]
-    # TODO ??
 
 def p_const_statements(p):
     '''const_statements : const_statements const_statement
                         | const_statement'''
-    #p[0] = Rule('const_statements', get_production(p))
     p[0] = IG.Node()
     if len(p) == 3:
         p[0].code = p[1].code + p[2].code
     elif len(p) == 2:
         p[0].code = p[1].code
-    # TODO ??
 
 def p_const_statement(p):
     'const_statement : IDENTIFIER EQUAL expression SEMICOLON'
     #p[0] = Rule('const_statement', get_production(p))
-    ST.currSymTab.addVar(p[1], p[3].type, isConst=True)
+    STEntry = ST.currSymTab.addVar(p[1], p[3].type, isConst=True)
     p[0] = IG.Node()
+    p[0].code += IG.TACInstr(IG.TACInstr.ASSIGN, dest=STEntry, src1=p[3].place)
     # TODO Generate code in p[0]
 
 def p_const_statement_error(p):

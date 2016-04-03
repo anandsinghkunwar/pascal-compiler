@@ -73,6 +73,7 @@ class SymTab(object):
     def addVar(self, varName, varType):
         if not self.entryExists(varName):
             self.entries[varName] = SymTabEntry(varName, varType, self)
+            return self.entries[varName]
         else:
             # TODO: Handle error?
             pass
