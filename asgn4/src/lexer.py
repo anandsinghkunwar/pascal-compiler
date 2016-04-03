@@ -47,6 +47,7 @@ tokens = [
 #operators
     'OP_PLUS','OP_MINUS','OP_MULT',
     'OP_NEQ','OP_GT','OP_LT','OP_GEQ','OP_LEQ',
+    'OP_BIT_OR', 'OP_BIT_AND', 'OP_BIT_NOT', 'OP_BIT_XOR',
     'COMMA','SEMICOLON','COLON','COLON_EQUAL','LEFT_PARENTHESIS','RIGHT_PARENTHESIS','LEFT_SQUARE_BRACKETS','RIGHT_SQUARE_BRACKETS','EQUAL','DOT',
     'DOTDOT', 'COMMENTS', 'NEWLINE','SPACE'
     ] + list(reserved.values())
@@ -63,6 +64,10 @@ t_OP_GEQ = r'>='
 t_OP_LEQ = r'<='
 t_OP_SHIFTLEFT = r'<<'
 t_OP_SHIFTRIGHT = r'>>'
+t_OP_BIT_OR = r'|'
+t_OP_BIT_AND = r'&'
+t_OP_BIT_NOT = r'~'
+t_OP_BIT_XOR = r'\^'
 t_COMMA = r','
 t_SEMICOLON = r';'
 t_COLON = r':'
