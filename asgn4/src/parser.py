@@ -337,7 +337,7 @@ def p_proc_head(p):
     'proc_head : KEYWORD_PROCEDURE IDENTIFIER parameter_list'
     #p[0] = Rule('proc_head', get_production(p))
     ST.currSymTab.addProcedure(p[2])
-    ST.currSymTab = new ST.SymTab(ST.currSymTab)
+    ST.currSymTab = ST.SymTab(ST.currSymTab)
 
 def p_func_def(p):
     '''func_def : func_head SEMICOLON declarations block SEMICOLON'''
@@ -372,7 +372,7 @@ def p_func_head(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list COLON type_identifier'''
     #p[0] = Rule('func_head', get_production(p))
     ST.currSymTab.addFunction(p[2])
-    ST.currSymTab = new ST.SymTab(ST.currSymTab)
+    ST.currSymTab = ST.SymTab(ST.currSymTab)
     # TODO ??
 
 
