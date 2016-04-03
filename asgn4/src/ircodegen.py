@@ -11,11 +11,14 @@ class Node(object):
         self.type = None
         self.arrayBeginList = []
         self.arrayEndList = []
+        self.quad = None
+        self.trueList = []
+        self.falseList = []
 
 # Class to handle instruction operands
 class Operand(object):
     # Operand Types
-    INT, STRING, BOOL, INTVAR, STRINGVAR, BOOLVAR, ARRAY, ARRAYELEMENT = range(7)
+    INT, STRING, BOOL, INTVAR, STRINGVAR, BOOLVAR, ARRAY, ARRAYELEMENT = range(8)
 
     def __init__(self, varObj):
         if isinstance(varObj, ST.SymTabEntry):
@@ -39,6 +42,7 @@ class Operand(object):
             self.operandType = Operand.BOOL
         else:   #ARRAYELEMENT
             # TODO
+            pass
 
     def isInt(self):
         return self.operandType == Operand.INT
@@ -59,7 +63,7 @@ class Operand(object):
 
 # Class to define a Three Address Code Instruction (TACInstr).
 class TACInstr(object):
-    def __init__(self, instrType, target=None, op, src1=None, src2=None, dest=None, label=None, targetLabel=None, lineNo=None, ioArgList=None):
+    def __init__(self, instrType, op, target=None, src1=None, src2=None, dest=None, label=None, targetLabel=None, lineNo=None, ioArgList=None):
         self.InstrType = None
         self.Target = None
         self.Op = None

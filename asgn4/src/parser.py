@@ -203,6 +203,7 @@ def p_integer_range(p):
         p[0].arrayEndList = [p[3]]
     else:
         # TODO Handle error
+        pass
 
 def p_char_range(p):
     '''char_range : char DOTDOT char'''
@@ -213,6 +214,7 @@ def p_char_range(p):
         p[0].arrayEndList = [p[3]]
     else:
         # TODO Handle error
+        pass
 
 def p_boolean_range(p):
     '''boolean_range : CONSTANT_BOOLEAN_FALSE DOTDOT CONSTANT_BOOLEAN_FALSE
@@ -235,6 +237,7 @@ def p_char(p):
             p[0] = p[1]
         else:
             # TODO: Handle error
+            pass
 
 def p_string_declaration(p):
     '''string_declaration : KEYWORD_STRING LEFT_SQUARE_BRACKETS CONSTANT_INTEGER RIGHT_SQUARE_BRACKETS'''
@@ -433,6 +436,7 @@ def p_value_parameter(p):
         else:
             if type(p[3]) == IG.Node:
                 # Defaulted parameter value - TODO
+                pass
             else:
                 ST.currSymTab.addVar(p[1], ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[5].type))
 
@@ -485,9 +489,11 @@ def p_matched_statement(p):
         if type(p[1]) == IG.Node:
             p[0] = p[1]
         else:
+            pass
             # TODO: Handle empty production
             # TODO: Generate code for break and continue
     elif len(p) == 7:
+        pass
         # TODO Generate code
     elif len(p) == 3:
         p[0].code = p[1].code + p[2].code
@@ -499,8 +505,10 @@ def p_unmatched_statement(p):
     #p[0] = Rule('unmatched_statement', get_production(p))
     p[0] = IG.Node()
     if len(p) == 5:
+        pass
         # TODO generate if else code
     elif len(p) == 7:
+        pass
         # TODO generate if else code
     elif len(p) == 3:
         p[0].code = p[1].code + p[2].code
@@ -561,28 +569,51 @@ def p_expression(p):
                   | simple_expression'''
     # p[0] = Rule('expression', get_production(p))
     p[0] = IG.Node()
+    if len(p) == 2:
+        p[0] = p[1]
     # TODO generate code
 
 def p_simple_expression(p):
     '''simple_expression : simple_expression OP_PLUS term
                          | simple_expression OP_MINUS term
-                         | simple_expression OP_OR term
+                         | simple_expression OP_OR bool_exp_marker term
                          | simple_expression OP_XOR term
                          | simple_expression OP_BIT_OR term
                          | simple_expression OP_BIT_XOR term
                          | term'''
-    p[0] = Rule('simple_expression', get_production(p))
+    # p[0] = Rule('simple_expression', get_production(p))
+    p[0] = IG.Node()
+    if len(p) == 5:
+        backpatch(p[1].falseList, p[3].quad)
+        p[0].trueList = p[1].trueList + p[4].trueList
+        p[0].falseList = p[4].falseList
+    elif len(p) == 4:
+        # TODO Generate Code and push up
+        pass
+    elif len(p) == 2:
+        p[0] = p[1]
 
 def p_term(p):
     '''term : term OP_MULT factor
             | term OP_DIV factor
             | term OP_MOD factor
-            | term OP_AND factor
+            | term OP_AND bool_exp_marker factor
             | term OP_BIT_AND factor
             | term OP_SHIFTLEFT factor
             | term OP_SHIFTRIGHT factor
             | factor'''
-    p[0] = Rule('term', get_production(p))
+    # p[0] = Rule('term', get_production(p))
+    p[0] = IG.Node()
+    if len(p) == 5:
+        backpatch(p[1].trueList, p[3].quad)
+        p[0].trueList = p[4].trueList
+        p[0].falseList = p[1].falseList + p[4].falseList
+    elif len(p) == 4:
+        # TODO Generate code
+        pass
+    elif len(p) == 3:
+        p[0] = p[1]
+
 
 def p_factor(p):
     '''factor : LEFT_PARENTHESIS expression RIGHT_PARENTHESIS
@@ -592,7 +623,29 @@ def p_factor(p):
               | function_call
               | variable_reference
               | unsigned_constant'''
-    p[0] = Rule('factor', get_production(p))
+    # p[0] = Rule('factor', get_production(p))
+    p[0] = IG.Node()
+    if len(p) == 3:
+        # TODO Generate Code
+        if p[1] == 'not':
+            p[0].trueList = p[2].falseList
+            p[0].falseList = p[2].trueList
+    elif len(p) == 2:
+        p[0].code = p[1].code
+        if p[1].value == 'true':
+            p[0].trueList = [nextQuad]
+        elif p[1].value == 'false':
+            p[0].falseList = [nextQuad]
+        else:
+            p[0].trueList = [nextQuad]
+            p[0].falseList = [nextQuad+1]
+    elif len(p) == 4:
+        p[0] = p[2]
+
+def p_bool_exp_marker(p):
+    '''bool_exp_marker : '''
+    p[0] = IG.Node()
+    p[0].quad = nextQuad
 
 def p_function_call(p):
     '''function_call : IDENTIFIER LEFT_PARENTHESIS expression_list RIGHT_PARENTHESIS
