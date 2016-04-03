@@ -568,6 +568,8 @@ def p_simple_expression(p):
                          | simple_expression OP_MINUS term
                          | simple_expression OP_OR term
                          | simple_expression OP_XOR term
+                         | simple_expression OP_BIT_OR term
+                         | simple_expression OP_BIT_XOR term
                          | term'''
     p[0] = Rule('simple_expression', get_production(p))
 
@@ -576,6 +578,7 @@ def p_term(p):
             | term OP_DIV factor
             | term OP_MOD factor
             | term OP_AND factor
+            | term OP_BIT_AND factor
             | term OP_SHIFTLEFT factor
             | term OP_SHIFTRIGHT factor
             | factor'''
@@ -585,6 +588,7 @@ def p_factor(p):
     '''factor : LEFT_PARENTHESIS expression RIGHT_PARENTHESIS
               | sign factor
               | OP_NOT factor
+              | OP_BIT_NOT factor
               | function_call
               | variable_reference
               | unsigned_constant'''
