@@ -628,6 +628,7 @@ def p_simple_expression(p):
             # TODO Generate Code for other types
         else:
             # TODO Type checking error
+            pass
 
     elif len(p) == 2:
         p[0] = p[1]
@@ -665,6 +666,7 @@ def p_term(p):
             # TODO Generate code for other types
         else:
             # TODO Type checking error
+            pass
     elif len(p) == 2:
         p[0] = p[1]
 
@@ -825,7 +827,7 @@ def p_func_proc_statement(p):
                                     ioFmtString=ioFmtString, lineNo=nextQuad))
             nextQuad += 1
     elif p[1] == 'write' or p[1] == 'writeln':
-        if len(p[3].items) == 1
+        if len(p[3].items) == 1:
             # TODO Type Writeln FIXME
             if not p[3].items[0].type.isConst:
                 if p[3].items[0].getDeepestType() == ST.Type.INT:

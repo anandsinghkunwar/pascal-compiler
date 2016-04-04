@@ -142,7 +142,9 @@ class TACInstr(object):
             self.Dest = Operand(dest)
 
     # Types of operations
-    ADD, SUB, MULT, DIV, EQ, GT, LT, GEQ, LEQ, NEQ, SHL, SHR, AND, NOT, OR, MOD, XOR, CALLOP = range(18)
+    ADD, SUB, MULT, DIV, EQ, GT, LT, GEQ, LEQ, NEQ, \
+    SHL, SHR, AND, NOT, OR, MOD, XOR, CALLOP, \
+    LOGICAND, LOGICNOT, LOGICXOR, LOGICOR = range(22)
 
     # Operation map
     OpMap = {
