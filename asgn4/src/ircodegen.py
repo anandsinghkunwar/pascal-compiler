@@ -128,7 +128,7 @@ class TACInstr(object):
         self.Label = label
         self.TargetLabel = targetLabel
         self.LineNo = lineno
-        self.IOFmtString = IOFmtString
+        self.IOFmtString = ioFmtString
         self.IOFmtStringAddr = None
         self.IOArgList = ioArgList
         self.ParamList = paramList
