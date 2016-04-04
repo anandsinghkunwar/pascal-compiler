@@ -733,39 +733,46 @@ def p_func_proc_statement(p):
     if p[1] == 'read' or p[1] == 'readln':
         if len(p[3].items) == 1:
             # TODO Type Readln FIXME
-            if p[3].items[0].type.type == ST.Type.INT or 
-               (p[3].items[0].type.type == ST.Type.type and p[3].items[0].type.baseType == ST.Type.INT):
+            if p[3].items[0].getDeepestType() == ST.Type.INT:
                 ioFmtString = '%d'
-            elif p[3].items[0].type.type == ST.Type.STRING or 
-               (p[3].items[0].type.type == ST.Type.type and p[3].items[0].type.baseType == ST.Type.STRING):
+            elif p[3].items[0].getDeepestType() == ST.Type.STRING:
                 ioFmtString = '%s'
-            elif p[3].items[0].type.type == ST.Type.CHAR or 
-               (p[3].items[0].type.type == ST.Type.type and p[3].items[0].type.baseType == ST.Type.CHAR):
+            elif p[3].items[0].getDeepestType() == ST.Type.CHAR:
                 ioFmtString = '%c'
             else:
                 # TODO ERROR
                 pass
                 # print_error('Type Not Supported for Read Operation')
+            # TODO Convert ioArgList to Operand List
             p[0].genCode(IG.TACInstr(IG.TACInstr.SCANF, ioArgList=p[3].items,
                                     ioFmtString=ioFmtString, lineNo=nextQuad))
             nextQuad += 1
     elif p[1] == 'write' or p[1] == 'writeln':
         if len(p[3].items) == 1
             # TODO Type Writeln FIXME
-            if p[3].items[0].isInt() or
-               (p[3].items[0].isType() and p[3].items[0].type.baseType == ST.Type.INT):
-                ioFmtString = '%d'
-            elif p[3].items[0].isString() or
-               (p[3].items[0].isType() and p[3].items[0].type.baseType == ST.Type.STRING):
-                ioFmtString = '%s'
-            elif p[3].items[0].isChar() or
-               (p[3].items[0].isType() and p[3].items[0].type.baseType == ST.Type.CHAR):
-                ioFmtString = '%c'
+            if not p[3].items[0].type.isConst:
+                if p[3].items[0].getDeepestType() == ST.Type.INT:
+                    ioFmtString = '%d'
+                elif p[3].items[0].getDeepestType() == ST.Type.STRING:
+                    ioFmtString = '%s'
+                elif p[3].items[0].getDeepestType() == ST.Type.CHAR:
+                    ioFmtString = '%c'
+                else:
+                    # TODO ERROR
+                    pass
+                    # print_error('Type Not Supported for Read Operation')
             else:
-                # TODO ERROR
-                pass
-                # print_error('Type Not Supported for Read Operation')
-            p[0].genCode(IG.TACInstr(IG.TACInstr.SCANF, ioArgList=p[3].items,
+                if p[3].items[0].type.type == ST.Type.INT:
+                    ioFmtString = '%d'
+                elif p[3].items[0].getDeepestType() == ST.Type.STRING:
+                    ioFmtString = '%s'
+                elif p[3].items[0].getDeepestType() == ST.Type.CHAR:
+                    ioFmtString = '%c'
+                else:
+                    # TODO Error
+                    pass
+            # TODO Convert ioArgList to Operand List
+            p[0].genCode(IG.TACInstr(IG.TACInstr.PRINTF, ioArgList=p[3].items,
                                     ioFmtString=ioFmtString, lineNo=nextQuad))
             nextQuad += 1
 
