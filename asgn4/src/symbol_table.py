@@ -4,7 +4,7 @@
 class Type(object):
     def __init__(self, name, type, baseType = None, arrayBeginList = [],
                  arrayEndList = [], arrayBaseType = None, strLen = None,
-                 returnType = None, numParams=None):
+                 returnType = None, numParams=None, isConstant=False):
         self.name = name
         self.type = type            # From the enumeration
         self.baseType = baseType    # For custom defined types
@@ -14,6 +14,13 @@ class Type(object):
         self.strLen = strLen
         self.returnType = returnType  # Type object: If this is a function, return type of function.
         self.numParams = numParams
+        self.isConstant = isConstant
+
+
+    def __eq__(self, other):
+        if self.isConstant and not other.isConstant:
+            return self.type == other.baseType
+        return self.name == other.name
 
     # Enumeration for types
     # TODO: Pointers
@@ -23,15 +30,22 @@ class Type(object):
     def isBuiltin(self):
         return self.baseType == None
 
+    def getDeepestType(self):
+        if self.baseType is None:
+            return self.type
+        else:
+            return self.baseType.getDeepestType()
+
 # Class to implement a symbol table entry.
 class SymTabEntry(object):
-    def __init__(self, name, type, mySymTab, nextSymTab=None, isConst=False, isParameter=False):
+    def __init__(self, name, type, mySymTab, nextSymTab=None, isConst=False, isParameter=False, isTemp=False):
         self.name = name
         self.type = type
         self.mySymTab = mySymTab
         self.nextSymTab = nextSymTab
         self.isConst = isConst
         self.isParameter = isParameter
+        self.isTemp = isTemp
 
     def scope(self):
         return self.mySymTab.scope
@@ -73,9 +87,9 @@ class SymTab(object):
     # Class variables for allocation
     nextScope = 0
 
-    def addVar(self, varName, varType, isParameter=False):
+    def addVar(self, varName, varType, isParameter=False, isTemp=False):
         if not self.entryExists(varName):
-            self.entries[varName] = SymTabEntry(varName, varType, self, isParameter=isParameter)
+            self.entries[varName] = SymTabEntry(varName, varType, self, isParameter=isParameter, isTemp=isTemp)
             return self.entries[varName]
         else:
             # TODO: Handle error?
@@ -114,6 +128,6 @@ def lookup(identifier):
         if identifier in tempSymTab.keys():
             return tempSymTab[identifier]   # Found identifier
         tempSymTab = tempSymTab.previousTable
-
+    return None
     # Identifier not found
     # TODO Throw Error
