@@ -116,7 +116,8 @@ class Operand(object):
 # Class to define a Three Address Code Instruction (TACInstr).
 class TACInstr(object):
     def __init__(self, instrType, op=None, target=None, src1=None, src2=None,
-                 dest=None, label=None, targetLabel=None, lineNo=None, ioArgList=None, paramList=None):
+                 dest=None, label=None, targetLabel=None, lineNo=None, ioArgList=None,
+                 paramList=None, ioFmtString=None):
         self.InstrType = instrType
         self.Target = target
         self.Op = op
@@ -127,6 +128,7 @@ class TACInstr(object):
         self.Label = label
         self.TargetLabel = targetLabel
         self.LineNo = lineno
+        self.IOFmtString = IOFmtString
         self.IOFmtStringAddr = None
         self.IOArgList = ioArgList
         self.ParamList = paramList

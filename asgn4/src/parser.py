@@ -746,7 +746,28 @@ def p_func_proc_statement(p):
                 # TODO ERROR
                 pass
                 # print_error('Type Not Supported for Read Operation')
-            IG.TACInstr(IG.TACInstr.SCANF, ioArgList=p[3].items, ioFmtString=ioFmtString)
+            p[0].genCode(IG.TACInstr(IG.TACInstr.SCANF, ioArgList=p[3].items,
+                                    ioFmtString=ioFmtString, lineNo=nextQuad))
+            nextQuad += 1
+    elif p[1] == 'write' or p[1] == 'writeln':
+        if len(p[3].items) == 1
+            # TODO Type Writeln FIXME
+            if p[3].items[0].isInt() or
+               (p[3].items[0].isType() and p[3].items[0].type.baseType == ST.Type.INT):
+                ioFmtString = '%d'
+            elif p[3].items[0].isString() or
+               (p[3].items[0].isType() and p[3].items[0].type.baseType == ST.Type.STRING):
+                ioFmtString = '%s'
+            elif p[3].items[0].isChar() or
+               (p[3].items[0].isType() and p[3].items[0].type.baseType == ST.Type.CHAR):
+                ioFmtString = '%c'
+            else:
+                # TODO ERROR
+                pass
+                # print_error('Type Not Supported for Read Operation')
+            p[0].genCode(IG.TACInstr(IG.TACInstr.SCANF, ioArgList=p[3].items,
+                                    ioFmtString=ioFmtString, lineNo=nextQuad))
+            nextQuad += 1
 
 def p_structured_statement(p):
     '''structured_statement : block
