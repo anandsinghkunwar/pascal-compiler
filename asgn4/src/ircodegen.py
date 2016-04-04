@@ -143,11 +143,11 @@ class TACInstr(object):
         self.IOArgList = ioArgList
         self.ParamList = paramList
 
-        if src1:
+        if src1 is not None:
             self.Src1 = Operand(src1)
-        if src2:
+        if src2 is not None:
             self.Src2 = Operand(src2)
-        if dest:
+        if dest is not None:
             self.Dest = Operand(dest)
 
     # Types of operations
@@ -276,10 +276,10 @@ def generateIr(irList):
             if ir.Op is None:   #basic assignment
                 text += getLexeme(ir.Dest) + ", " + getLexeme(ir.Src1)
             elif ir.Op is TACInstr.CALLOP:  #assignment with call
-                text += "call, " + ir.TargetLabel
+                text += "call, " + getLexeme(ir.Dest) + ", " + ir.TargetLabel
                 if ir.ParamList:
                     args = [getName(arg) for arg in ir.ParamList]
-                    text += ", ".join(args)
+                    text += ", " + ", ".join(args)
             elif ir.Src2: #binary operator
                 text += rev_OpMap[ir.Op]  + ", "+ getLexeme(ir.Dest) + ", " + getLexeme(ir.Src1) + ", " + getLexeme(ir.Src2)
             else:   #unary operators except call

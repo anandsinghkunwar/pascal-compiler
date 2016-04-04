@@ -14,7 +14,7 @@ Begin
 
     // Checking for operator preceedence
     a := a / 123 + 123 * 123 - 123;
-    b := a * (a+b) - 123;
+    b := a * (a + 5) - 123;
     //    if c = d or c or not d then;
 
 End.

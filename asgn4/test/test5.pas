@@ -8,14 +8,17 @@ procedure proc(a, b: integer; c: char);
     const
         localConst = 23;
 begin
-    writeln('Hello ', localConst);
+    writeln(localConst);
 end;
 procedure proc2();
     const
         localConst = 23;
 begin
-    writeln('Hello ', localConst);
+    writeln(localConst);
 end;
+
+var
+   a : integer;
 
 begin
     a := func(1, 2, 'c');

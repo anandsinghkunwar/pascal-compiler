@@ -493,7 +493,7 @@ def p_unmatched_statement(p):
 
     elif len(p) == 10:
         p[0].code = p[2].code + p[4].code + p[5].code + p[6].code + p[9].code
-        backpatch([p[4].quad], p[7].quad)
+        backpatch([p[4].quad], p[8].quad)
         backpatch([p[6].quad], IG.nextQuad)
 
     elif len(p) == 3:
@@ -512,7 +512,7 @@ def p_marker_if(p):
 
 def p_marker_if_end(p):
     '''marker_if_end : '''
-    p[0].IG.Node()
+    p[0] = IG.Node()
     p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
     p[0].quad = IG.nextQuad
     IG.nextQuad += 1
