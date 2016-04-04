@@ -369,24 +369,25 @@ def p_declarations(p):
                     | declarations type_declarations
                     | declarations var_declarations
                     | empty'''
-    #p[0] = Rule('declarations', get_production(p))
-    # TODO ??
+    p[0] = IG.Node()
+    p[0].code = p[1].code + p[2].code
 
 def p_parameter_list(p):
     '''parameter_list : LEFT_PARENTHESIS parameter_declarations RIGHT_PARENTHESIS
                       | LEFT_PARENTHESIS RIGHT_PARENTHESIS'''
-    #p[0] = Rule('parameter_list', get_production(p))
-    # TODO ??
+    if len(p) == 4:
+        p[0] = p[1]
+    elif len(p) == 3:
+        p[0] = IG.Node()
 
 def p_parameter_declarations(p):
     '''parameter_declarations : parameter_declarations SEMICOLON value_parameter
                               | value_parameter'''
-    #p[0] = Rule('parameter_declarations', get_production(p))
     p[0] = IG.Node()
     if len(p) == 4:
-        p[0].code = p[1].code + p[3].code
-    else:
-        p[0].code = p[1].code
+        p[0].items = p[1].items + p[3].items
+    elif len(p) == 2:
+        p[0].items = p[1].items
 
 def p_parameter_declarations_error(p):
     '''parameter_declarations : parameter_declarations error value_parameter'''
@@ -398,10 +399,8 @@ def p_value_parameter(p):
                        | IDENTIFIER COLON type_identifier
                        | identifiers COLON KEYWORD_ARRAY KEYWORD_OF type_identifier
                        | IDENTIFIER COLON KEYWORD_ARRAY KEYWORD_OF type_identifier'''
-    #p[0] = Rule('value_parameter', get_production(p))
-    # TODO Add default parameters if possible
+    # TODO Should code be generated
     p[0] = IG.Node()
-    # TODO Add parameters to new symbol table
     if len(p) == 4:
         if type(p[1]) == IG.Node:
             for item in p[1].items:
