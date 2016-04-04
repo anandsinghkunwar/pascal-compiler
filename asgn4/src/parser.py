@@ -501,6 +501,10 @@ def p_unmatched_statement(p):
 
     elif len(p) == 3:
         p[0].code = p[1].code + p[2].code
+        p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, target=p[1].quad, lineNo=nextQuad))
+        nextQuad += 1
+        backpatch(p[1].endList, nextQuad)
+
 
 def p_marker_if(p):
     '''marker_if : '''
@@ -524,18 +528,17 @@ def p_marker_else(p):
 def p_loop_header(p):
     '''loop_header : for_loop_header
                    | while_loop_header'''
-    # p[0] = Rule('loop_header', get_production(p))
     p[0] = p[1]
 
 def p_for_loop_header(p):
     '''for_loop_header : for_loop_to
                        | for_loop_downto'''
-    # p[0] = Rule('for_loop_header', get_production(p))
     p[0] = p[1]
 
 def p_for_loop_to(p):
     '''for_loop_to : KEYWORD_FOR IDENTIFIER COLON_EQUAL expression KEYWORD_TO expression KEYWORD_DO'''
     p[0] = IG.Node()
+
     # TODO generate code
 
 def p_for_loop_downto(p):
@@ -550,10 +553,21 @@ def p_for_loop_header_error(p):
     print_error("\tExpected ':=', Found " + p[3].type)
 
 def p_while_loop_header(p):
-    '''while_loop_header : KEYWORD_WHILE expression KEYWORD_DO'''
-    # p[0] = Rule('while_loop_header', get_production(p))
+    '''while_loop_header : KEYWORD_WHILE marker_while_begin expression marker_while KEYWORD_DO'''
     p[0] = IG.Node()
-    # TODO generate code
+    p[0].code = p[3].code + p[4].code
+    p[0].endList = [p[4].quad]
+    p[0].quad = p[2].quad
+
+def p_marker_while_begin(p):
+    '''marker_while_begin : '''
+    p[0].quad = nextQuad
+
+def p_marker_while(p):
+    '''marker_while : '''
+    p[0].genCode(IG.TACInstr(IG.TACInstr.IFGOTO, src1=p[-1].place, src2=False, op=IG.TACInstr.EQ, lineNo=nextQuad))
+    p[0].quad = nextQuad
+    nextQuad += 1
 
 def p_simple_statement(p):
     '''simple_statement : assignment_statement
@@ -807,8 +821,8 @@ def p_func_proc_statement(p):
                 # TODO ERROR
                 pass
                 # print_error('Type Not Supported for Read Operation')
-            # TODO Convert ioArgList to Operand List
-            p[0].genCode(IG.TACInstr(IG.TACInstr.SCANF, ioArgList=p[3].items,
+            ioArgList = [IG.Operand(item) for item in p[3].items]
+            p[0].genCode(IG.TACInstr(IG.TACInstr.SCANF, ioArgList=ioArgList,
                                     ioFmtString=ioFmtString, lineNo=nextQuad))
             nextQuad += 1
     elif p[1] == 'write' or p[1] == 'writeln':
@@ -835,8 +849,8 @@ def p_func_proc_statement(p):
                 else:
                     # TODO Error
                     pass
-            # TODO Convert ioArgList to Operand List
-            p[0].genCode(IG.TACInstr(IG.TACInstr.PRINTF, ioArgList=p[3].items,
+            ioArgList = [IG.Operand(item) for item in p[3].items]
+            p[0].genCode(IG.TACInstr(IG.TACInstr.PRINTF, ioArgList=ioArgList,
                                     ioFmtString=ioFmtString, lineNo=nextQuad))
             nextQuad += 1
     else:

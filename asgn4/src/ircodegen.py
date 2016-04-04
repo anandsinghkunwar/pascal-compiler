@@ -18,6 +18,7 @@ class Node(object):
         self.quad = None
         self.trueList = []
         self.falseList = []
+        self.endList = []
 
     def genCode(self, instr):
         self.code.append(instr)
