@@ -3,7 +3,8 @@
 # Class to define data types.
 class Type(object):
     def __init__(self, name, type, baseType = None, arrayBeginList = [],
-                 arrayEndList = [], arrayBaseType = None, strLen = None, returnType = None):
+                 arrayEndList = [], arrayBaseType = None, strLen = None,
+                 returnType = None, numParams=None):
         self.name = name
         self.type = type            # From the enumeration
         self.baseType = baseType    # For custom defined types
@@ -12,6 +13,7 @@ class Type(object):
         self.arrayBaseType = arrayBaseType   # Array of WHAT?
         self.strLen = strLen
         self.returnType = returnType  # Type object: If this is a function, return type of function.
+        self.numParams = numParams
 
     # Enumeration for types
     # TODO: Pointers
@@ -81,16 +83,17 @@ class SymTab(object):
     def entryExists(self, varName):
         return varName in self.entries.keys()
 
-    def addProcedure(self, procName):
+    def addProcedure(self, procName, numParams):
         if not self.entryExists(procName):
-            self.entries[procName] = SymTabEntry(procName, Type('procedure', Type.PROCEDURE), self, nextSymTab=SymTab(self))
+            self.entries[procName] = SymTabEntry(procName, Type('procedure', Type.PROCEDURE, numParams=numParams), self, nextSymTab=SymTab(self))
         else:
             # TODO: Handle error?
             pass
 
-    def addFunction(self, funcName):
+    def addFunction(self, funcName, returnType, numParams):
         if not self.entryExists(funcName):
-            self.entries[funcName] = SymTabEntry(funcName, Type('function', Type.FUNCTION), self, nextSymTab=SymTab(self))
+            self.entries[funcName] = SymTabEntry(funcName, Type('function', Type.FUNCTION, returnType=returnType, numParams=numParams),
+                                                 self, nextSymTab=SymTab(self))
         else:
             # TODO: Handle error?
             pass

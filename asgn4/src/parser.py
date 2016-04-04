@@ -40,12 +40,23 @@ def p_global_decs_defs(p):
     '''global_decs_defs : global_decs_defs const_declarations
                         | global_decs_defs type_declarations
                         | global_decs_defs var_declarations
-                        | global_decs_defs func_def
-                        | global_decs_defs proc_def
+                        | global_decs_defs marker_fpdef func_def
+                        | global_decs_defs marker_fpdef proc_def
                         | empty'''
     p[0] = IG.Node()
-    p[0].code = p[1].code + p[2].code   # Assuming type_declarations
-                                        # is also a node with code
+    if len(p) == 3:
+        p[0].code = p[1].code + p[2].code   # Assuming type_declarations
+                                            # is also a node with code
+    elif len(p) == 4:
+        backpatch([p[2].code.LineNo], nextQuad)
+        p[0].code = p[1].code + p[2].code + p[3].code
+
+def marker_fpdef:
+    p[0] = IG.Node()
+    p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=nextQuad))
+    nextQuad += 1
+    ST.currSymTab = ST.SymTab(ST.currSymTab)
+
 
 def p_const_declarations(p):
     '''const_declarations : KEYWORD_CONST const_statements'''
@@ -62,15 +73,13 @@ def p_const_statements(p):
 
 def p_const_statement(p):
     'const_statement : IDENTIFIER EQUAL expression SEMICOLON'
-    #p[0] = Rule('const_statement', get_production(p))
     STEntry = ST.currSymTab.addVar(p[1], p[3].type, isConst=True)
     p[0] = IG.Node()
-    p[0].code += IG.TACInstr(IG.TACInstr.ASSIGN, dest=STEntry, src1=p[3].place)
-    # TODO Generate code in p[0]
+    p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, dest=STEntry, src1=p[3].place, lineNo=nextQuad))
+    nextQuad += 1
 
 def p_const_statement_error(p):
     'const_statement : IDENTIFIER EQUAL expression'
-    #p[0] = Rule('const_statement', get_production(p))
     #Line number reported from expression nonterminal
     print_error("Syntax error at line", p.linespan(3)[1])
     print_error("\tMissing ';'")
@@ -79,7 +88,6 @@ def p_string(p):
     '''string : CONSTANT_STRING_LEADSPACE substring
               | CONSTANT_STRING_LEADSPACE
               | substring'''
-    #p[0] = Rule('string', get_production(p))
     p[0] = IG.Node()
 
     if len(p) == 3:
@@ -95,7 +103,6 @@ def p_substring(p):
                  | CONSTANT_SPECIAL_CHAR substring
                  | CONSTANT_STRING
                  | CONSTANT_SPECIAL_CHAR'''
-    #p[0] = Rule('substring', get_production(p))
     p[0] = IG.Node()
 
     if len(p) == 3:
@@ -111,33 +118,26 @@ def p_substring(p):
 
 def p_type_declarations(p):
     '''type_declarations : KEYWORD_TYPE type_statements'''
-    #p[0] = Rule('type_declarations', get_production(p))
     p[0] = IG.Node()    # This is being created for uniformity
-    p[0].code = []      # in creating code in global_decs_defs
-    # TODO ??
+                        # in creating code in global_decs_defs
 
 def p_type_statements(p):
     '''type_statements : type_statements type_statement
                        | type_statement'''
-    #p[0] = Rule('type_statements', get_production(p))
-    # TODO ??
 
 def p_type_statement(p):
     '''type_statement : identifiers EQUAL type SEMICOLON
                       | IDENTIFIER EQUAL type SEMICOLON'''
-    #p[0] = Rule('type_statement', get_production(p))
-    # TODO p[0]???
     if type(p[1]) == IG.Node:
         for item in p[1].items:
             ST.currSymTab.addVar(item, p[3].type)
-            # TODO Handle arrays
+            # TODO Handle arrays FIXME
     else:
         ST.currSymTab.addVar(p[1], p[3].type)
 
 def p_type_statement_error(p):
     '''type_statement : identifiers EQUAL type
                       | IDENTIFIER EQUAL type'''
-    #p[0] = Rule('type_statement', get_production(p))
     #Line number reported from type nonterminal
     print_error("Syntax error at line", p.linespan(3)[1])
     print_error("\tMissing ';'")
@@ -145,7 +145,6 @@ def p_type_statement_error(p):
 def p_identifiers(p):
     '''identifiers : identifiers COMMA IDENTIFIER
                    | IDENTIFIER COMMA IDENTIFIER'''
-    #p[0] = Rule('identifiers', get_production(p))
     p[0] = IG.Node()
     if type(p[1]) == IG.Node:
         p[0].items = p[1].items + [p[3]]
@@ -156,19 +155,16 @@ def p_type(p):
     '''type : type_identifier
             | array_declaration
             | string_declaration'''
-    #p[0] = Rule('type', get_production(p))
     p[0] = p[1]
 
 def p_type_identifier(p):
     '''type_identifier : IDENTIFIER
                        | KEYWORD_STRING'''
-    #p[0] = Rule('type_identifier', get_production(p))
     p[0] = IG.Node()
     p[0].type = ST.Type(p[1], ST.Type.TYPE)
 
 def p_array_declaration(p):
     '''array_declaration : KEYWORD_ARRAY LEFT_SQUARE_BRACKETS array_ranges RIGHT_SQUARE_BRACKETS KEYWORD_OF type'''
-    #p[0] = Rule('array_declaration', get_production(p))
     p[0] = IG.Node()
     p[0].type = ST.Type('array', ST.Type.ARRAY, arrayBeginList=p[3].arrayBeginList,
                         arrayEndList=p[3].arrayEndList, arrayBaseType=p[6].type)
@@ -176,7 +172,6 @@ def p_array_declaration(p):
 def p_array_ranges(p):
     '''array_ranges : array_ranges COMMA array_range
                     | array_range'''
-    #p[0] = Rule('array_ranges', get_production(p))
     p[0] = IG.Node()
     if len(p) == 4:
         p[0].arrayBeginList = p[1].arrayBeginList + p[3].arrayBeginList
@@ -187,7 +182,6 @@ def p_array_range(p):
     '''array_range : integer_range
                    | char_range
                    | boolean_range'''
-    #p[0] = Rule('array_range', get_production(p))
     p[0] = p[1]
 
 def p_integer_range(p):
@@ -198,8 +192,8 @@ def p_integer_range(p):
         p[0].arrayBeginList = [p[1]]
         p[0].arrayEndList = [p[3]]
     else:
-        # TODO Handle error
-        pass
+        print_error("Semantic error at line", p.lineno(3))
+        print_error("\tEnd index is less than start index")
 
 def p_char_range(p):
     '''char_range : char DOTDOT char'''
@@ -209,8 +203,8 @@ def p_char_range(p):
         p[0].arrayBeginList = [p[1]]
         p[0].arrayEndList = [p[3]]
     else:
-        # TODO Handle error
-        pass
+        print_error("Semantic error at line", p.lineno(3))
+        print_error("\tEnd index is less than start index")
 
 def p_boolean_range(p):
     '''boolean_range : CONSTANT_BOOLEAN_FALSE DOTDOT CONSTANT_BOOLEAN_FALSE
@@ -232,25 +226,26 @@ def p_char(p):
         if len(p[1]) == 1:
             p[0] = p[1]
         else:
-            # TODO: Handle error
-            pass
+            print_error("Semantic error at line", p.lineno(1))
+            print_error("\tExpected character got string")
 
 def p_string_declaration(p):
     '''string_declaration : KEYWORD_STRING LEFT_SQUARE_BRACKETS CONSTANT_INTEGER RIGHT_SQUARE_BRACKETS'''
-    #p[0] = Rule('string_declaration', get_production(p))
     p[0] = IG.Node()
     p[0].type = ST.Type('string', ST.Type.STRING, strLen=p[3])
 
 def p_var_declarations(p):
     '''var_declarations : KEYWORD_VAR var_statements'''
-    #p[0] = Rule('var_declarations', get_production(p))
-    # TODO ??
+    p[0] = p[2]
 
 def p_var_statements(p):
     '''var_statements : var_statements var_statement
                       | var_statement'''
-    #p[0] = Rule('var_statements', get_production(p))
-    # TODO ??
+    p[0] = IG.Node()
+    if len(p) == 3:
+        p[0].code = p[1].code + p[2].code
+    elif len(p) == 2:
+        p[0].code = p[1].code
 
 def p_var_statement(p):
     '''var_statement : identifiers COLON type SEMICOLON
@@ -266,21 +261,20 @@ def p_var_statement(p):
         else:
             ST.currSymTab.addVar(p[1], p[3].type)
     else:
-        ST.currSymTab.addVar(p[1], p[3].type)
+        STEntry = ST.currSymTab.addVar(p[1], p[3].type)
+        p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, dest=STEntry, src1=p[5].place, lineNo=nextQuad))
+        nextQuad += 1
 
 def p_var_statement_colon_error(p):
     '''var_statement : identifiers error type SEMICOLON
                      | IDENTIFIER error type SEMICOLON
                      | IDENTIFIER error type EQUAL expression SEMICOLON'''
-    #p[0] = Rule('var_statement', get_production(p))
     print_error("\tExpected ':'")
 
 def p_var_statement_semicolon_error(p):
     '''var_statement : identifiers COLON type
                      | IDENTIFIER COLON type
                      | IDENTIFIER COLON type EQUAL expression'''
-    #p[0] = Rule('var_statement', get_production(p))
-
     if len(p) == 4:
         #Line number reported from type nonterminal
         print_error("Syntax error at line", p.linespan(3)[1])
@@ -293,8 +287,6 @@ def p_var_statement_error(p):
     '''var_statement : identifiers type
                      | IDENTIFIER type
                      | IDENTIFIER type EQUAL expression'''
-    #p[0] = Rule('var_statement', get_production(p))
-
     if len(p) == 4:
         #Line number reported from type nonterminal
         print_error("Syntax error at line", p.linespan(3)[1])
@@ -305,27 +297,25 @@ def p_var_statement_error(p):
 
 def p_proc_def(p):
     '''proc_def : proc_head SEMICOLON declarations block SEMICOLON'''
-    #p[0] = Rule('proc_def', get_production(p))
     ST.currSymTab = ST.currSymTab.previousTable
-    # TODO ??
+    p[0] = IG.Node()
+    p[0].code = p[1].code + p[3].code + p[4].code
+
 
 def p_proc_def_head_error(p):
     '''proc_def : proc_head declarations block SEMICOLON'''
-    #p[0] = Rule('proc_def', get_production(p))
     #Line number reported from proc_head
     print_error("Syntax error at line", p.linespan(1)[1])
     print_error("\tMissing ';'")
 
 def p_proc_def_block_error(p):
     '''proc_def : proc_head SEMICOLON declarations block'''
-    #p[0] = Rule('proc_def', get_production(p))
     #Line number reported from block
     print_error("Syntax error at line", p.linespan(4)[1])
     print_error("\tMissing ';'")
 
 def p_proc_def_head_block_error(p):
     '''proc_def : proc_head declarations block'''
-    #p[0] = Rule('proc_def', get_production(p))
     #Line number reported from proc_head and block
     print_error("Syntax error at line", p.linespan(1)[1])
     print_error("\tMissing ';'")
@@ -334,33 +324,29 @@ def p_proc_def_head_block_error(p):
 
 def p_proc_head(p):
     'proc_head : KEYWORD_PROCEDURE IDENTIFIER parameter_list'
-    #p[0] = Rule('proc_head', get_production(p))
-    ST.currSymTab.addProcedure(p[2])
-    ST.currSymTab = ST.SymTab(ST.currSymTab)
+    ST.currSymTab.previousTable.addProcedure(p[2], len(p[3].items))
+    p[0] = p[3]
 
 def p_func_def(p):
     '''func_def : func_head SEMICOLON declarations block SEMICOLON'''
-    #p[0] = Rule('func_def', get_production(p))
     ST.currSymTab = ST.currSymTab.previousTable
-    # TODO ??
+    p[0] = IG.Node()
+    p[0].code = p[1].code + p[3].code + p[4].code
 
 def p_func_def_head_error(p):
     '''func_def : func_head declarations block SEMICOLON'''
-    #p[0] = Rule('func_def', get_production(p))
     #Line number reported from func_head
     print_error("Syntax error at line", p.linespan(1)[1])
     print_error("\tMissing ';'")
 
 def p_func_def_block_error(p):
     '''func_def : func_head SEMICOLON declarations block'''
-    #p[0] = Rule('func_def', get_production(p))
     #Line number reported from block
     print_error("Syntax error at line", p.linespan(4)[1])
     print_error("\tMissing ';'")
 
 def p_func_def_head_block_error(p):
     '''func_def : func_head declarations block'''
-    #p[0] = Rule('func_def', get_production(p))
     #Line number reported from func_head and block
     print_error("Syntax error at line", p.linespan(1)[1])
     print_error("\tMissing ';'")
@@ -369,11 +355,8 @@ def p_func_def_head_block_error(p):
 
 def p_func_head(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list COLON type_identifier'''
-    #p[0] = Rule('func_head', get_production(p))
-    ST.currSymTab.addFunction(p[2])
-    ST.currSymTab = ST.SymTab(ST.currSymTab)
-    # TODO ??
-
+    ST.currSymTab.previousTable.addFunction(p[2], p[5].type, len(p[3].items))
+    # TODO Check if return type is defined
 
 def p_func_head_error(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list error type_identifier'''

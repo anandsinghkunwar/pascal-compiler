@@ -2,7 +2,7 @@
 import symbol_table as ST
 
 # Global Variables
-InstrList = []
+InstrList = [None]
 
 # Dummy class to enable parser to use attributes
 class Node(object):
@@ -17,6 +17,10 @@ class Node(object):
         self.quad = None
         self.trueList = []
         self.falseList = []
+
+    def genCode(self, instr):
+        self.code.append(instr)
+        InstrList.append(instr)
 
 # Class to handle instruction operands
 class Operand(object):
