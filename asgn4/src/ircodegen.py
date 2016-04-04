@@ -70,7 +70,8 @@ class Operand(object):
 
 # Class to define a Three Address Code Instruction (TACInstr).
 class TACInstr(object):
-    def __init__(self, instrType, op=None, target=None, src1=None, src2=None, dest=None, label=None, targetLabel=None, lineNo=None, ioArgList=None):
+    def __init__(self, instrType, op=None, target=None, src1=None, src2=None,
+                 dest=None, label=None, targetLabel=None, lineNo=None, ioArgList=None, paramList=None):
         self.InstrType = instrType
         self.Target = target
         self.Op = op
@@ -83,6 +84,7 @@ class TACInstr(object):
         self.LineNo = lineno
         self.IOFmtStringAddr = None
         self.IOArgList = ioArgList
+        self.ParamList = paramList
 
         if src1:
             self.Src1 = Operand(src1)
@@ -105,13 +107,13 @@ class TACInstr(object):
             }
 
     # Types of instructions
-    ASSIGN, IFGOTO, GOTO, CALL, RETURN, LABEL, PRINTF, SCANF = range(8)
+    ASSIGN, IFGOTO, GOTO, CALL, RETURN, LABEL, PRINTF, SCANF, NOP = range(9)
 
     # Instruction map
     InstrMap = {
                 "="     : ASSIGN,      "ifgoto"     : IFGOTO,      "goto"     : GOTO,
                 "call"  : CALL,        "ret"        : RETURN,      "label"    : LABEL,
-                "printf": PRINTF,      "scanf"      : SCANF
+                "printf": PRINTF,      "scanf"      : SCANF,       "nop"      : NOP
                }
 
     # Methods to check type of the instruction
@@ -137,6 +139,8 @@ class TACInstr(object):
         return self.InstrType == TACInstr.EXIT
     def isJump(self):
         return self.isGoto() or self.isIfGoto() or self.isCall() or self.isReturn()
+    def isNop(self):
+        return self.InstrType == TACInstr.NOP
 
     # Auxiliary methods
     def getVarSet(self):

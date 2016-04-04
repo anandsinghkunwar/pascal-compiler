@@ -300,7 +300,8 @@ def p_proc_def(p):
     ST.currSymTab = ST.currSymTab.previousTable
     p[0] = IG.Node()
     p[0].code = p[1].code + p[3].code + p[4].code
-
+    p[0].genCode(IG.TACInstr(IG.TACInstr.RETURN))
+    nextQuad += 1
 
 def p_proc_def_head_error(p):
     '''proc_def : proc_head declarations block SEMICOLON'''
@@ -325,13 +326,16 @@ def p_proc_def_head_block_error(p):
 def p_proc_head(p):
     'proc_head : KEYWORD_PROCEDURE IDENTIFIER parameter_list'
     ST.currSymTab.previousTable.addProcedure(p[2], len(p[3].items))
-    p[0] = p[3]
+    p[0] = IG.Node()
+    p[0].genCode(IG.TACInstr(IG.TACInstr.LABEL, label=p[2], paramList=p[3].items, lineNo=nextQuad))
+    nextQuad += 1
 
 def p_func_def(p):
     '''func_def : func_head SEMICOLON declarations block SEMICOLON'''
     ST.currSymTab = ST.currSymTab.previousTable
     p[0] = IG.Node()
     p[0].code = p[1].code + p[3].code + p[4].code
+    p[0].genCode(IG.TACInstr(IG.TACInstr.RETURN, src1=p[1].place))
 
 def p_func_def_head_error(p):
     '''func_def : func_head declarations block SEMICOLON'''
@@ -356,11 +360,16 @@ def p_func_def_head_block_error(p):
 def p_func_head(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list COLON type_identifier'''
     ST.currSymTab.previousTable.addFunction(p[2], p[5].type, len(p[3].items))
-    # TODO Check if return type is defined
+    STEntry = ST.currSymTab.addVar(p[2], p[5].type)
+    # TODO Type identifier must be builtin/already defined
+    # Generate code
+    p[0] = IG.Node()
+    p[0].place = STEntry
+    p[0].genCode(IG.TACInstr(IG.TACInstr.LABEL, label=p[2], paramList=p[3].items, lineNo=nextQuad))
+    nextQuad += 1
 
 def p_func_head_error(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list error type_identifier'''
-    #p[0] = Rule('func_head', get_production(p))
     #Line number reported from KEYWORD_FUNCTION token
     print_error("\tExpected :'")
 
@@ -386,12 +395,12 @@ def p_parameter_declarations(p):
     p[0] = IG.Node()
     if len(p) == 4:
         p[0].items = p[1].items + p[3].items
+        p[0].code = p[1].code + p[3].code
     elif len(p) == 2:
-        p[0].items = p[1].items
+        p[0] = p[1]
 
 def p_parameter_declarations_error(p):
     '''parameter_declarations : parameter_declarations error value_parameter'''
-    #p[0] = Rule('parameter_declarations', get_production(p))
     print_error("\tExpected ';', Found " + p[2].type)
 
 def p_value_parameter(p):
@@ -399,24 +408,23 @@ def p_value_parameter(p):
                        | IDENTIFIER COLON type_identifier
                        | identifiers COLON KEYWORD_ARRAY KEYWORD_OF type_identifier
                        | IDENTIFIER COLON KEYWORD_ARRAY KEYWORD_OF type_identifier'''
-    # TODO Should code be generated
     p[0] = IG.Node()
     if len(p) == 4:
         if type(p[1]) == IG.Node:
+            p[0].items = p[1].items
             for item in p[1].items:
-                ST.currSymTab.addVar(item, p[3].type)
+                ST.currSymTab.addVar(item, p[3].type, isParameter=True)
         else:
-            ST.currSymTab.addVar(p[1], p[3].type)
+            p[0].items.append(p[1])
+            ST.currSymTab.addVar(p[1], p[3].type, isParameter=True)
     elif len(p) == 5:
         if type(p[1]) == IG.Node:
+            p[0].items = p[1].items
             for item in p[1].items:
-                ST.currSymTab.addVar(item, ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[5].type))
+                ST.currSymTab.addVar(item, ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[5].type), isParameter=True)
         else:
-            if type(p[3]) == IG.Node:
-                # Defaulted parameter value - TODO
-                pass
-            else:
-                ST.currSymTab.addVar(p[1], ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[5].type))
+            p[0].items.append(p[1])
+            ST.currSymTab.addVar(p[1], ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[5].type), isParameter=True)
 
 def p_value_parameter_error(p):
     '''value_parameter : identifiers error type_identifier
@@ -424,18 +432,18 @@ def p_value_parameter_error(p):
                        | identifiers error KEYWORD_ARRAY KEYWORD_OF type_identifier
                        | IDENTIFIER error KEYWORD_ARRAY KEYWORD_OF type_identifier
                        | IDENTIFIER error type_identifier EQUAL unsigned_constant'''
-    #p[0] = Rule('value_parameter', get_production(p))
+    if len(p) == 6:
+        if p[4] == '=':
+            print_error("\tDefault parameter values are unsupported.")
     print_error("\tExpected ':', Found " + p[2].type)
 
 def p_block(p):
     'block : KEYWORD_BEGIN statements KEYWORD_END'
-    #p[0] = Rule('block', get_production(p))
     p[0] = p[1]
 
 def p_statements(p):
     '''statements : statements SEMICOLON statement
                   | statement'''
-    #p[0] = Rule('statements', get_production(p))
     p[0] = IG.Node()
     if len(p) == 4:
         p[0].code = p[1].code + p[3].code
@@ -444,13 +452,11 @@ def p_statements(p):
 
 def p_statements_error(p):
     '''statements : statements error statement'''
-    #p[0] = Rule('statements', get_production(p))
     print_error("\tExpected ';', Found " + p[2].type)
 
 def p_statement(p):
     '''statement : matched_statement
                  | unmatched_statement'''
-    #p[0] = Rule('statement', get_production(p))
     p[0] = p[1]
 
 def p_matched_statement(p):
@@ -461,7 +467,6 @@ def p_matched_statement(p):
                          | KEYWORD_BREAK
                          | KEYWORD_CONTINUE
                          | empty'''
-    #p[0] = Rule('matched_statement', get_production(p))
     p[0] = IG.Node()
     if len(p) == 2:
         if type(p[1]) == IG.Node:
