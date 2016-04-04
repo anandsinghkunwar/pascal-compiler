@@ -95,13 +95,14 @@ def p_string(p):
     elif len(p) == 2:
         p[0] = p[1]
 
+    # We need strings with quotes
+    p[0] = '"' + p[0] + '"'
+
 def p_substring(p):
     '''substring : CONSTANT_STRING substring
                  | CONSTANT_SPECIAL_CHAR substring
                  | CONSTANT_STRING
                  | CONSTANT_SPECIAL_CHAR'''
-    p[0] = IG.Node()
-
     if len(p) == 3:
         if type(p[1]) == str:
             p[0] = p[1] + p[2]
@@ -480,6 +481,9 @@ def p_matched_statement(p):
 
     elif len(p) == 3:
         p[0].code = p[1].code + p[2].code
+        p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, target=p[1].quad, lineNo=IG.nextQuad))
+        IG.nextQuad += 1
+        backpatch(p[1].endList, IG.nextQuad)
 
 def p_unmatched_statement(p):
     '''unmatched_statement : KEYWORD_IF expression KEYWORD_THEN marker_if statement
@@ -501,7 +505,6 @@ def p_unmatched_statement(p):
         p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, target=p[1].quad, lineNo=IG.nextQuad))
         IG.nextQuad += 1
         backpatch(p[1].endList, IG.nextQuad)
-
 
 def p_marker_if(p):
     '''marker_if : '''
@@ -811,11 +814,11 @@ def p_func_proc_statement(p):
             if len(p[3].items) == 1:
                 # TODO Type Readln FIXME
                 if p[3].items[0].getDeepestType() == ST.Type.INT:
-                    ioFmtString = '%d'
+                    ioFmtString = '"%d"'
                 elif p[3].items[0].getDeepestType() == ST.Type.STRING:
-                    ioFmtString = '%s'
+                    ioFmtString = '"%s"'
                 elif p[3].items[0].getDeepestType() == ST.Type.CHAR:
-                    ioFmtString = '%c'
+                    ioFmtString = '"%c"'
                 else:
                     # TODO ERROR
                     pass
@@ -848,6 +851,9 @@ def p_func_proc_statement(p):
                         ioFmtString = '%s'
                         # TODO Error
                         pass
+                if p[1] == 'writeln':
+                    ioFmtString += '\\n'
+                ioFmtString = '"' + ioFmtString + '"'
                 ioArgList = [IG.Operand(item) for item in p[3].items]
                 p[0].genCode(IG.TACInstr(IG.TACInstr.PRINTF, ioArgList=ioArgList,
                                         ioFmtString=ioFmtString, lineNo=IG.nextQuad))
