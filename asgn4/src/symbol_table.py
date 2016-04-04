@@ -34,7 +34,7 @@ class Type(object):
 
     def getDeepestType(self):
         if self.baseType is None:
-            return self.type
+            return self.name
         else:
             return self.baseType.getDeepestType()
 
@@ -89,9 +89,9 @@ class SymTab(object):
     # Class variables for allocation
     nextScope = 0
 
-    def addVar(self, varName, varType, isParameter=False, isTemp=False):
+    def addVar(self, varName, varType, isParameter=False, isTemp=False, isConst=False):
         if not self.entryExists(varName):
-            self.entries[varName] = SymTabEntry(varName, varType, self, isParameter=isParameter, isTemp=isTemp)
+            self.entries[varName] = SymTabEntry(varName, varType, self, isParameter=isParameter, isTemp=isTemp, isConst=isConst)
             return self.entries[varName]
         else:
             # TODO: Handle error?

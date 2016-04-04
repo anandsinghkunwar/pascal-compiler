@@ -19,7 +19,6 @@ def p_start(p):
     p[0].code = p[2].code + p[3].code
     p[0].genCode(IG.TACInstr(IG.TACInstr.RETURN, lineNo=IG.nextQuad))
     IG.nextQuad += 1
-    print "TESTING", len(p[0].code)
 
 def p_program_statement(p):
     '''program_statement : KEYWORD_PROGRAM IDENTIFIER SEMICOLON
@@ -48,12 +47,13 @@ def p_global_decs_defs(p):
         p[0].code = p[1].code + p[2].code   # Assuming type_declarations
                                             # is also a node with code
     elif len(p) == 4:
-        backpatch([p[2].code.LineNo], IG.nextQuad)
+        backpatch([p[2].quad], IG.nextQuad)
         p[0].code = p[1].code + p[2].code + p[3].code
 
 def p_marker_fpdef(p):
     '''marker_fpdef : '''
     p[0] = IG.Node()
+    p[0].quad = IG.nextQuad
     p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
     IG.nextQuad += 1
     ST.currSymTab = ST.SymTab(ST.currSymTab)
@@ -61,7 +61,7 @@ def p_marker_fpdef(p):
 
 def p_const_declarations(p):
     '''const_declarations : KEYWORD_CONST const_statements'''
-    p[0] = p[1]
+    p[0] = p[2]
 
 def p_const_statements(p):
     '''const_statements : const_statements const_statement
@@ -295,7 +295,7 @@ def p_proc_def(p):
     ST.currSymTab = ST.currSymTab.previousTable
     p[0] = IG.Node()
     p[0].code = p[1].code + p[3].code + p[4].code
-    p[0].genCode(IG.TACInstr(IG.TACInstr.RETURN))
+    p[0].genCode(IG.TACInstr(IG.TACInstr.RETURN, lineNo=IG.nextQuad))
     IG.nextQuad += 1
 
 def p_proc_def_head_error(p):
@@ -330,7 +330,8 @@ def p_func_def(p):
     ST.currSymTab = ST.currSymTab.previousTable
     p[0] = IG.Node()
     p[0].code = p[1].code + p[3].code + p[4].code
-    p[0].genCode(IG.TACInstr(IG.TACInstr.RETURN, src1=p[1].place))
+    p[0].genCode(IG.TACInstr(IG.TACInstr.RETURN, src1=p[1].place, lineNo=IG.nextQuad))
+    IG.nextQuad += 1
 
 def p_func_def_head_error(p):
     '''func_def : func_head declarations block SEMICOLON'''
@@ -374,13 +375,14 @@ def p_declarations(p):
                     | declarations var_declarations
                     | empty'''
     p[0] = IG.Node()
-    p[0].code = p[1].code + p[2].code
+    if len(p) == 3:
+        p[0].code = p[1].code + p[2].code
 
 def p_parameter_list(p):
     '''parameter_list : LEFT_PARENTHESIS parameter_declarations RIGHT_PARENTHESIS
                       | LEFT_PARENTHESIS RIGHT_PARENTHESIS'''
     if len(p) == 4:
-        p[0] = p[1]
+        p[0] = p[2]
     elif len(p) == 3:
         p[0] = IG.Node()
 
@@ -573,7 +575,6 @@ def p_assignment_statement(p):
     '''assignment_statement : variable_reference COLON_EQUAL expression'''
     p[0] = IG.Node()
     p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, src1=p[3].place, dest=p[1].place, lineNo=IG.nextQuad))
-    print "TESTING", p[3].place
     IG.nextQuad += 1
 
 def p_assignment_statement_error(p):
@@ -706,7 +707,8 @@ def p_factor(p):
             p[0].trueList = [IG.nextQuad]
             p[0].falseList = [IG.nextQuad+1]
     elif len(p) == 4:
-        p[0] = p[2]
+        p[0].place = p[2].place
+        p[0].type = p[2].type
 
 def p_bool_exp_marker(p):
     '''bool_exp_marker : '''
@@ -721,13 +723,13 @@ def p_function_call(p):
         p[0].place = IG.newTempInt()
         p[0].type = p[0].place.type
         p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.CALLOP,
-                                 dest=p[0].place, lineNo=IG.nextQuad))
+                                 dest=p[0].place, targetLabel=p[1], lineNo=IG.nextQuad))
         IG.nextQuad += 1
     elif len(p) == 5:
         p[0].place = IG.newTempInt()
         p[0].type = p[0].place.type
         p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.CALLOP,
-                                 dest=p[0].place, lineNo=IG.nextQuad, paramList=p[3].items))
+                                 dest=p[0].place, lineNo=IG.nextQuad, paramList=p[3].items, targetLabel=p[1]))
         IG.nextQuad += 1
 
 def p_expression_list(p):
@@ -804,55 +806,62 @@ def p_func_proc_statement(p):
     '''func_proc_statement : IDENTIFIER LEFT_PARENTHESIS expression_list RIGHT_PARENTHESIS
                            | IDENTIFIER LEFT_PARENTHESIS RIGHT_PARENTHESIS'''
     p[0] = IG.Node()
-    if p[1] == 'read' or p[1] == 'readln':
-        if len(p[3].items) == 1:
-            # TODO Type Readln FIXME
-            if p[3].items[0].getDeepestType() == ST.Type.INT:
-                ioFmtString = '%d'
-            elif p[3].items[0].getDeepestType() == ST.Type.STRING:
-                ioFmtString = '%s'
-            elif p[3].items[0].getDeepestType() == ST.Type.CHAR:
-                ioFmtString = '%c'
-            else:
-                # TODO ERROR
-                pass
-                # print_error('Type Not Supported for Read Operation')
-            ioArgList = [IG.Operand(item) for item in p[3].items]
-            p[0].genCode(IG.TACInstr(IG.TACInstr.SCANF, ioArgList=ioArgList,
-                                    ioFmtString=ioFmtString, lineNo=IG.nextQuad))
-            IG.nextQuad += 1
-    elif p[1] == 'write' or p[1] == 'writeln':
-        if len(p[3].items) == 1:
-            # TODO Type Writeln FIXME
-            if not p[3].items[0].type.isConst:
-                if p[3].items[0].type.getDeepestType() == ST.Type.INT:
+    if len(p) == 5:
+        if p[1] == 'read' or p[1] == 'readln':
+            if len(p[3].items) == 1:
+                # TODO Type Readln FIXME
+                if p[3].items[0].getDeepestType() == ST.Type.INT:
                     ioFmtString = '%d'
-                elif p[3].items[0].type.getDeepestType() == ST.Type.STRING:
+                elif p[3].items[0].getDeepestType() == ST.Type.STRING:
                     ioFmtString = '%s'
-                elif p[3].items[0].type.getDeepestType() == ST.Type.CHAR:
+                elif p[3].items[0].getDeepestType() == ST.Type.CHAR:
                     ioFmtString = '%c'
                 else:
                     # TODO ERROR
                     pass
                     # print_error('Type Not Supported for Read Operation')
-            else:
-                if p[3].items[0].type.type == ST.Type.INT:
-                    ioFmtString = '%d'
-                elif p[3].items[0].type.getDeepestType() == ST.Type.STRING:
-                    ioFmtString = '%s'
-                elif p[3].items[0].type.getDeepestType() == ST.Type.CHAR:
-                    ioFmtString = '%c'
+                ioArgList = [IG.Operand(item) for item in p[3].items]
+                p[0].genCode(IG.TACInstr(IG.TACInstr.SCANF, ioArgList=ioArgList,
+                                        ioFmtString=ioFmtString, lineNo=IG.nextQuad))
+                IG.nextQuad += 1
+        elif p[1] == 'write' or p[1] == 'writeln':
+            if len(p[3].items) == 1:
+                # TODO Type Writeln FIXME
+                if type(p[3].items[0]) == ST.SymTabEntry or type(p[3].items[0]) == IG.ArrayElement:
+                    #print p[3].items[0].type.name, p[3].items[0].type.getDeepestType()
+                    if p[3].items[0].type.getDeepestType() == 'integer':
+                        ioFmtString = '%d'
+                    elif p[3].items[0].type.getDeepestType() == 'string':
+                        ioFmtString = '%s'
+                    elif p[3].items[0].type.getDeepestType() == 'char':
+                        ioFmtString = '%c'
+                    else:
+                        # TODO ERROR
+                        pass
+                        # print_error('Type Not Supported for Read Operation')
                 else:
-                    # TODO Error
-                    pass
-            ioArgList = [IG.Operand(item) for item in p[3].items]
-            p[0].genCode(IG.TACInstr(IG.TACInstr.PRINTF, ioArgList=ioArgList,
-                                    ioFmtString=ioFmtString, lineNo=IG.nextQuad))
-            IG.nextQuad += 1
+                    if type(p[3].items[0]) == int:
+                        ioFmtString = '%d'
+                    elif type(p[3].items[0]) == str and len(p[3].items[0]) == 1:
+                        ioFmtString = '%c'
+                    elif type(p[3].items[0]) == str:
+                        ioFmtString = '%s'
+                        # TODO Error
+                        pass
+                ioArgList = [IG.Operand(item) for item in p[3].items]
+                p[0].genCode(IG.TACInstr(IG.TACInstr.PRINTF, ioArgList=ioArgList,
+                                        ioFmtString=ioFmtString, lineNo=IG.nextQuad))
+                IG.nextQuad += 1
+        else:
+            STEntry = ST.lookup(p[1])
+            if STEntry and (STEntry.isFunction() or STEntry.isProcedure()):
+                p[0].genCode(IG.TACInstr(IG.TACInstr.CALL, paramList=p[3].items, lineNo=IG.nextQuad, targetLabel=p[1]))
+                IG.nextQuad += 1
+
     else:
         STEntry = ST.lookup(p[1])
         if STEntry and (STEntry.isFunction() or STEntry.isProcedure()):
-            p[0].genCode(IG.TACInstr(IG.TACInstr.CALL, paramList=p[3].items, lineNo=IG.nextQuad))
+            p[0].genCode(IG.TACInstr(IG.TACInstr.CALL, paramList=[], lineNo=IG.nextQuad, targetLabel=p[1]))
             IG.nextQuad += 1
         else:
             # TODO Type Checking Error
