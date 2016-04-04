@@ -610,13 +610,15 @@ def p_simple_expression(p):
 
     elif len(p) == 4:
         if p[1].type == p[3].type:
-            if p[1].place.isInt():
-                p[0].place = newTempInt()
-                p[0].type = p[0].place.type
-                p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.OpMap[p[2]], src1=p[1].place,
-                                         src2=p[3].place, dest=p[0].place, lineNo=nextQuad))
-                nextQuad += 1
-        # TODO Generate Code for other types
+            p[0].place = newTempInt()
+            p[0].type = p[0].place.type
+            p[0].code = p[1].code + p[3].code
+            p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.OpMap[p[2]], src1=p[1].place,
+                                     src2=p[3].place, dest=p[0].place, lineNo=nextQuad))
+            nextQuad += 1
+            # TODO Generate Code for other types
+        else:
+            # TODO Type checking error
 
     elif len(p) == 2:
         p[0] = p[1]
@@ -630,18 +632,32 @@ def p_term(p):
             | term OP_SHIFTLEFT factor
             | term OP_SHIFTRIGHT factor
             | factor'''
-    # p[0] = Rule('term', get_production(p))
+
     p[0] = IG.Node()
     if len(p) == 5:
         backpatch(p[1].trueList, p[3].quad)
         p[0].trueList = p[4].trueList
         p[0].falseList = p[1].falseList + p[4].falseList
-    elif len(p) == 4:
-        # TODO Generate code
-        pass
-    elif len(p) == 3:
-        p[0] = p[1]
+        p[0].place = IG.newTempBool()
+        p[0].type = p[0].place.type
+        p[0].code = p[1].code + p[4].code
+        p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.LOGICAND, src1=p[1].place, src2=p[4].place,
+                                 dest=p[0].place, lineNo=nextQuad))
+        nextQuad += 1
 
+    elif len(p) == 4:
+        if p[1].type == p[3].type:
+            p[0].place = newTempInt()
+            p[0].type = p[0].place.type
+            p[0].code = p[1].code + p[3].code
+            p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.OpMap[p[2]], src1=p[1].place,
+                                     src2=p[3].place, dest=p[0].place, lineNo=nextQuad))
+            nextQuad += 1
+            # TODO Generate code for other types
+        else:
+            # TODO Type checking error
+    elif len(p) == 2:
+        p[0] = p[1]
 
 def p_factor(p):
     '''factor : LEFT_PARENTHESIS expression RIGHT_PARENTHESIS
@@ -651,13 +667,27 @@ def p_factor(p):
               | function_call
               | variable_reference
               | unsigned_constant'''
-    # p[0] = Rule('factor', get_production(p))
     p[0] = IG.Node()
     if len(p) == 3:
         # TODO Generate Code
         if p[1] == 'not':
             p[0].trueList = p[2].falseList
             p[0].falseList = p[2].trueList
+            p[0].place = IG.newTempBool()
+            p[0].type = p[0].place.type
+            p[0].code = p[2].code
+            p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.LOGICNOT, src1=p[2].place,
+                                     dest=p[0].place, lineNo=nextQuad))
+            nextQuad += 1
+        else:
+            p[0].place = newTempInt()
+            p[0].type = p[0].place.type
+            p[0].code = p[2].code
+            p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.OpMap[p[1]], src1=p[1].place,
+                                     dest=p[0].place, lineNo=nextQuad))
+            nextQuad += 1
+            # TODO generate code for other types
+
     elif len(p) == 2:
         p[0].code = p[1].code
         if p[1].value == 'true':
@@ -704,7 +734,7 @@ def p_array_index_cstyle(p):
 def p_sign(p):
     '''sign : OP_PLUS
             | OP_MINUS'''
-    p[0] = Rule('sign', get_production(p))
+    p[0] = p[1]
 
 def p_unsigned_constant(p):
     '''unsigned_constant : CONSTANT_INTEGER
@@ -715,7 +745,7 @@ def p_unsigned_constant(p):
                          | CONSTANT_BOOLEAN_TRUE
                          | CONSTANT_BOOLEAN_FALSE
                          | string'''
-    p[0] = Rule('unsigned_constant', get_production(p))
+    #p[0] = Rule('unsigned_constant', get_production(p))
 
 def p_relational_operator(p):
     '''relational_operator : OP_NEQ
@@ -795,70 +825,6 @@ def p_error(p):
         print_error("Syntax error at line", p.lineno)
     else:
         print_error("Syntax error at end of file")
-
-def get_production(p):
-    production = []
-    for i in xrange(1, len(p)):
-        production.append(p[i])
-    return production
-
-def print_derivation(form):
-    nonterm_to_reduce = None
-    for item in reversed(form):
-        if type(item) is Rule:
-            nonterm_to_reduce = item
-            nonterm_index = form.index(item)
-            break
-
-    if not nonterm_to_reduce:
-        return
-
-    left_list = form[:nonterm_index]
-    right_list = form[nonterm_index+1:]
-
-    derived_form = left_list + nonterm_to_reduce.production + right_list
-
-    # Print the LHS of the derivation
-    print '<span style="color:blue">',
-    for item in form:
-        if type(item) is Rule:
-            if item == nonterm_to_reduce:
-                print '<b>', item.name, '</b>',
-            else:
-                print item.name,
-        else:
-            print item,
-    print '</span>',
-    print '<b>==></b>',
-
-    # Print the RHS of the derivation
-    for item in left_list:
-        if type(item) is Rule:
-            print item.name,
-        else:
-            print item,
-    print '<b>'
-    for item in nonterm_to_reduce.production:
-        if type(item) is Rule:
-            print item.name,
-        else:
-            print item,
-    print '</b>'
-    for item in right_list:
-        if type(item) is Rule:
-            print item.name,
-        else:
-            print item,
-    print '<br><br>'
-
-    print_derivation(derived_form)
-
-def generate_html(start):
-    print '<html>'
-    print '<body>'
-    print_derivation([start])
-    print '</body>'
-    print '</html>'
 
 def print_error(string, *args):
     if args:
