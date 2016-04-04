@@ -202,3 +202,76 @@ class TACInstr(object):
             if arg and arg.isVar():
                 varSet.update([arg.operand.name])
         return varSet
+
+def getLexeme(obj): #for getting lexeme from Operand object or constant
+    if isinstance(obj, TACInstr.Operand):
+        if obj.isArrayElement():
+            arrayName = obj.operand.array.name
+            if isinstance(obj.operand.index, ST.SymTabEntry):
+                return obj.operand.index.name
+            elif type(obj.operand.index) is int:
+                return str(obj.operand.index)
+            else:
+                return obj.operand.index
+        else:
+            return str(obj.operand)
+    else:
+        return str(obj)
+
+def getName(obj):   #for getting lexeme from SymTabEntry or constant
+    if isinstance(obj, ST.SymTabEntry):
+        return obj.name
+    else:
+        return str(obj)
+
+def generateIr(irList):
+    if len(irList) > 0:
+        text = ''
+        ir = irList[0]
+        text += str(ir.LineNo) + ", "
+        rev_InstrMap = {v:k for k, v in TACInstr.InstrMap.items()}
+        rev_OpMap = {v:k for k, v in TACInstr.OpMap.items()}
+        if ir.isIfGoto():
+            text += "ifgoto, " + rev_OpMap[ir.Op] + ", " + getLexeme(ir.Src1.operand) + ", " + getLexeme(ir.Src2.operand) + ", " + str(ir.Target)
+        elif ir.isGoTo():
+            text += "goto, " + str(ir.Target)
+        elif ir.isCall():
+            text += "call, " + ir.TargetLabel
+            if ir.ParamList:
+                args = [getName(arg.operand) for arg in ir.ParamList]
+                text += ", " + ", ".join(args)
+        elif ir.isReturn():
+            text += "ret"
+            if ir.Src1:
+                text += ", " + getLexeme(ir.Src1.operand)
+        elif ir.isLabel():
+            text += "label, " + ir.Label
+            if ir.ParamList:
+                args = [getName(arg.operand) for arg in ir.ParamList]
+                text += ", " + ", ".join(args)
+        elif ir.isPrintf():
+            text += "printf, " + ir.IOFmtString
+            args = [getLexeme(arg.operand) for arg in ir.IOArgList]
+            text += ", " + ", ".join(args)
+        elif ir.isScanf():
+            text += "scanf, " + ir.IOFmtString
+            args = [getLexeme(arg.operand) for arg in ir.IOArgList]
+            text += ", " + ", ".join(args)
+        elif ir.isNop:
+            text += "nop"
+        elif ir.isAssign():
+            text += "=, "
+            if not ir.Op:   #basic assignment
+                text += getLexeme(ir.Dest) + ", " + getLexeme(ir.Src1)
+            elif ir.Op is TACInstr.CALLOP:  #assignment with call
+                text += "call, " + ir.Label
+                if ir.Paramlist:
+                    args = [getName(arg.operand) for arg in ir.ParamList]
+                    text += ", ".join(args)
+            elif ir.Src2: #binary operator
+                text += rev_OpMap[ir.Op]  + ", "+ getLexeme(ir.Dest) + ", " + getLexeme(ir.Src1) + ", " + getLexeme(ir.Src2)
+            else:   #unary operators except call
+                text += rev_OpMap[ir.Op] + ", " + getLexeme(ir.Dest) + ", " + getLexeme(ir.Src1)
+        return text + "\n" + generateIr(irList[1:])
+    else:
+        return ""
