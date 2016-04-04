@@ -4,7 +4,7 @@
 class Type(object):
     def __init__(self, name, type, baseType = None, arrayBeginList = [],
                  arrayEndList = [], arrayBaseType = None, strLen = None,
-                 returnType = None, numParams=None):
+                 returnType = None, numParams=None, isConstant=False):
         self.name = name
         self.type = type            # From the enumeration
         self.baseType = baseType    # For custom defined types
@@ -14,8 +14,12 @@ class Type(object):
         self.strLen = strLen
         self.returnType = returnType  # Type object: If this is a function, return type of function.
         self.numParams = numParams
+        self.isConstant = isConstant
+
 
     def __eq__(self, other):
+        if self.isConstant and not other.isConstant:
+            return self.type == other.baseType
         return self.name == other.name
 
     # Enumeration for types
@@ -25,6 +29,12 @@ class Type(object):
     # TODO: Is this redundant...
     def isBuiltin(self):
         return self.baseType == None
+
+    def getDeepestType(self):
+        if self.baseType is None:
+            return self.type
+        else:
+            return self.baseType.getDeepestType()
 
 # Class to implement a symbol table entry.
 class SymTabEntry(object):

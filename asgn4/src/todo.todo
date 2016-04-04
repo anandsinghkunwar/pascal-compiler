@@ -1,5 +1,5 @@
 # TODO
-Complete code generation - loop, if else etc.
+Complete code generation - loop etc.
 Test files - Added old ones
 Add new instructions declare, param instructions, string/array operations
 Pointer Dereference
