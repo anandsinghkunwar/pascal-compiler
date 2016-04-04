@@ -4,7 +4,7 @@
 class Type(object):
     def __init__(self, name, type, baseType = None, arrayBeginList = [],
                  arrayEndList = [], arrayBaseType = None, strLen = None,
-                 returnType = None, numParams=None, isConstant=False):
+                 returnType = None, numParams=None, isConst=False):
         self.name = name
         self.type = type            # From the enumeration
         self.baseType = baseType    # For custom defined types
@@ -14,11 +14,13 @@ class Type(object):
         self.strLen = strLen
         self.returnType = returnType  # Type object: If this is a function, return type of function.
         self.numParams = numParams
-        self.isConstant = isConstant
+        self.isConst = isConst
 
 
     def __eq__(self, other):
-        if self.isConstant and not other.isConstant:
+        if other is None:
+            return False
+        if self.isConst and not other.isConst:
             return self.type == other.baseType
         return self.name == other.name
 
@@ -125,8 +127,8 @@ def lookup(identifier):
     tempSymTab = currSymTab
 
     while tempSymTab != None:
-        if identifier in tempSymTab.keys():
-            return tempSymTab[identifier]   # Found identifier
+        if identifier in tempSymTab.entries.keys():
+            return tempSymTab.entries[identifier]   # Found identifier
         tempSymTab = tempSymTab.previousTable
     return None
     # Identifier not found

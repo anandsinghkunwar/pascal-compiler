@@ -4,6 +4,7 @@ import symbol_table as ST
 # Global Variables
 InstrList = [None]
 tempCount = 0
+nextQuad = 1
 
 # Dummy class to enable parser to use attributes
 class Node(object):
@@ -44,27 +45,32 @@ class ArrayElement(object):
 
 # Function to generate temporary variables
 def newTempInt():
-    tempVar = ST.currSymTab.addVar('.t'+tempCount, ST.Type('integer', ST.Type.INT), isTemp=True)
+    global tempCount
+    tempVar = ST.currSymTab.addVar('.t'+str(tempCount), ST.Type('integer', ST.Type.INT), isTemp=True)
     tempCount += 1
     return tempVar
 
 def newTempBool():
-    tempVar = ST.currSymTab.addVar('.t'+tempCount, ST.Type('boolean', ST.Type.BOOL), isTemp=True)
+    global tempCount
+    tempVar = ST.currSymTab.addVar('.t'+str(tempCount), ST.Type('boolean', ST.Type.BOOL), isTemp=True)
     tempCount += 1
     return tempVar
 
 def newTempChar():
-    tempVar = ST.currSymTab.addVar('.t'+tempCount, ST.Type('char', ST.Type.CHAR), isTemp=True)
+    global tempCount
+    tempVar = ST.currSymTab.addVar('.t'+str(tempCount), ST.Type('char', ST.Type.CHAR), isTemp=True)
     tempCount += 1
     return tempVar
 
 def newTempString():
-    tempVar = ST.currSymTab.addVar('.t'+tempCount, ST.Type('string', ST.Type.STRING), isTemp=True)
+    global tempCount
+    tempVar = ST.currSymTab.addVar('.t'+str(tempCount), ST.Type('string', ST.Type.STRING), isTemp=True)
     tempCount += 1
     return tempVar
 
 def newTempArray():
-    tempVar = ST.currSymTab.addVar('.t'+tempCount, ST.Type('array', ST.Type.ARRAY), isTemp=True)
+    global tempCount
+    tempVar = ST.currSymTab.addVar('.t'+str(tempCount), ST.Type('array', ST.Type.ARRAY), isTemp=True)
     tempCount += 1
     return tempVar
 
@@ -89,7 +95,10 @@ class Operand(object):
             self.operandType = Operand.INT
         elif type(varObj) is str:
             self.operand = varObj
-            self.operandType = Operand.STRING
+            if varObj == 'true' or varObj == 'false':
+                self.operandType = Operand.BOOL
+            else:
+                self.operandType = Operand.STRING
         elif type(varObj) is bool:
             self.operand = varObj
             self.operandType = Operand.BOOL
@@ -128,7 +137,7 @@ class TACInstr(object):
         #self.SymTable = None
         self.Label = label
         self.TargetLabel = targetLabel
-        self.LineNo = lineno
+        self.LineNo = lineNo
         self.IOFmtString = ioFmtString
         self.IOFmtStringAddr = None
         self.IOArgList = ioArgList
@@ -155,7 +164,8 @@ class TACInstr(object):
                 "shl"   : SHL,          "shr"   : SHR,      "|"     : OR,
                 "&"     : AND,          "^"     : XOR,      "~"     : NOT,
                 "not"   : LOGICNOT,     "or"    : LOGICOR,  "mod"   : MOD,
-                "xor"   : LOGICXOR,     "=="    : EQ,       "call"  : CALLOP
+                "xor"   : LOGICXOR,     "=="    : EQ,       "call"  : CALLOP,
+                "="     : EQ
             }
 
     # Types of instructions
@@ -206,7 +216,7 @@ class TACInstr(object):
         return varSet
 
 def getLexeme(obj): #for getting lexeme from Operand object or constant
-    if isinstance(obj, TACInstr.Operand):
+    if isinstance(obj, Operand):
         if obj.isArrayElement():
             arrayName = obj.operand.array.name
             if isinstance(obj.operand.index, ST.SymTabEntry):
@@ -235,7 +245,7 @@ def generateIr(irList):
         rev_OpMap = {v:k for k, v in TACInstr.OpMap.items()}
         if ir.isIfGoto():
             text += "ifgoto, " + rev_OpMap[ir.Op] + ", " + getLexeme(ir.Src1.operand) + ", " + getLexeme(ir.Src2.operand) + ", " + str(ir.Target)
-        elif ir.isGoTo():
+        elif ir.isGoto():
             text += "goto, " + str(ir.Target)
         elif ir.isCall():
             text += "call, " + ir.TargetLabel
@@ -259,7 +269,7 @@ def generateIr(irList):
             text += "scanf, " + ir.IOFmtString
             args = [getLexeme(arg.operand) for arg in ir.IOArgList]
             text += ", " + ", ".join(args)
-        elif ir.isNop:
+        elif ir.isNop():
             text += "nop"
         elif ir.isAssign():
             text += "=, "
