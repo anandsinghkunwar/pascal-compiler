@@ -28,10 +28,42 @@ class ArrayElement(object):
     def __init__(self, array, index):
         self.array = array
         self.index = index
+        self.type = array.type.arrayBaseType
+
+    def isInt(self):
+        return self.type.type == ST.Type.INT
+    def isBool(self):
+        return self.type.type == ST.Type.BOOL
+    def isChar(self):
+        return self.type.type == ST.Type.CHAR
+    def isString(self):
+        return self.type.type == ST.Type.STRING
+    def isArray(self):
+        return self.type.type == ST.Type.ARRAY
 
 # Function to generate temporary variables
-def newTemp(type):
-    tempVar = ST.currSymTab.addVar('.t'+tempCount, type, isTemp=True)
+def newTempInt():
+    tempVar = ST.currSymTab.addVar('.t'+tempCount, ST.Type('integer', ST.Type.INT), isTemp=True)
+    tempCount += 1
+    return tempVar
+
+def newTempBool():
+    tempVar = ST.currSymTab.addVar('.t'+tempCount, ST.Type('boolean', ST.Type.BOOL), isTemp=True)
+    tempCount += 1
+    return tempVar
+
+def newTempChar():
+    tempVar = ST.currSymTab.addVar('.t'+tempCount, ST.Type('char', ST.Type.CHAR), isTemp=True)
+    tempCount += 1
+    return tempVar
+
+def newTempString():
+    tempVar = ST.currSymTab.addVar('.t'+tempCount, ST.Type('string', ST.Type.STRING), isTemp=True)
+    tempCount += 1
+    return tempVar
+
+def newTempArray():
+    tempVar = ST.currSymTab.addVar('.t'+tempCount, ST.Type('array', ST.Type.ARRAY), isTemp=True)
     tempCount += 1
     return tempVar
 
@@ -111,12 +143,14 @@ class TACInstr(object):
 
     # Operation map
     OpMap = {
-                "+"     : ADD,      "-"     : SUB,      "*"     : MULT,
-                "/"     : DIV,      ">"     : GT,       "<"     : LT,
-                ">="    : GEQ,      "<="    : LEQ,      "<>"    : NEQ,
-                "<<"    : SHL,      ">>"    : SHR,      "and"   : AND,
-                "not"   : NOT,      "or"    : OR,       "mod"   : MOD,
-                "xor"   : XOR,      "=="    : EQ,       "call"  : CALLOP
+                "+"     : ADD,          "-"     : SUB,      "*"     : MULT,
+                "/"     : DIV,          ">"     : GT,       "<"     : LT,
+                ">="    : GEQ,          "<="    : LEQ,      "<>"    : NEQ,
+                "<<"    : SHL,          ">>"    : SHR,      "and"   : LOGICAND,
+                "shl"   : SHL,          "shr"   : SHR,      "|"     : OR,
+                "&"     : AND,          "^"     : XOR,      "~"     : NOT,
+                "not"   : LOGICNOT,     "or"    : LOGICOR,  "mod"   : MOD,
+                "xor"   : LOGICXOR,     "=="    : EQ,       "call"  : CALLOP
             }
 
     # Types of instructions

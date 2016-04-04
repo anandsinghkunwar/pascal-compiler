@@ -582,9 +582,11 @@ def p_expression(p):
         p[0] = p[1]
     elif len(p) == 4:
         p[0].code = p[1].code + p[3].code
-        p[0].place = IG.newTemp()
-        p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN
-    # TODO generate code
+        p[0].place = IG.newTempBool()
+        p[0].type = p[0].place.type
+        p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.OpMap[p[2]], src1=p[1].place,
+                                 src2=p[3].place, dest=p[0].place, lineNo=nextQuad))
+        nextQuad += 1
 
 def p_simple_expression(p):
     '''simple_expression : simple_expression OP_PLUS term
@@ -594,15 +596,28 @@ def p_simple_expression(p):
                          | simple_expression OP_BIT_OR term
                          | simple_expression OP_BIT_XOR term
                          | term'''
-    # p[0] = Rule('simple_expression', get_production(p))
     p[0] = IG.Node()
     if len(p) == 5:
         backpatch(p[1].falseList, p[3].quad)
         p[0].trueList = p[1].trueList + p[4].trueList
         p[0].falseList = p[4].falseList
+        p[0].place = IG.newTempBool()
+        p[0].type = p[0].place.type
+        p[0].code = p[1].code + p[4].code
+        p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.LOGICOR, src1=p[1].place, src2=p[4].place,
+                                 dest=p[0].place, lineNo=nextQuad))
+        nextQuad += 1
+
     elif len(p) == 4:
-        # TODO Generate Code and push up
-        pass
+        if p[1].type == p[3].type:
+            if p[1].place.isInt():
+                p[0].place = newTempInt()
+                p[0].type = p[0].place.type
+                p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.OpMap[p[2]], src1=p[1].place,
+                                         src2=p[3].place, dest=p[0].place, lineNo=nextQuad))
+                nextQuad += 1
+        # TODO Generate Code for other types
+
     elif len(p) == 2:
         p[0] = p[1]
 
