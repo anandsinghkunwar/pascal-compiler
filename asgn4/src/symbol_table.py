@@ -15,6 +15,9 @@ class Type(object):
         self.returnType = returnType  # Type object: If this is a function, return type of function.
         self.numParams = numParams
 
+    def __eq__(self, other):
+        return self.name == other.name
+
     # Enumeration for types
     # TODO: Pointers
     INT, BOOL, CHAR, STRING, ARRAY, FUNCTION, PROCEDURE, KEYWORD, TYPE, PROGRAM = range(10)
