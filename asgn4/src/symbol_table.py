@@ -128,6 +128,6 @@ def lookup(identifier):
         if identifier in tempSymTab.keys():
             return tempSymTab[identifier]   # Found identifier
         tempSymTab = tempSymTab.previousTable
-
+    return None
     # Identifier not found
     # TODO Throw Error

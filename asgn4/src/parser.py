@@ -91,15 +91,11 @@ def p_string(p):
     '''string : CONSTANT_STRING_LEADSPACE substring
               | CONSTANT_STRING_LEADSPACE
               | substring'''
-    p[0] = IG.Node()
 
     if len(p) == 3:
-        p[0].value = p[1] + p[2].value
+        p[0] = p[1] + p[2]
     elif len(p) == 2:
-        if type(p[1]) == IG.Node:
-            p[0].value = p[1].value
-        else:
-            p[0].value = p[1]
+        p[0] = p[1]
 
 def p_substring(p):
     '''substring : CONSTANT_STRING substring
@@ -110,14 +106,14 @@ def p_substring(p):
 
     if len(p) == 3:
         if type(p[1]) == str:
-            p[0].value = p[1] + p[2].value
+            p[0] = p[1] + p[2]
         else:
-            p[0].value = chr(p[1]) + p[2].value
+            p[0] = chr(p[1]) + p[2]
     elif len(p) == 2:
         if type(p[1]) == str:
-            p[0].value = p[1]
+            p[0] = p[1]
         else:
-            p[0].value = chr(p[1])
+            p[0] = chr(p[1])
 
 def p_type_declarations(p):
     '''type_declarations : KEYWORD_TYPE type_statements'''
@@ -610,7 +606,7 @@ def p_simple_expression(p):
 
     elif len(p) == 4:
         if p[1].type == p[3].type:
-            p[0].place = newTempInt()
+            p[0].place = IG.newTempInt()
             p[0].type = p[0].place.type
             p[0].code = p[1].code + p[3].code
             p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.OpMap[p[2]], src1=p[1].place,
@@ -647,7 +643,7 @@ def p_term(p):
 
     elif len(p) == 4:
         if p[1].type == p[3].type:
-            p[0].place = newTempInt()
+            p[0].place = IG.newTempInt()
             p[0].type = p[0].place.type
             p[0].code = p[1].code + p[3].code
             p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.OpMap[p[2]], src1=p[1].place,
@@ -680,7 +676,7 @@ def p_factor(p):
                                      dest=p[0].place, lineNo=nextQuad))
             nextQuad += 1
         else:
-            p[0].place = newTempInt()
+            p[0].place = IG.newTempInt()
             p[0].type = p[0].place.type
             p[0].code = p[2].code
             p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.OpMap[p[1]], src1=p[1].place,
@@ -690,11 +686,11 @@ def p_factor(p):
 
     elif len(p) == 2:
         p[0].code = p[1].code
-        if p[1].value == 'true':
+        if p[1].place == 'true':
             p[0].trueList = [nextQuad]
-        elif p[1].value == 'false':
+        elif p[1].place == 'false':
             p[0].falseList = [nextQuad]
-        else:
+        elif type(p[1].place) == ST.SymTabEntry and p[1].place.isBool():
             p[0].trueList = [nextQuad]
             p[0].falseList = [nextQuad+1]
     elif len(p) == 4:
@@ -708,18 +704,42 @@ def p_bool_exp_marker(p):
 def p_function_call(p):
     '''function_call : IDENTIFIER LEFT_PARENTHESIS expression_list RIGHT_PARENTHESIS
                      | IDENTIFIER LEFT_PARENTHESIS RIGHT_PARENTHESIS'''
-    p[0] = Rule('function_call', get_production(p))
+    p[0] = IG.Node()
+    if len(p) == 4:
+        p[0].place = IG.newTempInt()
+        p[0].type = p[0].place.type
+        p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.CALLOP,
+                                 dest=p[0].place, lineNo=nextQuad))
+        nextQuad += 1
+    elif len(p) == 5:
+        p[0].place = IG.newTempInt()
+        p[0].type = p[0].place.type
+        p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.CALLOP,
+                                 dest=p[0].place, lineNo=nextQuad, paramList=p[3].items))
+        nextQuad += 1
 
 def p_expression_list(p):
     '''expression_list : expression_list COMMA expression
                        | expression'''
-    p[0] = Rule('expression_list', get_production(p))
+    p[0] = IG.Node()
+    if len(p) == 4:
+        p[0].items = p[1].items + [p[3].place]
+    else:
+        p[0].items = [p[1].place]
 
 def p_variable_reference(p):
     '''variable_reference : IDENTIFIER
                           | IDENTIFIER LEFT_SQUARE_BRACKETS array_index RIGHT_SQUARE_BRACKETS
                           | IDENTIFIER array_index_cstyle'''
-    p[0] = Rule('variable_reference', get_production(p))
+
+    p[0] = IG.Node()
+    STEntry = ST.lookup(p[1])
+    if STEntry:
+        if len(p) == 2:
+            p[0].place = STEntry
+            p[0].type = STEntry.type
+        elif len(p) == 3:
+            p[0].place = IG.ArrayElement(STEntry, p[2].place)
 
 def p_array_index(p):
     '''array_index : array_index COMMA expression
@@ -729,7 +749,13 @@ def p_array_index(p):
 def p_array_index_cstyle(p):
     '''array_index_cstyle : array_index_cstyle LEFT_SQUARE_BRACKETS expression RIGHT_SQUARE_BRACKETS
                    | LEFT_SQUARE_BRACKETS expression RIGHT_SQUARE_BRACKETS'''
-    p[0] = Rule('array_index_cstyle', get_production(p))
+    # p[0] = Rule('array_index_cstyle', get_production(p))
+    p[0] = IG.Node()
+    if len(p) == 4:
+        p[0] = p[2]
+    else:
+        # TODO Handle Multi Dimensional
+        pass
 
 def p_sign(p):
     '''sign : OP_PLUS
@@ -745,7 +771,15 @@ def p_unsigned_constant(p):
                          | CONSTANT_BOOLEAN_TRUE
                          | CONSTANT_BOOLEAN_FALSE
                          | string'''
-    #p[0] = Rule('unsigned_constant', get_production(p))
+    p[0] = IG.Node()
+    p[0].place = p[1]
+    if type(p[1]) == int:
+        p[0].type = ST.Type('integer', ST.Type.INT)
+    elif type(p[1]) == str:
+        if p[1] == 'true' or p[1] == 'false':
+            p[0].type = ST.Type('boolean', ST.Type.BOOL)
+        else:   # TODO Nil is string FIXME
+            p[0].type = ST.Type('string', ST.Type.STRING)
 
 def p_relational_operator(p):
     '''relational_operator : OP_NEQ
@@ -754,7 +788,7 @@ def p_relational_operator(p):
                            | OP_GEQ
                            | OP_LEQ
                            | EQUAL'''
-    p[0] = Rule('relational_operator', get_production(p))
+    p[0] = p[1]
 
 def p_func_proc_statement(p):
     '''func_proc_statement : IDENTIFIER LEFT_PARENTHESIS expression_list RIGHT_PARENTHESIS
@@ -805,19 +839,26 @@ def p_func_proc_statement(p):
             p[0].genCode(IG.TACInstr(IG.TACInstr.PRINTF, ioArgList=p[3].items,
                                     ioFmtString=ioFmtString, lineNo=nextQuad))
             nextQuad += 1
+    else:
+        STEntry = ST.lookup(p[1])
+        if STEntry and (STEntry.isFunction() or STEntry.isProcedure()):
+            p[0].genCode(IG.TACInstr(IG.TACInstr.CALL, paramList=p[3].items, lineNo=nextQuad))
+            nextQuad += 1
+        else:
+            # TODO Type Checking Error
+            pass
 
 def p_structured_statement(p):
     '''structured_statement : block
                             | repeat_statement'''
-    p[0] = Rule('structured_statement', get_production(p))
+    p[0] = p[1]
 
 def p_repeat_statement(p):
     '''repeat_statement : KEYWORD_REPEAT statements KEYWORD_UNTIL expression'''
-    p[0] = Rule('repeat_statement', get_production(p))
+
 
 def p_empty(p):
     'empty :'
-    p[0] = Rule('empty', get_production(p))
 
 # Error rule for syntax errors
 def p_error(p):
