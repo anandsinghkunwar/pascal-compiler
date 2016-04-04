@@ -20,6 +20,8 @@ def p_start(p):
     'start : program_statement global_decs_defs block DOT'
     p[0] = IG.Node()
     p[0].code = p[2].code + p[3].code
+    p[0].genCode(IG.TACInstr(IG.TACInstr.RETURN, lineNo=nextQuad))
+    nextQuad += 1
 
 def p_program_statement(p):
     '''program_statement : KEYWORD_PROGRAM IDENTIFIER SEMICOLON
@@ -51,7 +53,8 @@ def p_global_decs_defs(p):
         backpatch([p[2].code.LineNo], nextQuad)
         p[0].code = p[1].code + p[2].code + p[3].code
 
-def marker_fpdef:
+def p_marker_fpdef(p):
+    '''marker_fpdef : '''
     p[0] = IG.Node()
     p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=nextQuad))
     nextQuad += 1
@@ -462,7 +465,8 @@ def p_statement(p):
 def p_matched_statement(p):
     '''matched_statement : simple_statement
                          | structured_statement
-                         | KEYWORD_IF expression KEYWORD_THEN matched_statement KEYWORD_ELSE matched_statement
+                         | KEYWORD_IF expression KEYWORD_THEN marker_if matched_statement \
+                           marker_if_end KEYWORD_ELSE marker_else matched_statement
                          | loop_header matched_statement
                          | KEYWORD_BREAK
                          | KEYWORD_CONTINUE
@@ -475,26 +479,51 @@ def p_matched_statement(p):
             pass
             # TODO: Handle empty production
             # TODO: Generate code for break and continue
-    elif len(p) == 7:
-        pass
-        # TODO Generate code
+    elif len(p) == 10:
+        p[0].code = p[2].code + p[4].code + p[5].code + p[6].code + p[9].code
+        backpatch([p[4].quad], p[7].quad)
+        backpatch([p[6].quad], nextQuad)
+
     elif len(p) == 3:
         p[0].code = p[1].code + p[2].code
 
 def p_unmatched_statement(p):
-    '''unmatched_statement : KEYWORD_IF expression KEYWORD_THEN statement
-                           | KEYWORD_IF expression KEYWORD_THEN matched_statement KEYWORD_ELSE unmatched_statement
+    '''unmatched_statement : KEYWORD_IF expression KEYWORD_THEN marker_if statement
+                           | KEYWORD_IF expression KEYWORD_THEN marker_if matched_statement \
+                             marker_if_end KEYWORD_ELSE marker_else unmatched_statement
                            | loop_header unmatched_statement'''
     #p[0] = Rule('unmatched_statement', get_production(p))
     p[0] = IG.Node()
-    if len(p) == 5:
-        pass
-        # TODO generate if else code
-    elif len(p) == 7:
-        pass
-        # TODO generate if else code
+    if len(p) == 6:
+        p[0].code = p[2].code + p[4].code + p[5].code
+        backpatch([p[4].quad], nextQuad)
+
+    elif len(p) == 10:
+        p[0].code = p[2].code + p[4].code + p[5].code + p[6].code + p[9].code
+        backpatch([p[4].quad], p[7].quad)
+        backpatch([p[6].quad], nextQuad)
+
     elif len(p) == 3:
         p[0].code = p[1].code + p[2].code
+
+def p_marker_if(p):
+    '''marker_if : '''
+    p[0] = IG.Node()
+    p[0].genCode(IG.TACInstr(IG.TACInstr.IFGOTO, src1=p[-2].place, src2=False, op=IG.TACInstr.EQ, lineNo=nextQuad))
+    p[0].quad = nextQuad
+    nextQuad += 1
+
+def p_marker_if_end(p):
+    '''marker_if_end : '''
+    p[0].IG.Node()
+    p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=nextQuad))
+    p[0].quad = nextQuad
+    nextQuad += 1
+
+def p_marker_else(p):
+    '''marker_else : '''
+    p[0] = IG.Node()
+    p[0].quad = nextQuad
 
 def p_loop_header(p):
     '''loop_header : for_loop_header
@@ -533,27 +562,28 @@ def p_while_loop_header(p):
 def p_simple_statement(p):
     '''simple_statement : assignment_statement
                         | func_proc_statement'''
-    # p[0] = Rule('simple_statement', get_production(p))
     p[0] = p[1]
 
 def p_assignment_statement(p):
     '''assignment_statement : variable_reference COLON_EQUAL expression'''
-    # p[0] = Rule('assignment_statement', get_production(p))
     p[0] = IG.Node()
-    # TODO generate code
+    p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, src1=p[3].place, dest=p[1].place, lineNo=nextQuad))
+    nextQuad += 1
 
 def p_assignment_statement_error(p):
     '''assignment_statement : variable_reference error expression'''
-    p[0] = Rule('assignment_statement', get_production(p))
     print_error("\tIllegal Expression")
 
 def p_expression(p):
     '''expression : simple_expression relational_operator simple_expression
                   | simple_expression'''
-    # p[0] = Rule('expression', get_production(p))
     p[0] = IG.Node()
     if len(p) == 2:
         p[0] = p[1]
+    elif len(p) == 4:
+        p[0].code = p[1].code + p[3].code
+        p[0].place = IG.newTemp()
+        p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN
     # TODO generate code
 
 def p_simple_expression(p):

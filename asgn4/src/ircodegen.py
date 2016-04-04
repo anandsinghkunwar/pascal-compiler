@@ -3,6 +3,7 @@ import symbol_table as ST
 
 # Global Variables
 InstrList = [None]
+tempCount = 0
 
 # Dummy class to enable parser to use attributes
 class Node(object):
@@ -21,6 +22,18 @@ class Node(object):
     def genCode(self, instr):
         self.code.append(instr)
         InstrList.append(instr)
+
+# Class to support array dereferences in IR
+class ArrayElement(object):
+    def __init__(self, array, index):
+        self.array = array
+        self.index = index
+
+# Function to generate temporary variables
+def newTemp(type):
+    tempVar = ST.currSymTab.addVar('.t'+tempCount, type, isTemp=True)
+    tempCount += 1
+    return tempVar
 
 # Class to handle instruction operands
 class Operand(object):
@@ -47,9 +60,9 @@ class Operand(object):
         elif type(varObj) is bool:
             self.operand = varObj
             self.operandType = Operand.BOOL
-        else:   #ARRAYELEMENT
-            # TODO
-            pass
+        elif type(varObj) is ArrayElement:
+            self.operand = varObj
+            self.operandType = Operand.ARRAYELEMENT
 
     def isInt(self):
         return self.operandType == Operand.INT

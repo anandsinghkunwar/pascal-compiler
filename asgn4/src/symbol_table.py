@@ -25,13 +25,14 @@ class Type(object):
 
 # Class to implement a symbol table entry.
 class SymTabEntry(object):
-    def __init__(self, name, type, mySymTab, nextSymTab=None, isConst=False, isParameter=False):
+    def __init__(self, name, type, mySymTab, nextSymTab=None, isConst=False, isParameter=False, isTemp=False):
         self.name = name
         self.type = type
         self.mySymTab = mySymTab
         self.nextSymTab = nextSymTab
         self.isConst = isConst
         self.isParameter = isParameter
+        self.isTemp = isTemp
 
     def scope(self):
         return self.mySymTab.scope
@@ -73,9 +74,9 @@ class SymTab(object):
     # Class variables for allocation
     nextScope = 0
 
-    def addVar(self, varName, varType, isParameter=False):
+    def addVar(self, varName, varType, isParameter=False, isTemp=False):
         if not self.entryExists(varName):
-            self.entries[varName] = SymTabEntry(varName, varType, self, isParameter=isParameter)
+            self.entries[varName] = SymTabEntry(varName, varType, self, isParameter=isParameter, isTemp=isTemp)
             return self.entries[varName]
         else:
             # TODO: Handle error?
