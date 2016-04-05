@@ -9,6 +9,7 @@ from lexer import tokens
 def backpatch(instrList, target):
     for instr in instrList:
         if instr == IG.InstrList[instr].LineNo:
+            print 'Backpatching', instr
             IG.InstrList[instr].Target = target
         else:
             print 'Why is this happening!', instr
@@ -440,17 +441,25 @@ def p_block(p):
     p[0] = p[2]
 
 def p_statements(p):
-    '''statements : statements SEMICOLON statement
+    '''statements : statements SEMICOLON marker_statement statement
                   | statement'''
     p[0] = IG.Node()
     if len(p) == 4:
         p[0].code = p[1].code + p[3].code
+        p[0].nextList = p[4].nextList
+        backpatch(p[1].nextList, p[3].quad)
+
     elif len(p) == 2:
-        p[0].code = p[1].code
+        p[0] = p[1]
 
 def p_statements_error(p):
     '''statements : statements error statement'''
     print_error("\tExpected ';', Found " + p[2].type)
+
+def p_marker_statement(p):
+    '''marker_statement : '''
+    p[0] = IG.Node()
+    p[0].quad = IG.nextQuad
 
 def p_statement(p):
     '''statement : matched_statement
@@ -476,8 +485,9 @@ def p_matched_statement(p):
             # TODO: Generate code for break and continue
     elif len(p) == 10:
         p[0].code = p[2].code + p[4].code + p[5].code + p[6].code + p[9].code
-        backpatch([p[4].quad], p[7].quad)
-        backpatch([p[6].quad], IG.nextQuad)
+        backpatch(p[2].falseList, p[7].quad)
+        backpatch(p[2].trueList, p[4].quad)
+        p[0].nextList = p[5].nextList + p[6].nextList + p[9].nextList
 
     elif len(p) == 3:
         p[0].code = p[1].code + p[2].code
@@ -493,12 +503,14 @@ def p_unmatched_statement(p):
     p[0] = IG.Node()
     if len(p) == 6:
         p[0].code = p[2].code + p[4].code + p[5].code
-        backpatch([p[4].quad], IG.nextQuad)
+        backpatch(p[2].trueList, p[4].quad)
+        p[0].nextList = p[2].falseList + p[5].nextList
 
     elif len(p) == 10:
         p[0].code = p[2].code + p[4].code + p[5].code + p[6].code + p[9].code
-        backpatch([p[4].quad], p[8].quad)
-        backpatch([p[6].quad], IG.nextQuad)
+        backpatch(p[2].falseList, p[7].quad)
+        backpatch(p[2].trueList, p[4].quad)
+        p[0].nextList = p[5].nextList + p[6].nextList + p[9].nextList
 
     elif len(p) == 3:
         p[0].code = p[1].code + p[2].code
@@ -509,15 +521,15 @@ def p_unmatched_statement(p):
 def p_marker_if(p):
     '''marker_if : '''
     p[0] = IG.Node()
-    p[0].genCode(IG.TACInstr(IG.TACInstr.IFGOTO, src1=p[-2].place, src2=False, op=IG.TACInstr.EQ, lineNo=IG.nextQuad))
+    # p[0].genCode(IG.TACInstr(IG.TACInstr.IFGOTO, src1=p[-2].place, src2=False, op=IG.TACInstr.EQ, lineNo=IG.nextQuad))
     p[0].quad = IG.nextQuad
-    IG.nextQuad += 1
+    # IG.nextQuad += 1
 
 def p_marker_if_end(p):
     '''marker_if_end : '''
     p[0] = IG.Node()
-    p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
-    p[0].quad = IG.nextQuad
+    p[0].nextList = [IG.nextQuad]
+    p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO))
     IG.nextQuad += 1
 
 def p_marker_else(p):
@@ -577,6 +589,7 @@ def p_simple_statement(p):
 def p_assignment_statement(p):
     '''assignment_statement : variable_reference COLON_EQUAL expression'''
     p[0] = IG.Node()
+    p[0].nextList = p[3].nextList
     p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, src1=p[3].place, dest=p[1].place, lineNo=IG.nextQuad))
     IG.nextQuad += 1
 
@@ -592,10 +605,19 @@ def p_expression(p):
         p[0] = p[1]
     elif len(p) == 4:
         p[0].code = p[1].code + p[3].code
-        p[0].place = IG.newTempBool()
-        p[0].type = p[0].place.type
-        p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.OpMap[p[2]], src1=p[1].place,
-                                 src2=p[3].place, dest=p[0].place, lineNo=IG.nextQuad))
+        # p[0].place = IG.newTempBool()
+        # p[0].type = p[0].place.type
+        # p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.OpMap[p[2]], src1=p[1].place,
+        #                          src2=p[3].place, dest=p[0].place, lineNo=IG.nextQuad))
+        p[0].trueList = [IG.nextQuad]
+        p[0].falseList = [IG.nextQuad+1]
+        print 'Given src2', p[3].place
+        print p[0].trueList
+        print p[0].falseList
+        p[0].genCode(IG.TACInstr(IG.TACInstr.IFGOTO, op=IG.TACInstr.OpMap[p[2]], src1=p[1].place,
+                                 src2=p[3].place, lineNo=IG.nextQuad))
+        IG.nextQuad +=1
+        p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
         IG.nextQuad += 1
 
 def p_simple_expression(p):
@@ -614,9 +636,9 @@ def p_simple_expression(p):
         p[0].place = IG.newTempBool()
         p[0].type = p[0].place.type
         p[0].code = p[1].code + p[4].code
-        p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.LOGICOR, src1=p[1].place, src2=p[4].place,
-                                 dest=p[0].place, lineNo=IG.nextQuad))
-        IG.nextQuad += 1
+        # p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.LOGICOR, src1=p[1].place, src2=p[4].place,
+        #                          dest=p[0].place, lineNo=IG.nextQuad))
+        # IG.nextQuad += 1
 
     elif len(p) == 4:
         if p[1].type == p[3].type:
@@ -652,9 +674,9 @@ def p_term(p):
         p[0].place = IG.newTempBool()
         p[0].type = p[0].place.type
         p[0].code = p[1].code + p[4].code
-        p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.LOGICAND, src1=p[1].place, src2=p[4].place,
-                                 dest=p[0].place, lineNo=IG.nextQuad))
-        IG.nextQuad += 1
+        # p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.LOGICAND, src1=p[1].place, src2=p[4].place,
+        #                          dest=p[0].place, lineNo=IG.nextQuad))
+        # IG.nextQuad += 1
 
     elif len(p) == 4:
         if p[1].type == p[3].type:
@@ -712,6 +734,8 @@ def p_factor(p):
     elif len(p) == 4:
         p[0].place = p[2].place
         p[0].type = p[2].type
+        p[0].trueList = p[2].trueList
+        p[0].falseList = p[2].falseList
 
 def p_bool_exp_marker(p):
     '''bool_exp_marker : '''
