@@ -16,7 +16,6 @@ class Type(object):
         self.numParams = numParams
         self.isConst = isConst
 
-
     def __eq__(self, other):
         if other is None:
             return False
@@ -85,6 +84,13 @@ class SymTab(object):
         self.previousTable = previousTable
         self.scope = SymTab.nextScope
         SymTab.nextScope += 1
+
+        # Add built in types
+        self.addVar('integer', Type('integer', Type.TYPE))
+        self.addVar('boolean', Type('boolean', Type.TYPE))
+        self.addVar('char', Type('char', Type.TYPE))
+        self.addVar('array', Type('array', Type.TYPE))
+        self.addVar('string', Type('string', Type.TYPE))
 
     # Class variables for allocation
     nextScope = 0

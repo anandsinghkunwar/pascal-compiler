@@ -170,13 +170,14 @@ class TACInstr(object):
             }
 
     # Types of instructions
-    ASSIGN, IFGOTO, GOTO, CALL, RETURN, LABEL, PRINTF, SCANF, NOP = range(9)
+    ASSIGN, IFGOTO, GOTO, CALL, RETURN, LABEL, PRINTF, SCANF, NOP, DECLARE = range(10)
 
     # Instruction map
     InstrMap = {
-                "="     : ASSIGN,      "ifgoto"     : IFGOTO,      "goto"     : GOTO,
-                "call"  : CALL,        "ret"        : RETURN,      "label"    : LABEL,
-                "printf": PRINTF,      "scanf"      : SCANF,       "nop"      : NOP
+                "="       : ASSIGN,      "ifgoto"     : IFGOTO,      "goto"     : GOTO,
+                "call"    : CALL,        "ret"        : RETURN,      "label"    : LABEL,
+                "printf"  : PRINTF,      "scanf"      : SCANF,       "nop"      : NOP,
+                "declare" : DECLARE
                }
 
     # Methods to check type of the instruction
@@ -204,6 +205,8 @@ class TACInstr(object):
         return self.isGoto() or self.isIfGoto() or self.isCall() or self.isReturn()
     def isNop(self):
         return self.InstrType == TACInstr.NOP
+    def isDeclare(self):
+        return self.InstrType == TACInstr.DECLARE
 
     # Auxiliary methods
     def getVarSet(self):
@@ -285,6 +288,8 @@ def generateIr(irList):
                 text += rev_OpMap[ir.Op]  + ", "+ getLexeme(ir.Dest) + ", " + getLexeme(ir.Src1) + ", " + getLexeme(ir.Src2)
             else:   #unary operators except call
                 text += rev_OpMap[ir.Op] + ", " + getLexeme(ir.Dest) + ", " + getLexeme(ir.Src1)
+        elif ir.isDeclare():
+            text += "declare, " + getLexeme(ir.Dest) + ", " + getLexeme(ir.Src1) + ", " + getLexeme(ir.Src2)
         return text + "\n" + generateIr(irList[1:])
     else:
         return ""
