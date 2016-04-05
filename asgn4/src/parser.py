@@ -25,9 +25,8 @@ def p_program_statement(p):
                          | empty'''
     if len(p) == 4:
         ST.currSymTab.addVar(p[2], ST.Type('program', ST.Type.PROGRAM))
-    elif len(p) == 2:
+    else:
         pass
-    # TODO Check if anything else required
 
 def p_program_statement_error(p):
     '''program_statement : KEYWORD_PROGRAM IDENTIFIER'''
@@ -49,6 +48,8 @@ def p_global_decs_defs(p):
     elif len(p) == 4:
         backpatch([p[2].quad], IG.nextQuad)
         p[0].code = p[1].code + p[2].code + p[3].code
+    else:
+        pass
 
 def p_marker_fpdef(p):
     '''marker_fpdef : '''
@@ -57,7 +58,6 @@ def p_marker_fpdef(p):
     p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
     IG.nextQuad += 1
     ST.currSymTab = ST.SymTab(ST.currSymTab)
-
 
 def p_const_declarations(p):
     '''const_declarations : KEYWORD_CONST const_statements'''
@@ -128,10 +128,9 @@ def p_type_statement(p):
                       | IDENTIFIER EQUAL type SEMICOLON'''
     if type(p[1]) == IG.Node:
         for item in p[1].items:
-            ST.currSymTab.addVar(item, p[3].type)
-            # TODO Handle arrays FIXME
+            ST.currSymTab.addVar(item, ST.Type(item, ST.Type.TYPE, baseType=p[3].type))
     else:
-        ST.currSymTab.addVar(p[1], p[3].type)
+        ST.currSymTab.addVar(p[1], ST.Type(p[1], ST.Type.TYPE, baseType=p[3].type))
 
 def p_type_statement_error(p):
     '''type_statement : identifiers EQUAL type
@@ -173,8 +172,10 @@ def p_array_ranges(p):
     p[0] = IG.Node()
     if len(p) == 4:
         p[0].arrayBeginList = p[1].arrayBeginList + p[3].arrayBeginList
+        p[0].arrayEndList = p[1].arrayEndList + p[3].arrayEndList
     else:
         p[0].arrayBeginList = p[1].arrayBeginList
+        p[0].arrayEndList = p[1].arrayEndList
 
 def p_array_range(p):
     '''array_range : integer_range
@@ -192,6 +193,7 @@ def p_integer_range(p):
     else:
         print_error("Semantic error at line", p.lineno(3))
         print_error("\tEnd index is less than start index")
+        sys.exit(1)
 
 def p_char_range(p):
     '''char_range : char DOTDOT char'''
@@ -203,6 +205,7 @@ def p_char_range(p):
     else:
         print_error("Semantic error at line", p.lineno(3))
         print_error("\tEnd index is less than start index")
+        sys.exit(1)
 
 def p_boolean_range(p):
     '''boolean_range : CONSTANT_BOOLEAN_FALSE DOTDOT CONSTANT_BOOLEAN_FALSE
@@ -225,11 +228,12 @@ def p_char(p):
         else:
             print_error("Semantic error at line", p.lineno(1))
             print_error("\tExpected character got string")
+            sys.exit(1)
 
 def p_string_declaration(p):
     '''string_declaration : KEYWORD_STRING LEFT_SQUARE_BRACKETS CONSTANT_INTEGER RIGHT_SQUARE_BRACKETS'''
     p[0] = IG.Node()
-    p[0].type = ST.Type('string', ST.Type.STRING, strLen=p[3])
+    p[0].type = ST.Type('string', ST.Type.TYPE, strLen=p[3])
 
 def p_var_declarations(p):
     '''var_declarations : KEYWORD_VAR var_statements'''
@@ -252,10 +256,18 @@ def p_var_statement(p):
     if len(p) == 5:
         if type(p[1]) == IG.Node:
             for item in p[1].items:
-                ST.currSymTab.addVar(item, p[3].type)
-                # TODO Handle arrays
+                STEntry = ST.currSymTab.addVar(item, p[3].type)
+                if STEntry.isArray():
+                    p[0].genCode(IG.TACInstr(IG.TACInstr.DECLARE, dest='array', src1=p[3].type.arrayBeginList[0],
+                                             src2=p[3].type.arrayEndList[0], lineNo=IG.nextQuad))
+                    IG.nextQuad += 1
         else:
-            ST.currSymTab.addVar(p[1], p[3].type)
+            STEntry = ST.currSymTab.addVar(p[1], p[3].type)
+            if STEntry.isArray():
+                p[0].genCode(IG.TACInstr(IG.TACInstr.DECLARE, dest='array', src1=p[3].type.arrayBeginList[0],
+                                         src2=p[3].type.arrayEndList[0], lineNo=IG.nextQuad))
+                IG.nextQuad += 1
+
     else:
         STEntry = ST.currSymTab.addVar(p[1], p[3].type)
         p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, dest=STEntry, src1=p[5].place, lineNo=IG.nextQuad))
@@ -360,10 +372,23 @@ def p_func_head(p):
     STEntry = ST.currSymTab.addVar(p[2], p[5].type)
     # TODO Type identifier must be builtin/already defined
     # Generate code
-    p[0] = IG.Node()
-    p[0].place = STEntry
-    p[0].genCode(IG.TACInstr(IG.TACInstr.LABEL, label=p[2], paramList=p[3].items, lineNo=IG.nextQuad))
-    IG.nextQuad += 1
+    TypeSTEntry = ST.lookup(p[5].type.name)
+    if TypeSTEntry is not None:
+        if TypeSTEntry.isType():
+            p[0] = IG.Node()
+            p[0].place = STEntry
+            p[0].genCode(IG.TACInstr(IG.TACInstr.LABEL, label=p[2], paramList=p[3].items, lineNo=IG.nextQuad))
+            IG.nextQuad += 1
+        else:
+            # Variable given as type
+            print_error("Type error at line", p.linespan(5)[1])
+            print_error("\tVariable identifer given as return type")
+            sys.exit(1)
+    else:
+        # Undefined type
+        print_error("Type error at line", p.linespan(5)[1])
+        print_error("\tReturn type is not a built in or predefined type")
+        sys.exit(1)
 
 def p_func_head_error(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list error type_identifier'''
