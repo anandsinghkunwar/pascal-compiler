@@ -20,6 +20,7 @@ class Node(object):
         self.trueList = []
         self.falseList = []
         self.endList = []
+        self.nextList = []
 
     def genCode(self, instr):
         self.code.append(instr)
