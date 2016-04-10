@@ -4,6 +4,7 @@ import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from src import parser as parserModule
 from src import ircodegen as irCodeGenModule
+from src import symbol_table as symTabModule
 
 cmdLine = sys.argv
 
@@ -18,3 +19,5 @@ else:
 # Give the parser some input
 parserModule.parser.parse(data, tracking=True)
 print irCodeGenModule.generateIr(irCodeGenModule.InstrList[1:])
+print "\n" + "#"*14 + "Symbol Table" + "#"*14 + "\n"
+symTabModule.rootSymTab.printTable()

@@ -51,6 +51,9 @@ class SymTabEntry(object):
     def scope(self):
         return self.mySymTab.scope
 
+    def printEntry(self):
+        print "\t" + self.name + "\t|\t" + self.type.name
+
     # Type checking methods
     def isInt(self):
         return self.type.type == Type.INT
@@ -83,6 +86,7 @@ class SymTab(object):
         self.entries = {}
         self.previousTable = previousTable
         self.scope = SymTab.nextScope
+        self.childrenTables = []
         SymTab.nextScope += 1
 
         # Add built in types
@@ -94,6 +98,9 @@ class SymTab(object):
 
     # Class variables for allocation
     nextScope = 0
+
+    def addTable(self, symTab):
+        self.childrenTables.append(symTab)
 
     def addVar(self, varName, varType, isParameter=False, isTemp=False, isConst=False):
         if not self.entryExists(varName):
@@ -108,7 +115,7 @@ class SymTab(object):
 
     def addProcedure(self, procName, numParams):
         if not self.entryExists(procName):
-            self.entries[procName] = SymTabEntry(procName, Type('procedure', Type.PROCEDURE, numParams=numParams), self, nextSymTab=SymTab(self))
+            self.entries[procName] = SymTabEntry(procName, Type('procedure', Type.PROCEDURE, numParams=numParams), self, nextSymTab=self)
         else:
             # TODO: Handle error?
             pass
@@ -116,10 +123,24 @@ class SymTab(object):
     def addFunction(self, funcName, returnType, numParams):
         if not self.entryExists(funcName):
             self.entries[funcName] = SymTabEntry(funcName, Type('function', Type.FUNCTION, returnType=returnType, numParams=numParams),
-                                                 self, nextSymTab=SymTab(self))
+                                                 self, nextSymTab=self)
         else:
             # TODO: Handle error?
             pass
+
+    def printTable(self):
+        print "#"*20 + str(self.scope) + "#"*20
+        if self.previousTable:
+            print "Scope: " + str(self.scope) + "\tParent's Scope: " + str(self.previousTable.scope)
+        else:
+            print "Scope: " + str(self.scope)
+        print "\tName\t|\tType"
+        print "\t----\t \t----"
+        for key, value in self.entries.iteritems():
+            value.printEntry()
+        print "#"*41 + "\n"
+        for table in self.childrenTables:
+            table.printTable()
 
 # Global variables
 # The root symbol table in the tree structure.

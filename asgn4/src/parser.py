@@ -306,6 +306,7 @@ def p_var_statement_error(p):
 
 def p_proc_def(p):
     '''proc_def : proc_head SEMICOLON declarations block SEMICOLON'''
+    ST.currSymTab.previousTable.addTable(ST.currSymTab)
     ST.currSymTab = ST.currSymTab.previousTable
     p[0] = IG.Node()
     p[0].code = p[1].code + p[3].code + p[4].code
@@ -341,6 +342,7 @@ def p_proc_head(p):
 
 def p_func_def(p):
     '''func_def : func_head SEMICOLON declarations block SEMICOLON'''
+    ST.currSymTab.previousTable.addTable(ST.currSymTab)
     ST.currSymTab = ST.currSymTab.previousTable
     p[0] = IG.Node()
     p[0].code = p[1].code + p[3].code + p[4].code
