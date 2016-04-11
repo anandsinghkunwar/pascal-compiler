@@ -512,6 +512,7 @@ def p_matched_statement(p):
             # TODO: Generate code for break and continue
     elif len(p) == 10:
         p[0].code = p[2].code + p[4].code + p[5].code + p[6].code + p[9].code
+        print 'test', p[8].quad
         backpatch(p[2].falseList, p[8].quad)
         backpatch(p[2].trueList, p[4].quad)
         p[0].nextList = p[5].nextList + p[6].nextList + p[9].nextList
@@ -556,7 +557,7 @@ def p_marker_if_end(p):
     '''marker_if_end : '''
     p[0] = IG.Node()
     p[0].nextList = [IG.nextQuad]
-    p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO))
+    p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
     IG.nextQuad += 1
 
 def p_marker_else(p):
