@@ -1,0 +1,19 @@
+Building is not required. The file bin/irgen is an executable script. Usage (within asgn4/ directory):
+    bin/irgen <source-file>
+
+List of features supported:
+   * While loops
+   * If else statements
+   * boolean expressions with short circuiting
+   * Integer operations
+   * Read/Write builtin functions
+   * Type declarations using 'type' statement
+
+List of features NOT supported:
+   * For loops
+   * Repeat statements
+   * Multi dimensional arrays
+   * Pointers and dereferences
+   * String operations
+   * Type checking
+   * Read/Write statements with multiple arguments

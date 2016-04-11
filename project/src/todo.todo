@@ -1,0 +1,9 @@
+# TODO
+Complete code generation - loop etc.
+Test files - Added old ones
+Add new instructions declare, string/array operations
+Pointer Dereference
+Produce O/P
+Convert Read/Write in printf, scanf
+Write script.sh to print O/P
+Write README explaining supported features
