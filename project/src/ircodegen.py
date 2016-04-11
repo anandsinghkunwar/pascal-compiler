@@ -123,6 +123,11 @@ class Operand(object):
         return self.operandType == Operand.ARRAY
     def isArrayElement(self):
         return self.operandType == Operand.ARRAYELEMENT
+    def isVar(self):
+        if self.isIntVar() or self.isStringVar() or self.isBoolVar() or self.isArray() or self.isArrayElement():
+            return True
+        else:
+            return False
 
 # Class to define a Three Address Code Instruction (TACInstr).
 class TACInstr(object):

@@ -1,5 +1,6 @@
-import tacinstr, codegen, machine, copy
+import codegen, machine, copy
 import globjects as G
+import symbol_table as ST
 
 # Class to define a basic block in IR code:
 #  Structure:
@@ -89,7 +90,7 @@ class BasicBlock(object):
             if prev:
                 instr.SymTable = copy.deepcopy(prev)
             else:
-                instr.SymTable = dict([varName, tacinstr.SymTabEntry(varName)] for varName in self.varSet)
+                instr.SymTable = dict([varName, ST.SymTabEntry(varName)] for varName in self.varSet)
             if instr.Dest:
                 instr.SymTable[instr.Dest.operand.name].liveStatus = False
                 instr.SymTable[instr.Dest.operand.name].nextUse = None
