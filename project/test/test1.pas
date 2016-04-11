@@ -1,11 +1,11 @@
 Program Test1;
 var
-    test: array[1..24] of integer;
+    test: integer;
 Begin
-    test[1] := 5;
+    test := 5;
     writeln('The value is ');
-    writeln(test[1]);
-    test[1] := 6;
+    writeln(test);
+    test := 6;
     writeln('The value is ');
-    writeln(test[1])
+    writeln(test)
 End.

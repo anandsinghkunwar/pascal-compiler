@@ -1,5 +1,5 @@
 import machine
-import tacinstr
+import ircodegen as IG
 import basicblock
 import globjects as G
 
@@ -19,7 +19,7 @@ def translateBlock(bb):
                 op = getMnemonic(instr.Op)
                 # DIV and MOD are special cases in x86. These require the 'idivl' instruction,
                 # which in turn, requires the dividend to be placed in edx:eax (64 bits)
-                if instr.Op == tacinstr.TACInstr.DIV or instr.Op == tacinstr.TACInstr.MOD:
+                if instr.Op == IG.TACInstr.DIV or instr.Op == IG.TACInstr.MOD:
                     # Saving contents of eax and edx on the stack
                     G.text.string += indent + "pushl %eax\n"
                     G.text.string += indent + "pushl %edx" + indent + "#clearing eax and edx for division\n"
@@ -43,7 +43,7 @@ def translateBlock(bb):
                     G.text.string += indent + "idivl (%esp)\n"
 
                     # Operation complete. Moving the result into the appropriate place
-                    if instr.Op == tacinstr.TACInstr.DIV:
+                    if instr.Op == IG.TACInstr.DIV:
                         if instr.Dest.operand.reg:  # x is in register
                             G.text.string += indent + "movl %eax, %" + instr.Dest.operand.reg.name + "\n"
                         else:                       # x is in memory
@@ -96,7 +96,7 @@ def translateBlock(bb):
 
                     # Case 2: Second operand is a variable in a register
                     elif instr.Src2.operand.reg:    #z exists in a register
-                        if instr.Op == tacinstr.TACInstr.SHL or instr.Op == tacinstr.TACInstr.SHR:
+                        if instr.Op == IG.TACInstr.SHL or instr.Op == IG.TACInstr.SHR:
                             G.text.string += indent + "xchgl %ecx, %" + instr.Src2.operand.reg.name + "\n"
                             G.text.string += indent + op + " %cl, %" + loc.name + "\n"
                             G.text.string += indent + "xchgl %ecx, %" + instr.Src2.operand.reg.name + "\n"
@@ -105,7 +105,7 @@ def translateBlock(bb):
 
                     # Case 3: Second operand is a variable in memory
                     else:   #z doesn't exist in a register
-                        if instr.Op == tacinstr.TACInstr.SHL or instr.Op == tacinstr.TACInstr.SHR:
+                        if instr.Op == IG.TACInstr.SHL or instr.Op == IG.TACInstr.SHR:
                             G.text.string += indent + "xchgl %ecx, " + instr.Src2.operand.name + "\n"
                             G.text.string += indent + op + " %cl, %" + loc.name + "\n"
                             G.text.string += indent + "xchgl %ecx, " + instr.Src2.operand.name + "\n"
@@ -137,11 +137,11 @@ def translateBlock(bb):
                             G.text.string += indent + "movl " + instr.Src1.operand.name + ", %" + loc.name + "\n"
 
                     # Performing the operation
-                    if instr.Op == tacinstr.TACInstr.SUB:
+                    if instr.Op == IG.TACInstr.SUB:
                         G.text.string += indent + "negl %" + loc.name + "\n"
-                    elif instr.Op == tacinstr.TACInstr.NOT:
+                    elif instr.Op == IG.TACInstr.NOT:
                         G.text.string += indent + "notl %" + loc.name + "\n"
-                    elif instr.Op == tacinstr.TACInstr.ADD:
+                    elif instr.Op == IG.TACInstr.ADD:
                         # This is basically a simple assignment. No asm instruction needed
                         pass
                     else:
@@ -150,7 +150,7 @@ def translateBlock(bb):
                     # Updating register and address descriptors
                     instr.Dest.operand.loadIntoReg(loc.name)
 
-                elif instr.Op == tacinstr.TACInstr.CALLOP:   # a = call func_name
+                elif instr.Op == IG.TACInstr.CALLOP:   # a = call func_name
                     G.text.string += indent + "call " + instr.TargetLabel + "\n"
                     # No need to check if a is in a register or not, since the current
                     # instruction will be the last of this basic block
@@ -194,22 +194,22 @@ def translateBlock(bb):
             if instr.Src1.isInt() and instr.Src2.isInt():
                 # Just do the comparison
                 if instr.Src1.operand > instr.Src2.operand:
-                    if instr.Op == tacinstr.TACInstr.GT:
+                    if instr.Op == IG.TACInstr.GT:
                         G.text.string += indent + "jmp " + label + "\n"
-                    elif instr.Op == tacinstr.TACInstr.GEQ:
+                    elif instr.Op == IG.TACInstr.GEQ:
                         G.text.string += indent + "jmp " + label + "\n"
                     else:
                         pass
 
                 elif instr.Src1.operand < instr.Src2.operand:
-                    if instr.Op == tacinstr.TACInstr.LT:
+                    if instr.Op == IG.TACInstr.LT:
                         G.text.string += indent + "jmp " + label + "\n"
-                    elif instr.Op == tacinstr.TACInstr.LEQ:
+                    elif instr.Op == IG.TACInstr.LEQ:
                         G.text.string += indent + "jmp " + label + "\n"
                     else:
                         pass
                 else:
-                    if instr.Op == tacinstr.TACInstr.EQ:
+                    if instr.Op == IG.TACInstr.EQ:
                         G.text.string += indent + "jmp " + label + "\n"
                     else:
                         pass
@@ -345,53 +345,53 @@ def translateBlock(bb):
 
 
 def getMnemonic(op):
-    if op == tacinstr.TACInstr.ADD:
+    if op == IG.TACInstr.ADD:
         return "addl"
-    elif op == tacinstr.TACInstr.SUB:
+    elif op == IG.TACInstr.SUB:
         return "subl"
-    elif op == tacinstr.TACInstr.MULT:
+    elif op == IG.TACInstr.MULT:
         return "imul"
-    elif op == tacinstr.TACInstr.DIV:
+    elif op == IG.TACInstr.DIV:
         return "idiv"
-    elif op == tacinstr.TACInstr.SHL:
+    elif op == IG.TACInstr.SHL:
         return "sal"
-    elif op == tacinstr.TACInstr.SHR:
+    elif op == IG.TACInstr.SHR:
         return "sar"
-    elif op == tacinstr.TACInstr.AND:
+    elif op == IG.TACInstr.AND:
         return "andl"
-    elif op == tacinstr.TACInstr.OR:
+    elif op == IG.TACInstr.OR:
         return "orl"
-    elif op == tacinstr.TACInstr.XOR:
+    elif op == IG.TACInstr.XOR:
         return "xorl"
-    elif op == tacinstr.TACInstr.MOD:
+    elif op == IG.TACInstr.MOD:
         return "idiv"
-    elif op == tacinstr.TACInstr.GEQ:
+    elif op == IG.TACInstr.GEQ:
         return "jge"
-    elif op == tacinstr.TACInstr.GT:
+    elif op == IG.TACInstr.GT:
         return "jg"
-    elif op == tacinstr.TACInstr.LEQ:
+    elif op == IG.TACInstr.LEQ:
         return "jle"
-    elif op == tacinstr.TACInstr.LT:
+    elif op == IG.TACInstr.LT:
         return "jl"
-    elif op == tacinstr.TACInstr.EQ:
+    elif op == IG.TACInstr.EQ:
         return "je"
-    elif op == tacinstr.TACInstr.NEQ:
+    elif op == IG.TACInstr.NEQ:
         return "jne"
     else:
         pass
 
 def getReversedMnemonic(op):
-    if op == tacinstr.TACInstr.EQ:
+    if op == IG.TACInstr.EQ:
         return "je"
-    elif op == tacinstr.TACInstr.NEQ:
+    elif op == IG.TACInstr.NEQ:
         return "jne"
-    elif op == tacinstr.TACInstr.GEQ:
+    elif op == IG.TACInstr.GEQ:
         return "jle"
-    elif op == tacinstr.TACInstr.GT:
+    elif op == IG.TACInstr.GT:
         return "jl"
-    elif op == tacinstr.TACInstr.LEQ:
+    elif op == IG.TACInstr.LEQ:
         return "jge"
-    elif op == tacinstr.TACInstr.LT:
+    elif op == IG.TACInstr.LT:
         return "jg"
     else:
         pass
