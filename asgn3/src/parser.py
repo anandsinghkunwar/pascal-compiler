@@ -368,6 +368,11 @@ def p_expression(p):
                   | simple_expression'''
     p[0] = Rule('expression', get_production(p))
 
+def p_expression_error(p):
+    '''expression : simple_expression error simple_expression'''
+    p[0] = Rule('expression', get_production(p))
+    print_error("\tExpected relational operator found " + p[2].type)
+
 def p_simple_expression(p):
     '''simple_expression : simple_expression OP_PLUS term
                          | simple_expression OP_MINUS term
