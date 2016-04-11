@@ -152,7 +152,7 @@ def lookup(identifier):
     tempSymTab = currSymTab
 
     while tempSymTab != None:
-        tempSymTab.entryExists(identifier):
+        if identifier in tempSymTab.entries.keys():
             return tempSymTab.entries[identifier]   # Found identifier
         tempSymTab = tempSymTab.previousTable
     return None
