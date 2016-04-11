@@ -47,11 +47,6 @@ class SymTabEntry(object):
         self.isConst = isConst
         self.isParameter = isParameter
         self.isTemp = isTemp
-        self.liveStatus = True
-        self.nextUse = None
-
-    def isLive(self):
-        return self.liveStatus
 
     def scope(self):
         return self.mySymTab.scope

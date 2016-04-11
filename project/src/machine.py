@@ -52,11 +52,13 @@ class Data(object):
         dataString = ".section .data\n"
         indent = " "*4
         for key in self.dataDict.keys():
-            dataString += key + ":\n"
-            if type(self.dataDict[key]) == int:
-                dataString += indent + ".long " + str(self.dataDict[key]) + "\n"
-            elif type(self.dataDict[key]) == str:
-                dataString += indent + ".ascii \"" + str(self.dataDict[key]) + "\\0\"\n"
+            if key is not None:
+                dataString += key + ":\n"
+                if type(self.dataDict[key]) == int:
+                    dataString += indent + ".long " + str(self.dataDict[key]) + "\n"
+                elif type(self.dataDict[key]) == str:
+                    fmtString = self.dataDict[key]
+                    dataString += indent + ".ascii " + str(fmtString[:-1]) + "\\0\"\n"
         return dataString
 
     def printDataSection(self):

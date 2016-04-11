@@ -20,10 +20,10 @@ else:
     data = sourceFile.read()
 
 # Give the parser some input
-parserModule.parser.parse(data, tracking=True)
-print irCodeGenModule.generateIr(irCodeGenModule.InstrList[1:])
-#print "\n" + "#"*14 + "Symbol Table" + "#"*14 + "\n"
-#symTabModule.rootSymTab.printTable()
 globalObjectsModule.data = machineModule.Data()
 globalObjectsModule.text = machineModule.Text()
+parserModule.parser.parse(data, tracking=True)
+irCodeGenModule.generateIr(irCodeGenModule.InstrList[1:])
+#print "\n" + "#"*14 + "Symbol Table" + "#"*14 + "\n"
+#symTabModule.rootSymTab.printTable()
 codeGen = codeGenModule.Codegen(irCodeGenModule.InstrList[1:])
