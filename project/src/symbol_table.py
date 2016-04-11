@@ -104,7 +104,7 @@ class SymTab(object):
 
     def addVar(self, varName, varType, isParameter=False, isTemp=False, isConst=False):
         if not self.entryExists(varName):
-            self.entries[varName] = SymTabEntry(varName, varType, self, isParameter=isParameter, isTemp=isTemp, isConst=isConst)
+            self.entries[varName] = SymTabEntry(varName + "." + str(self.scope), varType, self, isParameter=isParameter, isTemp=isTemp, isConst=isConst)
             return self.entries[varName]
         else:
             # TODO: Handle error?

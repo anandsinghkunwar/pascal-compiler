@@ -19,5 +19,5 @@ else:
 # Give the parser some input
 parserModule.parser.parse(data, tracking=True)
 print irCodeGenModule.generateIr(irCodeGenModule.InstrList[1:])
-print "\n" + "#"*14 + "Symbol Table" + "#"*14 + "\n"
-symTabModule.rootSymTab.printTable()
+#print "\n" + "#"*14 + "Symbol Table" + "#"*14 + "\n"
+#symTabModule.rootSymTab.printTable()

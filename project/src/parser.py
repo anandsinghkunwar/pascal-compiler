@@ -748,15 +748,16 @@ def p_factor(p):
 
     elif len(p) == 2:
         p[0] = p[1]
+        # TODO handle case for if boolean then  ...
         if p[1].place == 'true':
             p[0].trueList = [IG.nextQuad]
-            p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
-            IG.nextQuad += 1
+            #p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
+            #IG.nextQuad += 1
 
         elif p[1].place == 'false':
             p[0].falseList = [IG.nextQuad]
-            p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
-            IG.nextQuad += 1
+            #p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
+            #IG.nextQuad += 1
 
         elif type(p[1].place) == ST.SymTabEntry and p[1].place.isBool():
             p[0].trueList = [IG.nextQuad]
