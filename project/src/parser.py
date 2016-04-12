@@ -590,13 +590,15 @@ def p_for_loop_header(p):
     p[0] = p[1]
 
 def p_for_loop_to(p):
-    '''for_loop_to : KEYWORD_FOR IDENTIFIER COLON_EQUAL expression KEYWORD_TO expression KEYWORD_DO'''
+    '''for_loop_to : KEYWORD_FOR assignment_statement KEYWORD_TO expression KEYWORD_DO'''
     p[0] = IG.Node()
+    p[0].type = 'for_to'
     # TODO generate code
 
 def p_for_loop_downto(p):
-    '''for_loop_downto : KEYWORD_FOR IDENTIFIER COLON_EQUAL expression KEYWORD_DOWNTO expression KEYWORD_DO'''
+    '''for_loop_downto : KEYWORD_FOR assignment_statement expression KEYWORD_DOWNTO expression KEYWORD_DO'''
     p[0] = IG.Node()
+    p[0].type = 'for_downto'
     # TODO generate code
 
 def p_for_loop_header_error(p):
@@ -607,6 +609,7 @@ def p_for_loop_header_error(p):
 def p_while_loop_header(p):
     '''while_loop_header : KEYWORD_WHILE marker_while_begin expression KEYWORD_DO'''
     p[0] = IG.Node()
+    p[0].type = 'while'
     p[0].code = p[3].code
     p[0].nextList = p[3].falseList
     p[0].trueList = p[3].trueList
@@ -916,12 +919,9 @@ def p_func_proc_statement(p):
                         pass
                         # print_error('Type Not Supported for Read Operation')
                 else:
-                    if type(p[3].items[0]) == int:
-                        ioFmtString = '%d'
-                    elif type(p[3].items[0]) == str and len(p[3].items[0]) == 1:
-                        ioFmtString = '%c'
-                    elif type(p[3].items[0]) == str:
-                        ioFmtString = '%s'
+                    if type(p[3].items[0]) == int or type(p[3].items[0]) == str:
+                        ioFmtString = str(p[3].items[0])
+                    else:
                         # TODO Error
                         pass
                 if p[1] == 'writeln':
@@ -931,6 +931,9 @@ def p_func_proc_statement(p):
                 p[0].genCode(IG.TACInstr(IG.TACInstr.PRINTF, ioArgList=ioArgList,
                                         ioFmtString=ioFmtString, lineNo=IG.nextQuad))
                 IG.nextQuad += 1
+            else:
+                # TODO Error multiple arguments in write/read
+                pass
         else:
             STEntry = ST.lookup(p[1])
             if STEntry and (STEntry.isFunction() or STEntry.isProcedure()):
