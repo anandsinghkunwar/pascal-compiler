@@ -97,7 +97,7 @@ def p_string(p):
         p[0] = p[1]
 
     # We need strings with quotes
-    p[0] = '"' + p[0] + '"'
+    #p[0] = "' + p[0] + '"'
 
 def p_substring(p):
     '''substring : CONSTANT_STRING substring
