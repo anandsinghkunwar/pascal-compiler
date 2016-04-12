@@ -161,7 +161,7 @@ class SymTab(object):
     def addProcedure(self, procName, numParams, paramList):
         if not self.entryExists(procName):
             self.entries[procName] = SymTabEntry(procName + "." + str(self.scope), Type('procedure', Type.PROCEDURE, numParams=numParams, paramList=paramList), self,
-                                                 nextSymTab=self, paramList=paramList)
+                                                 nextSymTab=self)
         else:
             # TODO: Handle error?
             pass
