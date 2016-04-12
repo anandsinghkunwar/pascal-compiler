@@ -438,7 +438,7 @@ def p_value_parameter(p):
                        | IDENTIFIER COLON KEYWORD_ARRAY KEYWORD_OF type_identifier'''
     p[0] = IG.Node()
     if len(p) == 4:
-        if ST.typeExists(p[3]):
+        if ST.typeExists(p[3].type):
             if type(p[1]) == IG.Node:
                 p[0].items = p[1].items
                 for item in p[1].items:
@@ -450,7 +450,7 @@ def p_value_parameter(p):
             # TODO Throw Error Type does not exist
             pass
     elif len(p) == 5:
-        if ST.typeExists(p[5]):
+        if ST.typeExists(p[5].type):
             if type(p[1]) == IG.Node:
                 p[0].items = p[1].items
                 for item in p[1].items:
