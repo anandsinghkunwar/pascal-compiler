@@ -932,7 +932,7 @@ def p_function_call(p):
                         pass
                     p[0].type = p[0].place.type
                     p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.CALLOP,
-                                             dest=p[0].place, lineNo=IG.nextQuad, paramList=[item.place for item in p[3].items], targetLabel=p[1]))
+                                             dest=p[0].place, lineNo=IG.nextQuad, paramList=[item.place for item in p[3].items], targetLabel=STEntry.name))
                     IG.nextQuad += 1
                 else:
                     # TODO Throw error number of parameters not matching
