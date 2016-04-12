@@ -1,7 +1,8 @@
 program p;
 function foo(a,b,c : integer) : integer;
 begin
-   a := 5;
+   //a := 5;
+    writeln(a);
    foo := 7;
 end;
 
