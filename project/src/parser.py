@@ -123,6 +123,7 @@ def p_type_declarations(p):
 def p_type_statements(p):
     '''type_statements : type_statements type_statement
                        | type_statement'''
+    pass
 
 def p_type_statement(p):
     '''type_statement : identifiers EQUAL type SEMICOLON
@@ -164,8 +165,12 @@ def p_type_identifier(p):
 def p_array_declaration(p):
     '''array_declaration : KEYWORD_ARRAY LEFT_SQUARE_BRACKETS array_ranges RIGHT_SQUARE_BRACKETS KEYWORD_OF type'''
     p[0] = IG.Node()
-    p[0].type = ST.Type('array', ST.Type.ARRAY, arrayBeginList=p[3].arrayBeginList,
+    if ST.typeExists(p[6].type):
+        p[0].type = ST.Type('array', ST.Type.TYPE, arrayBeginList=p[3].arrayBeginList,
                         arrayEndList=p[3].arrayEndList, arrayBaseType=p[6].type)
+    else:
+        # TODO Throw Error?
+        pass
 
 def p_array_ranges(p):
     '''array_ranges : array_ranges COMMA array_range
@@ -254,26 +259,34 @@ def p_var_statement(p):
                      | IDENTIFIER COLON type SEMICOLON
                      | IDENTIFIER COLON type EQUAL expression SEMICOLON'''
     p[0] = IG.Node()
-    if len(p) == 5:
-        if type(p[1]) == IG.Node:
-            for item in p[1].items:
-                STEntry = ST.currSymTab.addVar(item, p[3].type)
+    if ST.typeExists(p[3].type):
+        if len(p) == 5:
+            if type(p[1]) == IG.Node:
+                for item in p[1].items:
+                    STEntry = ST.currSymTab.addVar(item, p[3].type)
+                    if STEntry.isArray():
+                        # TODO Make MultiDimension
+                        p[0].genCode(IG.TACInstr(IG.TACInstr.DECLARE, dest='array', src1=p[3].type.arrayBeginList[0],
+                                                 src2=p[3].type.arrayEndList[0], lineNo=IG.nextQuad))
+                        IG.nextQuad += 1
+            else:
+                STEntry = ST.currSymTab.addVar(p[1], p[3].type)
                 if STEntry.isArray():
                     p[0].genCode(IG.TACInstr(IG.TACInstr.DECLARE, dest='array', src1=p[3].type.arrayBeginList[0],
                                              src2=p[3].type.arrayEndList[0], lineNo=IG.nextQuad))
                     IG.nextQuad += 1
+
         else:
-            STEntry = ST.currSymTab.addVar(p[1], p[3].type)
-            if STEntry.isArray():
-                p[0].genCode(IG.TACInstr(IG.TACInstr.DECLARE, dest='array', src1=p[3].type.arrayBeginList[0],
-                                         src2=p[3].type.arrayEndList[0], lineNo=IG.nextQuad))
+            if p[3].type.name != 'array':
+                STEntry = ST.currSymTab.addVar(p[1], p[3].type)
+                p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, dest=STEntry, src1=p[5].place, lineNo=IG.nextQuad))
                 IG.nextQuad += 1
-
+            else:
+                # TODO Throw Error can't initialise array
+                pass
     else:
-        STEntry = ST.currSymTab.addVar(p[1], p[3].type)
-        p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, dest=STEntry, src1=p[5].place, lineNo=IG.nextQuad))
-        IG.nextQuad += 1
-
+        # TODO Throw Error Type not exists
+        pass
 def p_var_statement_colon_error(p):
     '''var_statement : identifiers error type SEMICOLON
                      | IDENTIFIER error type SEMICOLON
