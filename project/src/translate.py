@@ -159,18 +159,18 @@ def translateBlock(bb):
                                 if name in G.varMap.keys():
                                     addrDescEntry = G.varMap[name]
                                     if addrDescEntry.reg:   # variable exists in a register
-                                        G.text.string += indent + "pushl %" + addrDescEntry.reg.name
+                                        G.text.string += indent + "pushl %" + addrDescEntry.reg.name + indent + "#pushing function parameters\n"
                                     elif name.isInt():
-                                        G.text.string += indent + "pushl " + addrDescEntry.name
+                                        G.text.string += indent + "pushl " + addrDescEntry.name + indent + "#pushing function parameters\n"
                                     else:   # TODO what about variables of other types
                                         pass
                                 else:   #error - variable without address descriptor entry
                                     pass
                             elif type(arg) == int:
-                                G.text.string += indent + "pushl $" + str(arg)
+                                G.text.string += indent + "pushl $" + str(arg) + indent + "#pushing function parameters\n"
                             elif type(arg) == str:
                                 if len(arg) == 1:   # constant char
-                                    G.text.string += indent + "pushl $" + str(ord(arg)) # assuming only print operations on char
+                                    G.text.string += indent + "pushl $" + str(ord(arg)) + indent + "#pushing function parameters\n" # assuming only print operations on char
                                     # TODO handle other operations for char
                                 else: # TODO for constant string
                                     pass
@@ -179,12 +179,11 @@ def translateBlock(bb):
                             elif arg == 'true' or arg == 'false': # constant boolean
                                 G.text.string += indent + "pushl $"
                                 if arg == 'true':
-                                    G.text.string += "1"
+                                    G.text.string += "1" + indent + "#pushing function parameters\n"
                                 else:
-                                    G.text.string += "0"
+                                    G.text.string += "0" + indent + "#pushing function parameters\n"
                             else:   # TODO constant of other types????
                                 pass
-                    G.text.string += indent + "#pushing function parameters\n"
                     G.text.string += indent + "call " + instr.TargetLabel + "\n"
                     # No need to check if a is in a register or not, since the current
                     # instruction will be the last of this basic block
@@ -314,7 +313,7 @@ def translateBlock(bb):
                             G.text.string += indent + "pushl $" + str(ord(arg)) # assuming only print operations on char
                             # TODO handle other operations for char
                         else: # TODO for constant string
-                        pass
+                            pass
                     elif type(arg) == IG.ArrayElement:  # TODO
                         pass
                     elif arg == 'true' or arg == 'false': # constant boolean

@@ -1,5 +1,5 @@
 program p;
-function foo(a : integer; b : integer; c : integer;) : integer;
+function foo(a,b,c : integer) : integer;
 begin
    a := 5;
    foo := 7;

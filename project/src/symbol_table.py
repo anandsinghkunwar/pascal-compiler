@@ -88,12 +88,12 @@ class SymTab(object):
         SymTab.nextScope += 1
 
         # Add built in types
-        rootSymTab.addVar('integer', Type('integer', Type.TYPE), isOverridable=True)
-        rootSymTab.addVar('boolean', Type('boolean', Type.TYPE), isOverridable=True)
-        rootSymTab.addVar('char', Type('char', Type.TYPE), isOverridable=True)
-        rootSymTab.addVar('string', Type('string', Type.TYPE), isOverridable=True)
+        self.addVar('integer', Type('integer', Type.TYPE), isOverridable=True)
+        self.addVar('boolean', Type('boolean', Type.TYPE), isOverridable=True)
+        self.addVar('char', Type('char', Type.TYPE), isOverridable=True)
+        self.addVar('string', Type('string', Type.TYPE), isOverridable=True)
         # Array is a keyword, so not overridable
-        rootSymTab.addVar('array', Type('array', Type.TYPE), isOverridable=False)
+        self.addVar('array', Type('array', Type.TYPE), isOverridable=False)
 
     # Class variables for allocation
     nextScope = 0
