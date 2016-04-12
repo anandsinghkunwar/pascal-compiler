@@ -164,6 +164,7 @@ class SymTab(object):
         if not self.entryExists(procName):
             self.entries[procName] = SymTabEntry(procName + "." + str(self.scope), Type('procedure', Type.PROCEDURE, numParams=numParams, paramList=paramList), self,
                                                  nextSymTab=self)
+            return self.entries[procName]
         else:
             # TODO: Handle error?
             pass
@@ -172,6 +173,7 @@ class SymTab(object):
         if not self.entryExists(funcName):
             self.entries[funcName] = SymTabEntry(funcName + "." + str(self.scope), Type('function', Type.FUNCTION, returnType=returnType, numParams=numParams, paramList=paramList),
                                                  self, nextSymTab=self)
+            return self.entries[funcName]
         else:
             # TODO: Handle error?
             pass
