@@ -36,7 +36,7 @@ class Type(object):
 
 # Class to implement a symbol table entry.
 class SymTabEntry(object):
-    def __init__(self, name, type, mySymTab, nextSymTab=None, isConst=False, isParameter=False, isTemp=False, isOverridable=False):
+    def __init__(self, name, type, mySymTab, nextSymTab=None, isConst=False, isParameter=False, isTemp=False, isOverridable=False, paramNum=None):
         self.name = name
         self.type = type
         self.mySymTab = mySymTab
@@ -45,6 +45,7 @@ class SymTabEntry(object):
         self.isParameter = isParameter
         self.isTemp = isTemp
         self.isOverridable = isOverridable
+        self.paramNum = paramNum
 
     def scope(self):
         return self.mySymTab.scope
