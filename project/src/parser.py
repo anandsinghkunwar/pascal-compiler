@@ -384,28 +384,17 @@ def p_func_def_head_block_error(p):
 
 def p_func_head(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list COLON type_identifier'''
-    ST.currSymTab.previousTable.addFunction(p[2], p[5].type, len(p[3].items))
-    STEntry = ST.currSymTab.addVar(p[2], p[5].type)
-    # TODO Type identifier must be builtin/already defined
-    # Generate code
-    TypeSTEntry = ST.lookup(p[5].type.name)
-    if TypeSTEntry is not None:
-        if TypeSTEntry.isType():
-            p[0] = IG.Node()
-            p[0].place = STEntry
-            p[0].genCode(IG.TACInstr(IG.TACInstr.LABEL, label=p[2], paramList=p[3].items, lineNo=IG.nextQuad))
-            IG.nextQuad += 1
-        else:
-            # Variable given as type
-            print_error("Type error at line", p.linespan(5)[1])
-            print_error("\tVariable identifer given as return type")
-            sys.exit(1)
+    if ST.typeExists(p[5].type):
+        ST.currSymTab.previousTable.addFunction(p[2], p[5].type, len(p[3].items))
+        STEntry = ST.currSymTab.addVar(p[2], p[5].type)
+        # Generate code
+        p[0] = IG.Node()
+        p[0].place = STEntry
+        p[0].genCode(IG.TACInstr(IG.TACInstr.LABEL, label=p[2], paramList=p[3].items, lineNo=IG.nextQuad))
+        IG.nextQuad += 1
     else:
-        # Undefined type
-        print_error("Type error at line", p.linespan(5)[1])
-        print_error("\tReturn type is not a built in or predefined type")
-        sys.exit(1)
-
+        pass
+        #TODO Throw error type does not exist
 def p_func_head_error(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list error type_identifier'''
     #Line number reported from KEYWORD_FUNCTION token
@@ -449,21 +438,29 @@ def p_value_parameter(p):
                        | IDENTIFIER COLON KEYWORD_ARRAY KEYWORD_OF type_identifier'''
     p[0] = IG.Node()
     if len(p) == 4:
-        if type(p[1]) == IG.Node:
-            p[0].items = p[1].items
-            for item in p[1].items:
-                ST.currSymTab.addVar(item, p[3].type, isParameter=True)
+        if ST.typeExists(p[3]):
+            if type(p[1]) == IG.Node:
+                p[0].items = p[1].items
+                for item in p[1].items:
+                    ST.currSymTab.addVar(item, p[3].type, isParameter=True)
+            else:
+                p[0].items.append(p[1])
+                ST.currSymTab.addVar(p[1], p[3].type, isParameter=True)
         else:
-            p[0].items.append(p[1])
-            ST.currSymTab.addVar(p[1], p[3].type, isParameter=True)
+            # TODO Throw Error Type does not exist
+            pass
     elif len(p) == 5:
-        if type(p[1]) == IG.Node:
-            p[0].items = p[1].items
-            for item in p[1].items:
-                ST.currSymTab.addVar(item, ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[5].type), isParameter=True)
+        if ST.typeExists(p[5]):
+            if type(p[1]) == IG.Node:
+                p[0].items = p[1].items
+                for item in p[1].items:
+                    ST.currSymTab.addVar(item, ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[5].type), isParameter=True)
+            else:
+                p[0].items.append(p[1])
+                ST.currSymTab.addVar(p[1], ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[5].type), isParameter=True)
         else:
-            p[0].items.append(p[1])
-            ST.currSymTab.addVar(p[1], ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[5].type), isParameter=True)
+            # TODO Throw Error Type does not exist
+            pass
 
 def p_value_parameter_error(p):
     '''value_parameter : identifiers error type_identifier
