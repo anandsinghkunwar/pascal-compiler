@@ -485,7 +485,7 @@ def p_statements(p):
                   | statement'''
     p[0] = IG.Node()
     if len(p) == 5:
-        p[0].code = p[1].code + p[3].code
+        p[0].code = p[1].code + p[4].code
         p[0].nextList = p[4].nextList
         backpatch(p[1].nextList, p[3].quad)
 
@@ -511,7 +511,7 @@ def p_matched_statement(p):
                          | structured_statement
                          | KEYWORD_IF expression KEYWORD_THEN marker_if matched_statement \
                            marker_if_end KEYWORD_ELSE marker_else matched_statement
-                         | loop_header matched_statement
+                         | loop_header marker_loop matched_statement
                          | KEYWORD_BREAK
                          | KEYWORD_CONTINUE
                          | empty'''
@@ -530,17 +530,19 @@ def p_matched_statement(p):
         backpatch(p[2].trueList, p[4].quad)
         p[0].nextList = p[5].nextList + p[6].nextList + p[9].nextList
 
-    elif len(p) == 3:
-        p[0].code = p[1].code + p[2].code
+    elif len(p) == 4:
+        p[0].code = p[1].code + p[3].code
+        backpatch(p[1].trueList, p[2].quad)
+        backpatch(p[3].nextList, p[1].quad)
+        p[0].nextList = p[1].nextList
         p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, target=p[1].quad, lineNo=IG.nextQuad))
         IG.nextQuad += 1
-        backpatch(p[1].endList, IG.nextQuad)
 
 def p_unmatched_statement(p):
     '''unmatched_statement : KEYWORD_IF expression KEYWORD_THEN marker_if statement
                            | KEYWORD_IF expression KEYWORD_THEN marker_if matched_statement \
                              marker_if_end KEYWORD_ELSE marker_else unmatched_statement
-                           | loop_header unmatched_statement'''
+                           | loop_header marker_loop unmatched_statement'''
     p[0] = IG.Node()
     if len(p) == 6:
         p[0].code = p[2].code + p[4].code + p[5].code
@@ -553,18 +555,18 @@ def p_unmatched_statement(p):
         backpatch(p[2].trueList, p[4].quad)
         p[0].nextList = p[5].nextList + p[6].nextList + p[9].nextList
 
-    elif len(p) == 3:
-        p[0].code = p[1].code + p[2].code
+    elif len(p) == 4:
+        p[0].code = p[1].code + p[3].code
+        backpatch(p[1].trueList, p[2].quad)
+        backpatch(p[3].nextList, p[1].quad)
+        p[0].nextList = p[1].nextList
         p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, target=p[1].quad, lineNo=IG.nextQuad))
         IG.nextQuad += 1
-        backpatch(p[1].endList, IG.nextQuad)
 
 def p_marker_if(p):
     '''marker_if : '''
     p[0] = IG.Node()
-    # p[0].genCode(IG.TACInstr(IG.TACInstr.IFGOTO, src1=p[-2].place, src2=False, op=IG.TACInstr.EQ, lineNo=IG.nextQuad))
     p[0].quad = IG.nextQuad
-    # IG.nextQuad += 1
 
 def p_marker_if_end(p):
     '''marker_if_end : '''
@@ -604,10 +606,11 @@ def p_for_loop_header_error(p):
     print_error("\tExpected ':=', Found " + p[3].type)
 
 def p_while_loop_header(p):
-    '''while_loop_header : KEYWORD_WHILE marker_while_begin expression marker_while KEYWORD_DO'''
+    '''while_loop_header : KEYWORD_WHILE marker_while_begin expression KEYWORD_DO'''
     p[0] = IG.Node()
-    p[0].code = p[3].code + p[4].code
-    p[0].endList = [p[4].quad]
+    p[0].code = p[3].code
+    p[0].nextList = p[3].falseList
+    p[0].trueList = p[3].trueList
     p[0].quad = p[2].quad
 
 def p_marker_while_begin(p):
@@ -615,12 +618,10 @@ def p_marker_while_begin(p):
     p[0] = IG.Node()
     p[0].quad = IG.nextQuad
 
-def p_marker_while(p):
-    '''marker_while : '''
+def p_marker_loop(p):
+    '''marker_loop : '''
     p[0] = IG.Node()
-    p[0].genCode(IG.TACInstr(IG.TACInstr.IFGOTO, src1=p[-1].place, src2=False, op=IG.TACInstr.EQ, lineNo=IG.nextQuad))
     p[0].quad = IG.nextQuad
-    IG.nextQuad += 1
 
 def p_simple_statement(p):
     '''simple_statement : assignment_statement

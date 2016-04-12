@@ -1,6 +1,14 @@
 import codegen, machine, copy
 import globjects as G
-import symbol_table as ST
+
+class SymTabEntry(object):
+# For now, assume that all entries in the symbol table are integers.
+    def __init__(self, name):
+        self.name = name
+        self.liveStatus = True
+        self.nextUse = None
+    def isLive(self):
+        return self.liveStatus
 
 # Class to define a basic block in IR code:
 #  Structure:
@@ -28,7 +36,7 @@ class BasicBlock(object):
 #          * true means that it returned y's register
     def getReg(self):
         if not G.currInstr.Src1.isInt():
-            varName = G.currInstr.Src1.operand.name
+            varName = G.currInstr.Src1.addrDescEntry.name
             if (not G.currInstr.SymTable[varName].isLive() and
                 G.currInstr.SymTable[varName].nextUse == None and
                 G.varMap[varName].reg and
@@ -40,7 +48,7 @@ class BasicBlock(object):
         reg = self.getEmptyRegister()
         if reg:
             return reg, False
-        varName = G.currInstr.Dest.operand.name
+        varName = G.currInstr.Dest.addrDescEntry.name
         reg = self.getOccupiedRegister()
         #generate instructions here
         return reg, False
@@ -90,14 +98,14 @@ class BasicBlock(object):
             if prev:
                 instr.SymTable = copy.deepcopy(prev)
             else:
-                instr.SymTable = dict([varName, ST.SymTabEntry(varName)] for varName in self.varSet)
+                instr.SymTable = dict([varName, SymTabEntry(varName)] for varName in self.varSet)
             if instr.Dest:
-                instr.SymTable[instr.Dest.operand.name].liveStatus = False
-                instr.SymTable[instr.Dest.operand.name].nextUse = None
+                instr.SymTable[instr.Dest.addrDescEntry.name].liveStatus = False
+                instr.SymTable[instr.Dest.addrDescEntry.name].nextUse = None
             if instr.Src1 and instr.Src1.isVar():
-                instr.SymTable[instr.Src1.operand.name].liveStatus = True
-                instr.SymTable[instr.Src1.operand.name].nextUse = instr.LineNo
+                instr.SymTable[instr.Src1.addrDescEntry.name].liveStatus = True
+                instr.SymTable[instr.Src1.addrDescEntry.name].nextUse = instr.LineNo
             if instr.Src2 and instr.Src2.isVar():
-                instr.SymTable[instr.Src2.operand.name].liveStatus = True
-                instr.SymTable[instr.Src2.operand.name].nextUse = instr.LineNo
+                instr.SymTable[instr.Src2.addrDescEntry.name].liveStatus = True
+                instr.SymTable[instr.Src2.addrDescEntry.name].nextUse = instr.LineNo
             prev = instr.SymTable

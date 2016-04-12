@@ -29,6 +29,7 @@ class Codegen(object):
                 leaders.add(instr.LineNo)
             if instr.isAssign() and instr.Op == IG.TACInstr.CALLOP:
                 leaders.add(instr.LineNo + 1)
+        leaders = sorted(leaders)
         for leaderPair in pairwise(leaders):
             bb = basicblock.BasicBlock(self.program[leaderPair[0]-1:leaderPair[1]-1])
             self.basicBlocks.append(bb)
@@ -37,9 +38,9 @@ class Codegen(object):
 
 # Class to implement address descriptor table entry for variables
 class AddrDescEntry(object):
-    def __init__(self, name, type):
+    def __init__(self, name):
         self.name = name
-        self.dataType = type
+        self.dataType = 'integer'
         self.reg = None
         self.memAddr = globjects.data.allocateMem(self.name)
         self.dirty = False

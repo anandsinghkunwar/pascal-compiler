@@ -1,5 +1,7 @@
 # Module for IR code generation.
 import symbol_table as ST
+import globjects as G
+import codegen as CG
 
 # Global Variables
 InstrList = [None]
@@ -91,6 +93,8 @@ class Operand(object):
                 self.operandType = Operand.BOOLVAR
             else:
                 self.operandType = Operand.ARRAY
+            G.varMap[self.operand] = CG.AddrDescEntry(self.operand)
+            self.addrDescEntry = G.varMap[self.operand]
         elif type(varObj) is int:
             self.operand = varObj
             self.operandType = Operand.INT
@@ -156,6 +160,9 @@ class TACInstr(object):
         if dest is not None:
             self.Dest = Operand(dest)
 
+        if self.isScanf() or self.isPrintf():
+            self.IOFmtStringAddr = G.data.allocateMem('.STR'+str(self.LineNo), ioFmtString)
+
     # Types of operations
     ADD, SUB, MULT, DIV, EQ, GT, LT, GEQ, LEQ, NEQ, \
     SHL, SHR, AND, NOT, OR, MOD, XOR, CALLOP, \
@@ -218,10 +225,11 @@ class TACInstr(object):
         varSet = set()
         for var in (self.Src1, self.Src2, self.Dest):
             if var and var.isVar():
-                varSet.update([var.operand.name])
-        for arg in self.IOArgList:
-            if arg and arg.isVar():
-                varSet.update([arg.operand.name])
+                varSet.update([var.operand])
+        if self.IOArgList is not None:
+            for arg in self.IOArgList:
+                if arg and arg.isVar():
+                    varSet.update([arg.operand])
         return varSet
 
 def getLexeme(obj): #for getting lexeme from Operand object or constant

@@ -27,16 +27,16 @@ def translateBlock(bb):
                     # Moving the dividend into eax and the divisor onto the stack top
                     if instr.Src2.isInt():          # z is integer
                         G.text.string += indent + "pushl $" + str(instr.Src2.operand) + "\n"
-                    elif instr.Src2.operand.reg:    # z is in register
-                        G.text.string += indent + "pushl %" + instr.Src2.operand.reg.name + "\n"
+                    elif instr.Src2.addrDescEntry.reg:    # z is in register
+                        G.text.string += indent + "pushl %" + instr.Src2.addrDescEntry.reg.name + "\n"
                     else:                           # z is in memory
-                        G.text.string += indent + "pushl " + instr.Src2.operand.name + "\n"
+                        G.text.string += indent + "pushl " + instr.Src2.addrDescEntry.name + "\n"
                     if instr.Src1.isInt():          # y is integer
                         G.text.string += indent + "movl $" + str(instr.Src1.operand) + ", %eax\n"
-                    elif instr.Src1.operand.reg:    # y is in register
-                        G.text.string += indent + "movl %" + instr.Src1.operand.reg.name + ", %eax\n"
+                    elif instr.Src1.addrDescEntry.reg:    # y is in register
+                        G.text.string += indent + "movl %" + instr.Src1.addrDescEntry.reg.name + ", %eax\n"
                     else:                           # y is in memory
-                        G.text.string += indent + "movl " + instr.Src1.operand.name + ", %eax\n"
+                        G.text.string += indent + "movl " + instr.Src1.addrDescEntry.name + ", %eax\n"
                     G.text.string += indent + "cltd" + indent + "#sign extending eax into edx:eax\n"
 
                     # Performing the operation
@@ -44,24 +44,24 @@ def translateBlock(bb):
 
                     # Operation complete. Moving the result into the appropriate place
                     if instr.Op == IG.TACInstr.DIV:
-                        if instr.Dest.operand.reg:  # x is in register
-                            G.text.string += indent + "movl %eax, %" + instr.Dest.operand.reg.name + "\n"
+                        if instr.Dest.addrDescEntry.reg:  # x is in register
+                            G.text.string += indent + "movl %eax, %" + instr.Dest.addrDescEntry.reg.name + "\n"
                         else:                       # x is in memory
-                            G.text.string += indent + "movl %eax," + instr.Dest.operand.name + "\n"
+                            G.text.string += indent + "movl %eax," + instr.Dest.addrDescEntry.name + "\n"
                     else:   # instr.op == MOD
-                        if instr.Dest.operand.reg:  # x is in register
-                            G.text.string += indent + "movl %edx, %" + instr.Dest.operand.reg.name + "\n"
+                        if instr.Dest.addrDescEntry.reg:  # x is in register
+                            G.text.string += indent + "movl %edx, %" + instr.Dest.addrDescEntry.reg.name + "\n"
                         else:                       # x is in memory
-                            G.text.string += indent + "movl %edx," + instr.Dest.operand.name + "\n"
+                            G.text.string += indent + "movl %edx," + instr.Dest.addrDescEntry.name + "\n"
 
                     # Restoring the stack and registers
                     G.text.string += indent + indent + "#restoring stack and registers\n"
-                    if instr.Dest.operand.reg:
-                        if instr.Dest.operand.reg.name == "eax":
+                    if instr.Dest.addrDescEntry.reg:
+                        if instr.Dest.addrDescEntry.reg.name == "eax":
                             G.text.string += indent + "addl $4, %esp\n" # restoring stack so that z value on stack can be overwritten
                             G.text.string += indent + "popl %edx\n"     # restoring edx
                             G.text.string += indent + "addl $4, %esp\n" # restoring stack so that eax value on stack can be overwritten
-                        elif instr.Dest.operand.reg.name == "edx":
+                        elif instr.Dest.addrDescEntry.reg.name == "edx":
                             G.text.string += indent + "addl $8, %esp\n" # removing z and edx(original value of x) stored on stack
                             G.text.string += indent + "popl %eax\n"     # restoring eax
                         else:
@@ -84,10 +84,10 @@ def translateBlock(bb):
                     elif locTuple[1]:   # y is variable and getReg returned y's register. so loc has y's value
                         pass
                     else:   # y is a variable and loc doesn't have y's value
-                        if instr.Src1.operand.reg:      # y exists in a non disposable register
-                            G.text.string += indent + "movl %" + instr.Src1.operand.reg.name + ", %" + loc.name + "\n"
+                        if instr.Src1.addrDescEntry.reg:      # y exists in a non disposable register
+                            G.text.string += indent + "movl %" + instr.Src1.addrDescEntry.reg.name + ", %" + loc.name + "\n"
                         else:   # y is a variable only in memory
-                            G.text.string += indent + "movl " + instr.Src1.operand.name + ", %" + loc.name + "\n"
+                            G.text.string += indent + "movl " + instr.Src1.addrDescEntry.name + ", %" + loc.name + "\n"
 
                     # Performing the operation
                     # Case 1: Second operand is an immediate
@@ -95,25 +95,25 @@ def translateBlock(bb):
                         G.text.string += indent + op + " $" + str(instr.Src2.operand) + ", %" + loc.name + "\n"
 
                     # Case 2: Second operand is a variable in a register
-                    elif instr.Src2.operand.reg:    #z exists in a register
+                    elif instr.Src2.addrDescEntry.reg:    #z exists in a register
                         if instr.Op == IG.TACInstr.SHL or instr.Op == IG.TACInstr.SHR:
-                            G.text.string += indent + "xchgl %ecx, %" + instr.Src2.operand.reg.name + "\n"
+                            G.text.string += indent + "xchgl %ecx, %" + instr.Src2.addrDescEntry.reg.name + "\n"
                             G.text.string += indent + op + " %cl, %" + loc.name + "\n"
-                            G.text.string += indent + "xchgl %ecx, %" + instr.Src2.operand.reg.name + "\n"
+                            G.text.string += indent + "xchgl %ecx, %" + instr.Src2.addrDescEntry.reg.name + "\n"
                         else:
-                            G.text.string += indent + op + " %" + instr.Src2.operand.reg.name + ", %" + loc.name + "\n"
+                            G.text.string += indent + op + " %" + instr.Src2.addrDescEntry.reg.name + ", %" + loc.name + "\n"
 
                     # Case 3: Second operand is a variable in memory
                     else:   #z doesn't exist in a register
                         if instr.Op == IG.TACInstr.SHL or instr.Op == IG.TACInstr.SHR:
-                            G.text.string += indent + "xchgl %ecx, " + instr.Src2.operand.name + "\n"
+                            G.text.string += indent + "xchgl %ecx, " + instr.Src2.addrDescEntry.name + "\n"
                             G.text.string += indent + op + " %cl, %" + loc.name + "\n"
-                            G.text.string += indent + "xchgl %ecx, " + instr.Src2.operand.name + "\n"
+                            G.text.string += indent + "xchgl %ecx, " + instr.Src2.addrDescEntry.name + "\n"
                         else:
-                            G.text.string += indent + op + " " + instr.Src2.operand.name + ", %" + loc.name + "\n"
+                            G.text.string += indent + op + " " + instr.Src2.addrDescEntry.name + ", %" + loc.name + "\n"
 
                     # Update register and address descriptors
-                    instr.Dest.operand.loadIntoReg(loc.name)
+                    instr.Dest.addrDescEntry.loadIntoReg(loc.name)
 
             # Unary operator assignment
             elif instr.Op:  #assignment with unary operator a = op b
@@ -129,12 +129,12 @@ def translateBlock(bb):
                             G.text.string += indent + "movl $" + str(instr.Src1.operand) + ", %" + loc.name + "\n"
 
                         # Case 2: Operand is in a register
-                        elif instr.Src1.operand.reg:   # b is in register
-                            G.text.string += indent + "movl %" + instr.Src1.operand.reg.name + ", %" + loc.name + "\n"
+                        elif instr.Src1.addrDescEntry.reg:   # b is in register
+                            G.text.string += indent + "movl %" + instr.Src1.addrDescEntry.reg.name + ", %" + loc.name + "\n"
 
                         # Case 3: Operand is in memory
                         else:
-                            G.text.string += indent + "movl " + instr.Src1.operand.name + ", %" + loc.name + "\n"
+                            G.text.string += indent + "movl " + instr.Src1.addrDescEntry.name + ", %" + loc.name + "\n"
 
                     # Performing the operation
                     if instr.Op == IG.TACInstr.SUB:
@@ -148,13 +148,13 @@ def translateBlock(bb):
                         G.halt(instr.LineNo, "undefined unary operator")
 
                     # Updating register and address descriptors
-                    instr.Dest.operand.loadIntoReg(loc.name)
+                    instr.Dest.addrDescEntry.loadIntoReg(loc.name)
 
                 elif instr.Op == IG.TACInstr.CALLOP:   # a = call func_name
                     G.text.string += indent + "call " + instr.TargetLabel + "\n"
                     # No need to check if a is in a register or not, since the current
                     # instruction will be the last of this basic block
-                    G.text.string += indent + "movl %eax, " + instr.Dest.operand.name + "\n"
+                    G.text.string += indent + "movl %eax, " + instr.Dest.addrDescEntry.name + "\n"
                 else:
                     G.halt(instr.LineNo, "invalid assignment instruction with unary operator")
 
@@ -162,28 +162,28 @@ def translateBlock(bb):
             else:   # basic assignment   a = b
                 # Case 1: b is an immediate
                 if instr.Src1.isInt():  #b is integer
-                    if instr.Dest.operand.reg:  #a is in a register
-                        G.text.string += indent + "movl $" + str(instr.Src1.operand) + ", %" + instr.Dest.operand.reg.name + "\n"
+                    if instr.Dest.addrDescEntry.reg:  #a is in a register
+                        G.text.string += indent + "movl $" + str(instr.Src1.operand) + ", %" + instr.Dest.addrDescEntry.reg.name + "\n"
                     else:   #a is in memory
-                        G.text.string += indent + "movl $" + str(instr.Src1.operand) + ", " + instr.Dest.operand.name + "\n"
+                        G.text.string += indent + "movl $" + str(instr.Src1.operand) + ", " + instr.Dest.addrDescEntry.name + "\n"
 
                 # Case 2: b is in a register
-                elif instr.Src1.operand.reg:    #b is in a register
+                elif instr.Src1.addrDescEntry.reg:    #b is in a register
                     # No matter where a is stored, its new location will be the
                     # register of b.
-                    instr.Dest.operand.loadIntoReg(instr.Src1.operand.reg.name)
+                    instr.Dest.addrDescEntry.loadIntoReg(instr.Src1.addrDescEntry.reg.name)
 
                 # Case 3: b is in memory
                 else:   # b is in memory
                     # If a is in a register
-                    if instr.Dest.operand.reg:
-                        G.text.string += indent + "movl " + instr.Src1.operand.name + ", %" + instr.Dest.operand.reg.name + "\n"
+                    if instr.Dest.addrDescEntry.reg:
+                        G.text.string += indent + "movl " + instr.Src1.addrDescEntry.name + ", %" + instr.Dest.addrDescEntry.reg.name + "\n"
                     # both a and b are in memory
                     else:
                         locTuple = bb.getReg()
                         loc = locTuple[0]
-                        G.text.string += indent + "movl " + instr.Src1.operand.name + ", %" + loc.name + "\n"
-                        instr.Dest.operand.loadIntoReg(loc.name)
+                        G.text.string += indent + "movl " + instr.Src1.addrDescEntry.name + ", %" + loc.name + "\n"
+                        instr.Dest.addrDescEntry.loadIntoReg(loc.name)
 
 ######################################################  isIfGoto instruction #####################################################
 
@@ -216,40 +216,40 @@ def translateBlock(bb):
 
             elif instr.Src1.isInt() and instr.Src2.isVar():
                 op = getReversedMnemonic(instr.Op)
-                if instr.Src2.operand.reg:
-                    G.text.string += indent + "cmpl $" + str(instr.Src1.operand) + ", %" + instr.Src2.operand.reg.name + "\n"
+                if instr.Src2.addrDescEntry.reg:
+                    G.text.string += indent + "cmpl $" + str(instr.Src1.operand) + ", %" + instr.Src2.addrDescEntry.reg.name + "\n"
                     G.text.string += indent + op + label + "\n" 
                 else:
-                    G.text.string += indent + "cmpl $" + str(instr.Src1.operand) + ", " + instr.Src2.operand.name + "\n"
+                    G.text.string += indent + "cmpl $" + str(instr.Src1.operand) + ", " + instr.Src2.addrDescEntry.name + "\n"
                     G.text.string += indent + op + label + "\n" 
 
-            elif instr.Src1.operand.reg and instr.Src2.isInt():
-                G.text.string += indent + "cmpl $" + str(instr.Src2.operand) + ", %" + instr.Src1.operand.reg.name + "\n"
+            elif instr.Src1.addrDescEntry.reg and instr.Src2.isInt():
+                G.text.string += indent + "cmpl $" + str(instr.Src2.operand) + ", %" + instr.Src1.addrDescEntry.reg.name + "\n"
                 G.text.string += indent + op + label + "\n"
 
-            elif instr.Src1.operand.reg and instr.Src2.isVar():
-                if instr.Src2.operand.reg:
-                    G.text.string += indent + "cmpl %" + instr.Src2.operand.reg.name + ", %" + instr.Src1.operand.reg.name + "\n"
+            elif instr.Src1.addrDescEntry.reg and instr.Src2.isVar():
+                if instr.Src2.addrDescEntry.reg:
+                    G.text.string += indent + "cmpl %" + instr.Src2.addrDescEntry.reg.name + ", %" + instr.Src1.addrDescEntry.reg.name + "\n"
                     G.text.string += indent + op + label + "\n"
                 else:
-                    G.text.string += indent + "cmpl " + instr.Src2.operand.name + ", %" + instr.Src1.operand.reg.name + "\n"
+                    G.text.string += indent + "cmpl " + instr.Src2.addrDescEntry.name + ", %" + instr.Src1.addrDescEntry.reg.name + "\n"
                     G.text.string += indent + op + label + "\n"
 
             elif instr.Src1.isVar() and instr.Src2.isInt():
-                G.text.string += indent + "cmpl $" + str(instr.Src2.operand) + ", " + instr.Src1.operand.name + "\n"
+                G.text.string += indent + "cmpl $" + str(instr.Src2.operand) + ", " + instr.Src1.addrDescEntry.name + "\n"
                 G.text.string += indent + op + label + "\n"
 
             elif instr.Src1.isVar() and instr.Src2.isVar():
-                if instr.Src2.operand.reg:
-                    G.text.string += indent + "cmpl %" + instr.Src2.operand.reg.name + ", " + instr.Src1.operand.name + "\n"
+                if instr.Src2.addrDescEntry.reg:
+                    G.text.string += indent + "cmpl %" + instr.Src2.addrDescEntry.reg.name + ", " + instr.Src1.addrDescEntry.name + "\n"
                     G.text.string += indent + op + label + "\n"
                 else:
                     locTuple = bb.getReg()
                     loc = locTuple[0]
-                    G.text.string += indent + "movl " + instr.Src2.operand.name + ", %" + loc.name + "\n"
-                    G.text.string += indent + "cmpl %" + loc.name + "," + instr.Src1.operand.name + "\n"
+                    G.text.string += indent + "movl " + instr.Src2.addrDescEntry.name + ", %" + loc.name + "\n"
+                    G.text.string += indent + "cmpl %" + loc.name + "," + instr.Src1.addrDescEntry.name + "\n"
                     G.text.string += indent + op + label + "\n"
-                    instr.Src2.operand.loadIntoReg(loc.name)
+                    instr.Src2.addrDescEntry.loadIntoReg(loc.name)
 
 ######################################################  isGoto instruction #######################################################
 
@@ -269,10 +269,10 @@ def translateBlock(bb):
                 G.registerMap["eax"].spill()
                 if instr.Src1.isInt():
                     G.text.string += indent + "movl $" + str(instr.Src1.operand) + ", %eax\n"
-                elif instr.Src1.operand.reg:
-                    G.text.string += indent + "movl %" + instr.Src1.operand.reg.name + ", %eax\n"
+                elif instr.Src1.addrDescEntry.reg:
+                    G.text.string += indent + "movl %" + instr.Src1.addrDescEntry.reg.name + ", %eax\n"
                 else:
-                    G.text.string += indent + "movl " + instr.Src1.operand.name + ", %eax\n"
+                    G.text.string += indent + "movl " + instr.Src1.addrDescEntry.name + ", %eax\n"
 
             # Issue the ret instruction
             G.text.string += indent + "ret\n"
@@ -294,10 +294,10 @@ def translateBlock(bb):
             # Push arguments in reverse order
             for arg in reversed(instr.IOArgList):
                 if arg.isVar():
-                    if arg.operand.reg:
-                        G.text.string += indent + "pushl %" + arg.operand.reg.name  + indent + "# Pushing argument\n"
+                    if arg.addrDescEntry.reg:
+                        G.text.string += indent + "pushl %" + arg.addrDescEntry.reg.name  + indent + "# Pushing argument\n"
                     else:
-                        G.text.string += indent + "pushl " + arg.operand.name + indent + "# Pushing argument\n"
+                        G.text.string += indent + "pushl " + arg.addrDescEntry.name + indent + "# Pushing argument\n"
                 elif arg.isInt():
                     G.text.string += indent + "pushl $" + str(arg.operand) + indent + "# Pushing argument\n"
             G.text.string += indent + "pushl $" + instr.IOFmtStringAddr + indent + "# Pushing argument\n"
@@ -322,8 +322,8 @@ def translateBlock(bb):
             for arg in reversed(instr.IOArgList):
                 if arg.isVar():
                     # Discard the register value for arg
-                    arg.operand.removeReg()
-                    G.text.string += indent + "pushl $" + arg.operand.name + indent + "# Pushing argument\n"
+                    arg.addrDescEntry.removeReg()
+                    G.text.string += indent + "pushl $" + arg.addrDescEntry.name + indent + "# Pushing argument\n"
             G.text.string += indent + "pushl $" + instr.IOFmtStringAddr + indent + "# Pushing argument\n"
             G.text.string += indent + "call scanf\n"
             G.text.string += indent + "addl $" + str(4 * (len(instr.IOArgList) + 1)) + ", %esp\n"
