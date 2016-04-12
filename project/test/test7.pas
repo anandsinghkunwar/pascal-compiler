@@ -10,6 +10,7 @@ end;
 
 var
     a : integer;
+    d : integer;
 begin
     a := 1;
     d := foo(1,'f');
