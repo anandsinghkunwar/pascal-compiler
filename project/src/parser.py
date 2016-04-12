@@ -123,6 +123,7 @@ def p_type_declarations(p):
 def p_type_statements(p):
     '''type_statements : type_statements type_statement
                        | type_statement'''
+    pass
 
 def p_type_statement(p):
     '''type_statement : identifiers EQUAL type SEMICOLON
@@ -164,8 +165,12 @@ def p_type_identifier(p):
 def p_array_declaration(p):
     '''array_declaration : KEYWORD_ARRAY LEFT_SQUARE_BRACKETS array_ranges RIGHT_SQUARE_BRACKETS KEYWORD_OF type'''
     p[0] = IG.Node()
-    p[0].type = ST.Type('array', ST.Type.ARRAY, arrayBeginList=p[3].arrayBeginList,
+    if ST.typeExists(p[6].type):
+        p[0].type = ST.Type('array', ST.Type.TYPE, arrayBeginList=p[3].arrayBeginList,
                         arrayEndList=p[3].arrayEndList, arrayBaseType=p[6].type)
+    else:
+        # TODO Throw Error?
+        pass
 
 def p_array_ranges(p):
     '''array_ranges : array_ranges COMMA array_range
@@ -254,26 +259,34 @@ def p_var_statement(p):
                      | IDENTIFIER COLON type SEMICOLON
                      | IDENTIFIER COLON type EQUAL expression SEMICOLON'''
     p[0] = IG.Node()
-    if len(p) == 5:
-        if type(p[1]) == IG.Node:
-            for item in p[1].items:
-                STEntry = ST.currSymTab.addVar(item, p[3].type)
+    if ST.typeExists(p[3].type):
+        if len(p) == 5:
+            if type(p[1]) == IG.Node:
+                for item in p[1].items:
+                    STEntry = ST.currSymTab.addVar(item, p[3].type)
+                    if STEntry.isArray():
+                        # TODO Make MultiDimension
+                        p[0].genCode(IG.TACInstr(IG.TACInstr.DECLARE, dest='array', src1=p[3].type.arrayBeginList[0],
+                                                 src2=p[3].type.arrayEndList[0], lineNo=IG.nextQuad))
+                        IG.nextQuad += 1
+            else:
+                STEntry = ST.currSymTab.addVar(p[1], p[3].type)
                 if STEntry.isArray():
                     p[0].genCode(IG.TACInstr(IG.TACInstr.DECLARE, dest='array', src1=p[3].type.arrayBeginList[0],
                                              src2=p[3].type.arrayEndList[0], lineNo=IG.nextQuad))
                     IG.nextQuad += 1
+
         else:
-            STEntry = ST.currSymTab.addVar(p[1], p[3].type)
-            if STEntry.isArray():
-                p[0].genCode(IG.TACInstr(IG.TACInstr.DECLARE, dest='array', src1=p[3].type.arrayBeginList[0],
-                                         src2=p[3].type.arrayEndList[0], lineNo=IG.nextQuad))
+            if p[3].type.name != 'array':
+                STEntry = ST.currSymTab.addVar(p[1], p[3].type)
+                p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, dest=STEntry, src1=p[5].place, lineNo=IG.nextQuad))
                 IG.nextQuad += 1
-
+            else:
+                # TODO Throw Error can't initialise array
+                pass
     else:
-        STEntry = ST.currSymTab.addVar(p[1], p[3].type)
-        p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, dest=STEntry, src1=p[5].place, lineNo=IG.nextQuad))
-        IG.nextQuad += 1
-
+        # TODO Throw Error Type not exists
+        pass
 def p_var_statement_colon_error(p):
     '''var_statement : identifiers error type SEMICOLON
                      | IDENTIFIER error type SEMICOLON
@@ -472,7 +485,7 @@ def p_statements(p):
                   | statement'''
     p[0] = IG.Node()
     if len(p) == 5:
-        p[0].code = p[1].code + p[3].code
+        p[0].code = p[1].code + p[4].code
         p[0].nextList = p[4].nextList
         backpatch(p[1].nextList, p[3].quad)
 
@@ -498,7 +511,7 @@ def p_matched_statement(p):
                          | structured_statement
                          | KEYWORD_IF expression KEYWORD_THEN marker_if matched_statement \
                            marker_if_end KEYWORD_ELSE marker_else matched_statement
-                         | loop_header matched_statement
+                         | loop_header marker_loop matched_statement
                          | KEYWORD_BREAK
                          | KEYWORD_CONTINUE
                          | empty'''
@@ -517,17 +530,19 @@ def p_matched_statement(p):
         backpatch(p[2].trueList, p[4].quad)
         p[0].nextList = p[5].nextList + p[6].nextList + p[9].nextList
 
-    elif len(p) == 3:
-        p[0].code = p[1].code + p[2].code
+    elif len(p) == 4:
+        p[0].code = p[1].code + p[3].code
+        backpatch(p[1].trueList, p[2].quad)
+        backpatch(p[3].nextList, p[1].quad)
+        p[0].nextList = p[1].nextList
         p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, target=p[1].quad, lineNo=IG.nextQuad))
         IG.nextQuad += 1
-        backpatch(p[1].endList, IG.nextQuad)
 
 def p_unmatched_statement(p):
     '''unmatched_statement : KEYWORD_IF expression KEYWORD_THEN marker_if statement
                            | KEYWORD_IF expression KEYWORD_THEN marker_if matched_statement \
                              marker_if_end KEYWORD_ELSE marker_else unmatched_statement
-                           | loop_header unmatched_statement'''
+                           | loop_header marker_loop unmatched_statement'''
     p[0] = IG.Node()
     if len(p) == 6:
         p[0].code = p[2].code + p[4].code + p[5].code
@@ -540,18 +555,18 @@ def p_unmatched_statement(p):
         backpatch(p[2].trueList, p[4].quad)
         p[0].nextList = p[5].nextList + p[6].nextList + p[9].nextList
 
-    elif len(p) == 3:
-        p[0].code = p[1].code + p[2].code
+    elif len(p) == 4:
+        p[0].code = p[1].code + p[3].code
+        backpatch(p[1].trueList, p[2].quad)
+        backpatch(p[3].nextList, p[1].quad)
+        p[0].nextList = p[1].nextList
         p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, target=p[1].quad, lineNo=IG.nextQuad))
         IG.nextQuad += 1
-        backpatch(p[1].endList, IG.nextQuad)
 
 def p_marker_if(p):
     '''marker_if : '''
     p[0] = IG.Node()
-    # p[0].genCode(IG.TACInstr(IG.TACInstr.IFGOTO, src1=p[-2].place, src2=False, op=IG.TACInstr.EQ, lineNo=IG.nextQuad))
     p[0].quad = IG.nextQuad
-    # IG.nextQuad += 1
 
 def p_marker_if_end(p):
     '''marker_if_end : '''
@@ -591,10 +606,11 @@ def p_for_loop_header_error(p):
     print_error("\tExpected ':=', Found " + p[3].type)
 
 def p_while_loop_header(p):
-    '''while_loop_header : KEYWORD_WHILE marker_while_begin expression marker_while KEYWORD_DO'''
+    '''while_loop_header : KEYWORD_WHILE marker_while_begin expression KEYWORD_DO'''
     p[0] = IG.Node()
-    p[0].code = p[3].code + p[4].code
-    p[0].endList = [p[4].quad]
+    p[0].code = p[3].code
+    p[0].nextList = p[3].falseList
+    p[0].trueList = p[3].trueList
     p[0].quad = p[2].quad
 
 def p_marker_while_begin(p):
@@ -602,12 +618,10 @@ def p_marker_while_begin(p):
     p[0] = IG.Node()
     p[0].quad = IG.nextQuad
 
-def p_marker_while(p):
-    '''marker_while : '''
+def p_marker_loop(p):
+    '''marker_loop : '''
     p[0] = IG.Node()
-    p[0].genCode(IG.TACInstr(IG.TACInstr.IFGOTO, src1=p[-1].place, src2=False, op=IG.TACInstr.EQ, lineNo=IG.nextQuad))
     p[0].quad = IG.nextQuad
-    IG.nextQuad += 1
 
 def p_simple_statement(p):
     '''simple_statement : assignment_statement

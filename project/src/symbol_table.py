@@ -87,6 +87,14 @@ class SymTab(object):
         self.childrenTables = []
         SymTab.nextScope += 1
 
+        # Add built in types
+        rootSymTab.addVar('integer', Type('integer', Type.TYPE), isOverridable=True)
+        rootSymTab.addVar('boolean', Type('boolean', Type.TYPE), isOverridable=True)
+        rootSymTab.addVar('char', Type('char', Type.TYPE), isOverridable=True)
+        rootSymTab.addVar('string', Type('string', Type.TYPE), isOverridable=True)
+        # Array is a keyword, so not overridable
+        rootSymTab.addVar('array', Type('array', Type.TYPE), isOverridable=False)
+
     # Class variables for allocation
     nextScope = 0
 
@@ -94,7 +102,7 @@ class SymTab(object):
         self.childrenTables.append(symTab)
 
     def addVar(self, varName, varType, isParameter=False, isTemp=False, isConst=False, isOverridable=False):
-        if not self.entryExists(varName):
+        if not self.entryExists(varName) or self.entries[varName].isPredefined():
             self.entries[varName] = SymTabEntry(varName + "." + str(self.scope), varType, self, isParameter=isParameter, isTemp=isTemp, isConst=isConst, isOverridable=isOverridable)
             return self.entries[varName]
         else:
@@ -137,13 +145,6 @@ class SymTab(object):
 # The root symbol table in the tree structure.
 rootSymTab = SymTab(None)
 
-# Add built in types
-rootSymTab.addVar('integer', Type('integer', Type.TYPE), isOverridable=True)
-rootSymTab.addVar('boolean', Type('boolean', Type.TYPE), isOverridable=True)
-rootSymTab.addVar('char', Type('char', Type.TYPE), isOverridable=True)
-rootSymTab.addVar('array', Type('array', Type.TYPE), isOverridable=True)
-rootSymTab.addVar('string', Type('string', Type.TYPE), isOverridable=True)
-
 # The current symbol table that is being used.
 currSymTab = rootSymTab
 
@@ -158,3 +159,12 @@ def lookup(identifier):
     return None
     # Identifier not found
     # TODO Throw Error
+
+def typeExists(type):
+    STEntry = lookup(type.name)
+    if type.name == 'array':
+        return True
+    elif STEntry != None and STEntry.isType():
+        return True
+    else:
+        return False        
