@@ -49,31 +49,31 @@ class ArrayElement(object):
 # Function to generate temporary variables
 def newTempInt():
     global tempCount
-    tempVar = ST.currSymTab.addVar('.t'+str(tempCount), ST.Type('integer', ST.Type.INT), isTemp=True)
+    tempVar = ST.currSymTab.addVar('.t'+str(tempCount), ST.Type('integer', ST.Type.TYPE), isTemp=True)
     tempCount += 1
     return tempVar
 
 def newTempBool():
     global tempCount
-    tempVar = ST.currSymTab.addVar('.t'+str(tempCount), ST.Type('boolean', ST.Type.BOOL), isTemp=True)
+    tempVar = ST.currSymTab.addVar('.t'+str(tempCount), ST.Type('boolean', ST.Type.TYPE), isTemp=True)
     tempCount += 1
     return tempVar
 
 def newTempChar():
     global tempCount
-    tempVar = ST.currSymTab.addVar('.t'+str(tempCount), ST.Type('char', ST.Type.CHAR), isTemp=True)
+    tempVar = ST.currSymTab.addVar('.t'+str(tempCount), ST.Type('char', ST.Type.TYPE), isTemp=True)
     tempCount += 1
     return tempVar
 
 def newTempString():
     global tempCount
-    tempVar = ST.currSymTab.addVar('.t'+str(tempCount), ST.Type('string', ST.Type.STRING), isTemp=True)
+    tempVar = ST.currSymTab.addVar('.t'+str(tempCount), ST.Type('string', ST.Type.TYPE), isTemp=True)
     tempCount += 1
     return tempVar
 
 def newTempArray():
     global tempCount
-    tempVar = ST.currSymTab.addVar('.t'+str(tempCount), ST.Type('array', ST.Type.ARRAY), isTemp=True)
+    tempVar = ST.currSymTab.addVar('.t'+str(tempCount), ST.Type('array', ST.Type.TYPE), isTemp=True)
     tempCount += 1
     return tempVar
 
