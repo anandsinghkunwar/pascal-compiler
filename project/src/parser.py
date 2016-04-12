@@ -442,10 +442,10 @@ def p_value_parameter(p):
             if type(p[1]) == IG.Node:
                 p[0].items = p[1].items
                 for item in p[1].items:
-                    ST.currSymTab.addVar(item, p[3].type, isParameter=True)
+                    ST.currSymTab.addVar(item, p[3].type, isParameter=True, paramNum=p[1].items.index(item))
             else:
                 p[0].items.append(p[1])
-                ST.currSymTab.addVar(p[1], p[3].type, isParameter=True)
+                ST.currSymTab.addVar(p[1], p[3].type, isParameter=True, paramNum=0)
         else:
             # TODO Throw Error Type does not exist
             pass
@@ -454,10 +454,12 @@ def p_value_parameter(p):
             if type(p[1]) == IG.Node:
                 p[0].items = p[1].items
                 for item in p[1].items:
-                    ST.currSymTab.addVar(item, ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[5].type), isParameter=True)
+                    ST.currSymTab.addVar(item, ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[5].type), \
+                                                       isParameter=True, paramNum=p[1].items.index(item))
             else:
                 p[0].items.append(p[1])
-                ST.currSymTab.addVar(p[1], ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[5].type), isParameter=True)
+                ST.currSymTab.addVar(p[1], ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[5].type), \
+                                                   isParameter=True, paramNum=0)
         else:
             # TODO Throw Error Type does not exist
             pass
