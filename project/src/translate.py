@@ -339,7 +339,8 @@ def translateBlock(bb):
                     G.text.string += indent + "movl %" + instr.Src1.addrDescEntry.reg.name + ", %eax\n"
                 else:
                     G.text.string += indent + "movl " + instr.Src1.addrDescEntry.name + ", %eax\n"
-
+            G.text.string += indent + "movl %ebp, %esp" + indent + "#standard function protocol\n"
+            G.text.string += indent + "popl %ebp" + indent + "#standard function protocol\n"
             # Issue the ret instruction
             G.text.string += indent + "ret\n"
 
