@@ -58,7 +58,7 @@ class Type(object):
 
 # Class to implement a symbol table entry.
 class SymTabEntry(object):
-    def __init__(self, name, type, mySymTab, nextSymTab=None, isConst=False, isParameter=False, isTemp=False, isOverridable=False, paramNum=None):
+    def __init__(self, name, type, mySymTab, nextSymTab=None, isConst=False, isParameter=False, isTemp=False, isOverridable=False):
         self.name = name
         self.type = type
         self.mySymTab = mySymTab
@@ -67,7 +67,11 @@ class SymTabEntry(object):
         self.isParameter = isParameter
         self.isTemp = isTemp
         self.isOverridable = isOverridable
-        self.paramNum = paramNum
+        self.paramNum = None
+
+        if self.isParameter:
+            self.paramNum = self.mySymTab.paramCount
+            self.mySymTab.paramCount += 1
 
         self.isLocal = self.mySymTab.scope != 0
         if self.isLocal:
@@ -123,6 +127,7 @@ class SymTab(object):
         self.previousTable = previousTable
         self.scope = SymTab.nextScope
         self.childrenTables = []
+        self.paramCount = 0
         SymTab.nextScope += 1
         self.offset = 0
 
@@ -140,11 +145,11 @@ class SymTab(object):
     def addTable(self, symTab):
         self.childrenTables.append(symTab)
 
-    def addVar(self, varName, varType, isParameter=False, paramNum=None, isTemp=False, isConst=False, isOverridable=False):
+    def addVar(self, varName, varType, isParameter=False, isTemp=False, isConst=False, isOverridable=False):
         if not self.entryExists(varName) or self.entries[varName].isPredefined():
             self.entries[varName] = SymTabEntry(varName + "." + str(self.scope), varType, self, \
-                                                isParameter=isParameter, paramNum=paramNum, \
-                                                isTemp=isTemp, isConst=isConst, isOverridable=isOverridable)
+                                                isParameter=isParameter, isTemp=isTemp, isConst=isConst, \
+                                                isOverridable=isOverridable)
             return self.entries[varName]
         else:
             # TODO: Handle error?

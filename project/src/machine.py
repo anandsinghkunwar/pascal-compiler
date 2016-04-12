@@ -76,6 +76,8 @@ class Text(object):
         textString += indent + ".extern scanf\n"
         textString += indent + ".globl main\n\n"
         textString += "main: \n"
+        textString += indent + "pushl %ebp" + indent + "#treating main as a function\n"
+        textString += indent + "movl %esp, %ebp" + indent + "#treating main as a function\n"
         textString += self.string
         return textString
 

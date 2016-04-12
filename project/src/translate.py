@@ -339,7 +339,8 @@ def translateBlock(bb):
                     G.text.string += indent + "movl %" + instr.Src1.addrDescEntry.reg.name + ", %eax\n"
                 else:
                     G.text.string += indent + "movl " + instr.Src1.addrDescEntry.name + ", %eax\n"
-
+            G.text.string += indent + "movl %ebp, %esp" + indent + "#standard function protocol\n"
+            G.text.string += indent + "popl %ebp" + indent + "#standard function protocol\n"
             # Issue the ret instruction
             G.text.string += indent + "ret\n"
 
@@ -365,6 +366,8 @@ def translateBlock(bb):
                 if arg.isVar():
                     if arg.addrDescEntry.reg:
                         G.text.string += indent + "pushl %" + arg.addrDescEntry.reg.name  + indent + "# Pushing argument\n"
+                    elif arg.addrDescEntry.isParam: # argument of function
+                        G.text.string += indent + "pushl " + str(4*(arg.addrDescEntry.paramNum + 2)) + "(%ebp)" + indent + "# Pushing argument\n"
                     else:
                         G.text.string += indent + "pushl " + arg.addrDescEntry.name + indent + "# Pushing argument\n"
                 elif arg.isInt():
