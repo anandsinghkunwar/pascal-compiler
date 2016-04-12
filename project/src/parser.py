@@ -638,31 +638,38 @@ def p_for_loop_header(p):
 
 def p_for_loop_to(p):
     '''for_loop_to : KEYWORD_FOR assignment_statement marker_loop KEYWORD_TO expression KEYWORD_DO'''
-    p[0] = IG.Node()
-    p[0].type = 'for_to'
-    p[0].code = p[2].code + p[5].code
-    p[0].quad = p[3].quad
-    p[0].place = p[2].place
-    p[0].trueList = [p[3].quad]
-    p[0].genCode(IG.TACInstr(IG.TACInstr.IFGOTO, src1=p[2].place, src2=p[5].place, op=IG.TACInstr.LEQ, lineNo=IG.nextQuad))
-    IG.nextQuad += 1
-    p[0].nextList = [IG.nextQuad]
-    p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
-    IG.nextQuad += 1
-
+    if p[2].place.getDeepestType() == p[5].type.getDeepestType():
+        p[0] = IG.Node()
+        p[0].type = 'for_to'
+        p[0].code = p[2].code + p[5].code
+        p[0].quad = p[3].quad
+        p[0].place = p[2].place
+        p[0].trueList = [p[3].quad]
+        p[0].genCode(IG.TACInstr(IG.TACInstr.IFGOTO, src1=p[2].place, src2=p[5].place, op=IG.TACInstr.LEQ, lineNo=IG.nextQuad))
+        IG.nextQuad += 1
+        p[0].nextList = [IG.nextQuad]
+        p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
+        IG.nextQuad += 1
+    else:
+        # TODO Throw Error not same type
+        pass
 def p_for_loop_downto(p):
     '''for_loop_downto : KEYWORD_FOR assignment_statement marker_loop KEYWORD_DOWNTO expression KEYWORD_DO'''
-    p[0] = IG.Node()
-    p[0].type = 'for_downto'
-    p[0].code = p[2].code + p[5].code
-    p[0].quad = p[3].quad
-    p[0].place = p[2].place
-    p[0].trueList = [p[3].quad]
-    p[0].genCode(IG.TACInstr(IG.TACInstr.IFGOTO, src1=p[2].place, src2=p[5].place, op=IG.TACInstr.GEQ, lineNo=IG.nextQuad))
-    IG.nextQuad += 1
-    p[0].nextList = [IG.nextQuad]
-    p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
-    IG.nextQuad += 1
+    if p[2].place.getDeepestType() == p[5].type.getDeepestType():
+        p[0] = IG.Node()
+        p[0].type = 'for_downto'
+        p[0].code = p[2].code + p[5].code
+        p[0].quad = p[3].quad
+        p[0].place = p[2].place
+        p[0].trueList = [p[3].quad]
+        p[0].genCode(IG.TACInstr(IG.TACInstr.IFGOTO, src1=p[2].place, src2=p[5].place, op=IG.TACInstr.GEQ, lineNo=IG.nextQuad))
+        IG.nextQuad += 1
+        p[0].nextList = [IG.nextQuad]
+        p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
+        IG.nextQuad += 1
+    else:
+        # TODO Throw error not same type
+        pass
 
 def p_for_loop_header_error(p):
     '''for_loop_header : KEYWORD_FOR error KEYWORD_TO expression KEYWORD_DO
