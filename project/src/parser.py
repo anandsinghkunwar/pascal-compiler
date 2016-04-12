@@ -390,7 +390,7 @@ def p_func_head(p):
         # Generate code
         p[0] = IG.Node()
         p[0].place = STEntry
-        p[0].genCode(IG.TACInstr(IG.TACInstr.LABEL, label=p[2], paramList=p[3].items, lineNo=IG.nextQuad))
+        p[0].genCode(IG.TACInstr(IG.TACInstr.LABEL, label=STEntry.name, paramList=p[3].items, lineNo=IG.nextQuad))
         IG.nextQuad += 1
     else:
         pass
@@ -733,27 +733,30 @@ def p_term(p):
 
     p[0] = IG.Node()
     if len(p) == 5:
-        backpatch(p[1].trueList, p[3].quad)
-        p[0].trueList = p[4].trueList
-        p[0].falseList = p[1].falseList + p[4].falseList
-        p[0].place = IG.newTempBool()
-        p[0].type = p[0].place.type
-        p[0].code = p[1].code + p[4].code
-        # p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.LOGICAND, src1=p[1].place, src2=p[4].place,
-        #                          dest=p[0].place, lineNo=IG.nextQuad))
-        # IG.nextQuad += 1
-
+        if p[1].type.getDeepestType() == 'boolean' and p[4].type.getDeepestType() == 'boolean':
+            backpatch(p[1].trueList, p[3].quad)
+            p[0].trueList = p[4].trueList
+            p[0].falseList = p[1].falseList + p[4].falseList
+            p[0].place = IG.newTempBool()
+            p[0].type = p[0].place.type
+            p[0].code = p[1].code + p[4].code
+            # p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.LOGICAND, src1=p[1].place, src2=p[4].place,
+            #                          dest=p[0].place, lineNo=IG.nextQuad))
+            # IG.nextQuad += 1
+        else:
+            # TODO Throw error boolean expected
+            pass
     elif len(p) == 4:
-        if p[1].type == p[3].type:
+        # We have only integer type for operations
+        if p[1].type.getDeepestType() == 'integer' and p[3].type.getDeepestType() == 'integer':
             p[0].place = IG.newTempInt()
             p[0].type = p[0].place.type
             p[0].code = p[1].code + p[3].code
             p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.OpMap[p[2]], src1=p[1].place,
                                      src2=p[3].place, dest=p[0].place, lineNo=IG.nextQuad))
             IG.nextQuad += 1
-            # TODO Generate code for other types
         else:
-            # TODO Type checking error
+            # TODO Throw error integer expected
             pass
     elif len(p) == 2:
         p[0] = p[1]
@@ -768,22 +771,28 @@ def p_factor(p):
               | unsigned_constant'''
     p[0] = IG.Node()
     if len(p) == 3:
-        # TODO Generate Code
         if p[1] == 'not':
-            p[0].trueList = p[2].falseList
-            p[0].falseList = p[2].trueList
-            p[0].code = p[2].code
-        #    p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.LOGICNOT, src1=p[2].place,
-        #                             dest=p[0].place, lineNo=IG.nextQuad))
-        #    IG.nextQuad += 1
+            if p[2].type.getDeepestType() == 'boolean':
+                p[0].trueList = p[2].falseList
+                p[0].falseList = p[2].trueList
+                p[0].code = p[2].code
+                # p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.LOGICNOT, src1=p[2].place,
+                # dest=p[0].place, lineNo=IG.nextQuad))
+                # IG.nextQuad += 1
+            else:
+                # TODO throw error boolean expected
+                pass
         else:
-            p[0].place = IG.newTempInt()
-            p[0].type = p[0].place.type
-            p[0].code = p[2].code
-            p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.OpMap[p[1]], src1=p[1].place,
-                                     dest=p[0].place, lineNo=IG.nextQuad))
-            IG.nextQuad += 1
-            # TODO generate code for other types
+            if p[0].type.getDeepestType() == 'integer':
+                p[0].place = IG.newTempInt()
+                p[0].type = p[0].place.type
+                p[0].code = p[2].code
+                p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.OpMap[p[1]], src1=p[1].place,
+                                         dest=p[0].place, lineNo=IG.nextQuad))
+                IG.nextQuad += 1
+            else:
+                # TODO Throw error integer expected
+                pass
 
     elif len(p) == 2:
         p[0] = p[1]
