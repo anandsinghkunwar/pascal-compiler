@@ -348,7 +348,7 @@ def p_proc_def_head_block_error(p):
 
 def p_proc_head(p):
     'proc_head : KEYWORD_PROCEDURE IDENTIFIER parameter_list'
-    ST.currSymTab.previousTable.addProcedure(p[2], len(p[3].items))
+    ST.currSymTab.previousTable.addProcedure(p[2], len(p[3].items), p[3].items)
     p[0] = IG.Node()
     p[0].genCode(IG.TACInstr(IG.TACInstr.LABEL, label=p[2], paramList=p[3].items, lineNo=IG.nextQuad))
     IG.nextQuad += 1
@@ -385,7 +385,7 @@ def p_func_def_head_block_error(p):
 def p_func_head(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list COLON type_identifier'''
     if ST.typeExists(p[5].type):
-        ST.currSymTab.previousTable.addFunction(p[2], p[5].type, len(p[3].items))
+        ST.currSymTab.previousTable.addFunction(p[2], p[5].type, len(p[3].items), p[3].items)
         STEntry = ST.currSymTab.addVar(p[2], p[5].type)
         # Generate code
         p[0] = IG.Node()
@@ -442,24 +442,25 @@ def p_value_parameter(p):
             if type(p[1]) == IG.Node:
                 p[0].items = p[1].items
                 for item in p[1].items:
-                    ST.currSymTab.addVar(item, p[3].type, isParameter=True)
+                    STEntry = ST.currSymTab.addVar(item, p[3].type, isParameter=True)
+                    p[0].items.append(STEntry)
             else:
-                p[0].items.append(p[1])
-                ST.currSymTab.addVar(p[1], p[3].type, isParameter=True)
+                STEntry = ST.currSymTab.addVar(p[1], p[3].type, isParameter=True)
+                p[0].items.append(STEntry)
         else:
             # TODO Throw Error Type does not exist
             pass
     elif len(p) == 5:
         if ST.typeExists(p[5].type):
             if type(p[1]) == IG.Node:
-                p[0].items = p[1].items
                 for item in p[1].items:
-                    ST.currSymTab.addVar(item, ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[5].type), \
+                    STEntry = ST.currSymTab.addVar(item, ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[5].type), \
                                                        isParameter=True)
+                    p[0].items.append(STEntry)
             else:
-                p[0].items.append(p[1])
-                ST.currSymTab.addVar(p[1], ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[5].type), \
+                STEntry = ST.currSymTab.addVar(p[1], ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[5].type), \
                                                    isParameter=True)
+                p[0].items.append(STEntry)
         else:
             # TODO Throw Error Type does not exist
             pass
@@ -858,15 +859,15 @@ def p_factor(p):
         # TODO handle case for if boolean then  ...
         if p[1].place == 'true':
             p[0].trueList = [IG.nextQuad]
-            #p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
-            #IG.nextQuad += 1
+            # p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
+            # IG.nextQuad += 1
 
         elif p[1].place == 'false':
             p[0].falseList = [IG.nextQuad]
             #p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
             #IG.nextQuad += 1
 
-        elif type(p[1].place) == ST.SymTabEntry and p[1].place.isBool():
+        elif p[1].type.getDeepestType() == 'boolean':
             p[0].trueList = [IG.nextQuad]
             p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
             IG.nextQuad += 1
@@ -875,10 +876,7 @@ def p_factor(p):
             IG.nextQuad += 1
 
     elif len(p) == 4:
-        p[0].place = p[2].place
-        p[0].type = p[2].type
-        p[0].trueList = p[2].trueList
-        p[0].falseList = p[2].falseList
+        p[0] = p[2]
 
 def p_bool_exp_marker(p):
     '''bool_exp_marker : '''
@@ -889,18 +887,53 @@ def p_function_call(p):
     '''function_call : IDENTIFIER LEFT_PARENTHESIS expression_list RIGHT_PARENTHESIS
                      | IDENTIFIER LEFT_PARENTHESIS RIGHT_PARENTHESIS'''
     p[0] = IG.Node()
-    if len(p) == 4:
-        p[0].place = IG.newTempInt()
-        p[0].type = p[0].place.type
-        p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.CALLOP,
-                                 dest=p[0].place, targetLabel=p[1], lineNo=IG.nextQuad))
-        IG.nextQuad += 1
-    elif len(p) == 5:
-        p[0].place = IG.newTempInt()
-        p[0].type = p[0].place.type
-        p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.CALLOP,
-                                 dest=p[0].place, lineNo=IG.nextQuad, paramList=p[3].items, targetLabel=p[1]))
-        IG.nextQuad += 1
+    STEntry = ST.lookup(p[1])
+    if STEntry:
+        if STEntry.isFunction():
+            if len(p) == 4:
+                if len(STEntry.paramList) == 0:
+                    if STEntry.type.returnType.getDeepestType() == 'integer':
+                        p[0].place = IG.newTempInt()
+                    elif STEntry.type.returnType.getDeepestType() == 'boolean':
+                        p[0].place = IG.newTempBool()
+                    elif STEntry.type.returnType.getDeepestType() == 'char':
+                        p[0].place = IG.newTempChar()
+                    else:
+                        # TODO Throw Error FIXME Cannot Return any other type
+                        pass
+                    p[0].type = p[0].place.type
+                    p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.CALLOP,
+                                             dest=p[0].place, targetLabel=STEntry.name, lineNo=IG.nextQuad))
+                    IG.nextQuad += 1
+                else:
+                    # TODO Throw Error No parameter required
+                    pass
+            elif len(p) == 5:
+                if len(STEntry.paramList) == len(p[3].items):
+                    for index in len(p[3].items):
+                        if STEntry.paramList[index].type.getDeepestType() != p[3].items[index].type.getDeepestType():
+                            # TODO Throw Error
+                            pass
+
+                    if STEntry.type.returnType.getDeepestType() == 'integer':
+                        p[0].place = IG.newTempInt()
+                    elif STEntry.type.returnType.getDeepestType() == 'boolean':
+                        p[0].place = IG.newTempBool()
+                    elif STEntry.type.returnType.getDeepestType() == 'char':
+                        p[0].place = IG.newTempChar()
+                    else:
+                        # TODO Throw Error FIXME Cannot Return any other type
+                        pass
+                    p[0].type = p[0].place.type
+                    p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.CALLOP,
+                                             dest=p[0].place, lineNo=IG.nextQuad, paramList=p[3].items, targetLabel=p[1]))
+                    IG.nextQuad += 1
+        else:
+            # Throw Error identifier is not function
+            pass
+    else:
+        # Throw Error function does not exist
+        pass
 
 def p_expression_list(p):
     '''expression_list : expression_list COMMA expression
@@ -959,9 +992,9 @@ def p_unsigned_constant(p):
         p[0].type = ST.Type('integer', ST.Type.INT)
     elif type(p[1]) == str:
         if p[1] == 'true' or p[1] == 'false':
-            p[0].type = ST.Type('boolean', ST.Type.BOOL)
+            p[0].type = ST.Type('boolean', ST.Type.TYPE)
         else:   # TODO Nil is string FIXME
-            p[0].type = ST.Type('string', ST.Type.STRING)
+            p[0].type = ST.Type('string', ST.Type.TYPE)
 
 def p_relational_operator(p):
     '''relational_operator : OP_NEQ
