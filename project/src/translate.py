@@ -224,7 +224,7 @@ def translateBlock(bb):
             op = getMnemonic(instr.Op)
             label = " .LABEL_" + str(instr.Target)
             # cmpl instruction:  src1 relop src2 : cmpl src2, src1
-            if instr.Src1.isInt() and instr.Src2.isInt():
+            if (instr.Src1.isInt() and instr.Src2.isInt()) or (instr.Src1.isChar() and instr.Src1.isChar()):
                 # Just do the comparison
                 if instr.Src1.operand > instr.Src2.operand:
                     if instr.Op == IG.TACInstr.GT or instr.Op == IG.TACInstr.GEQ:
@@ -246,10 +246,11 @@ def translateBlock(bb):
             elif instr.Src1.isInt() and instr.Src2.isVar():
                 if instr.Src2.addrDescEntry.reg:
                     G.text.string += indent + "cmpl $" + str(instr.Src1.operand) + ", %" + instr.Src2.addrDescEntry.reg.name + "\n"
-                    G.text.string += indent + op + label + "\n" 
+                elif instr.Src2.addrDescEntry.isParam:  # argument of function
+                    G.text.string += indent + "cmpl $" + str(instr.Src1.operand) + ", " + str(4*(instr.Src2.addrDescEntry.paramNum + 2)) + "(%ebp)\n"
                 else:
                     G.text.string += indent + "cmpl $" + str(instr.Src1.operand) + ", " + instr.Src2.addrDescEntry.name + "\n"
-                    G.text.string += indent + op + label + "\n" 
+                G.text.string += indent + op + label + "\n"
 
             elif instr.Src1.addrDescEntry.reg and instr.Src2.isInt():
                 G.text.string += indent + "cmpl $" + str(instr.Src2.operand) + ", %" + instr.Src1.addrDescEntry.reg.name + "\n"
