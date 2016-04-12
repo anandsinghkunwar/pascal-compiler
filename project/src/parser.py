@@ -890,7 +890,7 @@ def p_function_call(p):
     if STEntry:
         if STEntry.isFunction():
             if len(p) == 4:
-                if len(STEntry.paramList) == 0:
+                if len(STEntry.type.paramList) == 0:
                     if STEntry.type.returnType.getDeepestType() == 'integer':
                         p[0].place = IG.newTempInt()
                     elif STEntry.type.returnType.getDeepestType() == 'boolean':
@@ -908,9 +908,9 @@ def p_function_call(p):
                     # TODO Throw Error No parameter required
                     pass
             elif len(p) == 5:
-                if len(STEntry.paramList) == len(p[3].items):
-                    for index in len(p[3].items):
-                        if STEntry.paramList[index].type.getDeepestType() != p[3].items[index].type.getDeepestType():
+                if len(STEntry.type.paramList) == len(p[3].items):
+                    for index in range(len(p[3].items)):
+                        if STEntry.type.paramList[index].type.getDeepestType() != p[3].items[index].type.getDeepestType():
                             # TODO Throw Error
                             pass
 
@@ -925,8 +925,11 @@ def p_function_call(p):
                         pass
                     p[0].type = p[0].place.type
                     p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.CALLOP,
-                                             dest=p[0].place, lineNo=IG.nextQuad, paramList=p[3].items, targetLabel=p[1]))
+                                             dest=p[0].place, lineNo=IG.nextQuad, paramList=[item.place for item in p[3].items], targetLabel=p[1]))
                     IG.nextQuad += 1
+                else:
+                    # TODO Throw error number of parameters not matching
+                    pass
         else:
             # Throw Error identifier is not function
             pass
@@ -992,7 +995,10 @@ def p_unsigned_constant(p):
     elif type(p[1]) == str:
         if p[1] == 'true' or p[1] == 'false':
             p[0].type = ST.Type('boolean', ST.Type.TYPE)
-        else:   # TODO Nil is string FIXME
+        elif p[1] == 'nil':
+            # TODO Support nil
+            pass
+        else:
             p[0].type = ST.Type('string', ST.Type.TYPE)
 
 def p_relational_operator(p):
@@ -1008,28 +1014,30 @@ def p_func_proc_statement(p):
     '''func_proc_statement : IDENTIFIER LEFT_PARENTHESIS expression_list RIGHT_PARENTHESIS
                            | IDENTIFIER LEFT_PARENTHESIS RIGHT_PARENTHESIS'''
     p[0] = IG.Node()
+    STEntry = ST.lookup(p[1])
+
     if len(p) == 5:
         if p[1] == 'read' or p[1] == 'readln':
             if len(p[3].items) == 1:
                 # TODO Type Readln FIXME
-                if p[3].items[0].getDeepestType() == ST.Type.INT:
+                if p[3].items[0].type.getDeepestType() == ST.Type.INT:
                     ioFmtString = '"%d"'
-                elif p[3].items[0].getDeepestType() == ST.Type.STRING:
+                elif p[3].items[0].type.getDeepestType() == ST.Type.STRING:
                     ioFmtString = '"%s"'
-                elif p[3].items[0].getDeepestType() == ST.Type.CHAR:
+                elif p[3].items[0].type.getDeepestType() == ST.Type.CHAR:
                     ioFmtString = '"%c"'
                 else:
                     # TODO ERROR
                     pass
                     # print_error('Type Not Supported for Read Operation')
-                ioArgList = [IG.Operand(item) for item in p[3].items]
+                ioArgList = [IG.Operand(item.place) for item in p[3].items]
                 p[0].genCode(IG.TACInstr(IG.TACInstr.SCANF, ioArgList=ioArgList,
                                         ioFmtString=ioFmtString, lineNo=IG.nextQuad))
                 IG.nextQuad += 1
         elif p[1] == 'write' or p[1] == 'writeln':
             if len(p[3].items) == 1:
                 # TODO Type Writeln FIXME
-                if type(p[3].items[0]) == ST.SymTabEntry or type(p[3].items[0]) == IG.ArrayElement:
+                if type(p[3].items[0].place) == ST.SymTabEntry or type(p[3].items[0].place) == IG.ArrayElement:
                     #print p[3].items[0].type.name, p[3].items[0].type.getDeepestType()
                     if p[3].items[0].type.getDeepestType() == 'integer':
                         ioFmtString = '%d'
@@ -1042,15 +1050,16 @@ def p_func_proc_statement(p):
                         pass
                         # print_error('Type Not Supported for Read Operation')
                 else:
-                    if type(p[3].items[0]) == int or type(p[3].items[0]) == str:
-                        ioFmtString = str(p[3].items[0])
+                    if type(p[3].items[0].place) == int or type(p[3].items[0].place) == str:
+                        ioFmtString = str(p[3].items[0].place)
                     else:
                         # TODO Error
+                        print 'YOLO'
                         pass
                 if p[1] == 'writeln':
                     ioFmtString += '\\n'
                 ioFmtString = '"' + ioFmtString + '"'
-                ioArgList = [IG.Operand(item) for item in p[3].items]
+                ioArgList = [IG.Operand(item.place) for item in p[3].items]
                 p[0].genCode(IG.TACInstr(IG.TACInstr.PRINTF, ioArgList=ioArgList,
                                         ioFmtString=ioFmtString, lineNo=IG.nextQuad))
                 IG.nextQuad += 1
@@ -1058,18 +1067,42 @@ def p_func_proc_statement(p):
                 # TODO Error multiple arguments in write/read
                 pass
         else:
-            STEntry = ST.lookup(p[1])
-            if STEntry and (STEntry.isFunction() or STEntry.isProcedure()):
-                p[0].genCode(IG.TACInstr(IG.TACInstr.CALL, paramList=p[3].items, lineNo=IG.nextQuad, targetLabel=p[1]))
-                IG.nextQuad += 1
+            if STEntry:
+                if STEntry.isFunction() or STEntry.isProcedure():
+                    if len(STEntry.type.paramList) == len(p[3].items):
+                        for index in range(len(p[3].items)):
+                            if STEntry.type.paramList[index].type.getDeepestType() != p[3].items[index].type.getDeepestType():
+                                # TODO Throw Error
+                                pass
+
+                        p[0].genCode(IG.TACInstr(IG.TACInstr.CALL, paramList=[item.place for item in p[3].items], lineNo=IG.nextQuad, targetLabel=STEntry.name))
+                        IG.nextQuad += 1
+                    else:
+                        # TODO Throw error number of parameters not matching
+                        pass
+
+                else:
+                    # TODO Throw Error this name is not a function / procedure
+                    pass
+            else:
+                # TODO Throw Error no function / procedure of name exists
+                pass
 
     else:
-        STEntry = ST.lookup(p[1])
-        if STEntry and (STEntry.isFunction() or STEntry.isProcedure()):
-            p[0].genCode(IG.TACInstr(IG.TACInstr.CALL, paramList=[], lineNo=IG.nextQuad, targetLabel=p[1]))
-            IG.nextQuad += 1
+        if STEntry:
+            if STEntry.isFunction() or STEntry.isProcedure():
+                if len(STEntry.type.paramList) == 0:
+                    p[0].genCode(IG.TACInstr(IG.TACInstr.CALL, paramList=[], lineNo=IG.nextQuad, targetLabel=STEntry.name))
+                    IG.nextQuad += 1
+                else:
+                    # TODO Throw error number of parameters not matching
+                    pass
+
+            else:
+                # TODO Throw Error this name is not a function / procedure
+                pass
         else:
-            # TODO Type Checking Error
+            # TODO Throw Error no function / procedure of name exists
             pass
 
 def p_structured_statement(p):
