@@ -102,9 +102,11 @@ class SymTab(object):
     def addTable(self, symTab):
         self.childrenTables.append(symTab)
 
-    def addVar(self, varName, varType, isParameter=False, isTemp=False, isConst=False, isOverridable=False):
+    def addVar(self, varName, varType, isParameter=False, paramNum=None, isTemp=False, isConst=False, isOverridable=False):
         if not self.entryExists(varName) or self.entries[varName].isPredefined():
-            self.entries[varName] = SymTabEntry(varName + "." + str(self.scope), varType, self, isParameter=isParameter, isTemp=isTemp, isConst=isConst, isOverridable=isOverridable)
+            self.entries[varName] = SymTabEntry(varName + "." + str(self.scope), varType, self, \
+                                                isParameter=isParameter, paramNum=paramNum, \
+                                                isTemp=isTemp, isConst=isConst, isOverridable=isOverridable)
             return self.entries[varName]
         else:
             # TODO: Handle error?
