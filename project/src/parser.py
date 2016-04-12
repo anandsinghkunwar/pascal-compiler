@@ -348,9 +348,9 @@ def p_proc_def_head_block_error(p):
 
 def p_proc_head(p):
     'proc_head : KEYWORD_PROCEDURE IDENTIFIER parameter_list'
-    ST.currSymTab.previousTable.addProcedure(p[2], len(p[3].items), p[3].items)
+    STEntry = ST.currSymTab.previousTable.addProcedure(p[2], len(p[3].items), p[3].items)
     p[0] = IG.Node()
-    p[0].genCode(IG.TACInstr(IG.TACInstr.LABEL, label=p[2], paramList=p[3].items, lineNo=IG.nextQuad))
+    p[0].genCode(IG.TACInstr(IG.TACInstr.LABEL, label=STEntry.name, paramList=p[3].items, lineNo=IG.nextQuad))
     IG.nextQuad += 1
 
 def p_func_def(p):
@@ -385,11 +385,10 @@ def p_func_def_head_block_error(p):
 def p_func_head(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list COLON type_identifier'''
     if ST.typeExists(p[5].type):
-        ST.currSymTab.previousTable.addFunction(p[2], p[5].type, len(p[3].items), p[3].items)
-        STEntry = ST.currSymTab.addVar(p[2], p[5].type)
+        STEntry = ST.currSymTab.previousTable.addFunction(p[2], p[5].type, len(p[3].items), p[3].items)
         # Generate code
         p[0] = IG.Node()
-        p[0].place = STEntry
+        p[0].place = ST.currSymTab.addVar(p[2], p[5].type)
         p[0].genCode(IG.TACInstr(IG.TACInstr.LABEL, label=STEntry.name, paramList=p[3].items, lineNo=IG.nextQuad))
         IG.nextQuad += 1
     else:
