@@ -2,6 +2,7 @@ import machine
 import ircodegen as IG
 import basicblock
 import globjects as G
+import symbol_table as ST
 
 indent = " "*4
 
@@ -151,6 +152,39 @@ def translateBlock(bb):
                     instr.Dest.addrDescEntry.loadIntoReg(loc.name)
 
                 elif instr.Op == IG.TACInstr.CALLOP:   # a = call func_name
+                    if instr.ParamList is not None:
+                        for arg in reversed(instr.ParamList):
+                            if type(arg) == ST.SymTabEntry:
+                                name = arg.name + str(arg.mySymTab.scope)
+                                if name in G.varMap.keys():
+                                    addrDescEntry = G.varMap[name]
+                                    if addrDescEntry.reg:   # variable exists in a register
+                                        G.text.string += indent + "pushl %" + addrDescEntry.reg.name
+                                    elif name.isInt():
+                                        G.text.string += indent + "pushl " + addrDescEntry.name
+                                    else:   # TODO what about variables of other types
+                                        pass
+                                else:   #error - variable without address descriptor entry
+                                    pass
+                            elif type(arg) == int:
+                                G.text.string += indent + "pushl $" + str(arg)
+                            elif type(arg) == str:
+                                if len(arg) == 1:   # constant char
+                                    G.text.string += indent + "pushl $" + str(ord(arg)) # assuming only print operations on char
+                                    # TODO handle other operations for char
+                                else: # TODO for constant string
+                                    pass
+                            elif type(arg) == IG.ArrayElement:  # TODO
+                                pass
+                            elif arg == 'true' or arg == 'false': # constant boolean
+                                G.text.string += indent + "pushl $"
+                                if arg == 'true':
+                                    G.text.string += "1"
+                                else:
+                                    G.text.string += "0"
+                            else:   # TODO constant of other types????
+                                pass
+                    G.text.string += indent + "#pushing function parameters\n"
                     G.text.string += indent + "call " + instr.TargetLabel + "\n"
                     # No need to check if a is in a register or not, since the current
                     # instruction will be the last of this basic block
@@ -259,6 +293,39 @@ def translateBlock(bb):
 ######################################################  isCall instruction #######################################################
 
         elif instr.isCall():    #call func_name
+            if instr.ParamList is not None:
+                for arg in reversed(instr.ParamList):
+                    if type(arg) == ST.SymTabEntry:
+                        name = arg.name + str(arg.mySymTab.scope)
+                        if name in G.varMap.keys():
+                            addrDescEntry = G.varMap[name]
+                            if addrDescEntry.reg:   # variable exists in a register
+                                G.text.string += indent + "pushl %" + addrDescEntry.reg.name
+                            elif name.isInt():
+                                G.text.string += indent + "pushl " + addrDescEntry.name
+                            else:   # TODO what about variables of other types
+                                pass
+                        else:   #error - variable without address descriptor entry
+                            pass
+                    elif type(arg) == int:
+                        G.text.string += indent + "pushl $" + str(arg)
+                    elif type(arg) == str:
+                        if len(arg) == 1:   # constant char
+                            G.text.string += indent + "pushl $" + str(ord(arg)) # assuming only print operations on char
+                            # TODO handle other operations for char
+                        else: # TODO for constant string
+                        pass
+                    elif type(arg) == IG.ArrayElement:  # TODO
+                        pass
+                    elif arg == 'true' or arg == 'false': # constant boolean
+                        G.text.string += indent + "pushl $"
+                        if arg == 'true':
+                            G.text.string += "1"
+                        else:
+                            G.text.string += "0"
+                    else:   # TODO constant of other types????
+                        pass
+                    G.text.string += indent + "#pushing function parameters\n"
             G.text.string += indent + "call " + instr.TargetLabel + "\n"
 
 ######################################################  isReturn instruction #####################################################
@@ -281,6 +348,9 @@ def translateBlock(bb):
 
         elif instr.isLabel():   #label func_name
             G.text.string += instr.Label + ":\n"
+            G.text.string += indent + "pushl %ebp" + indent + "#Standard function protocol\n"
+            G.text.string += indent + "movl %esp, %ebp" + indent + "#Standard function protocol\n"
+            # TODO map parameters to location on stack
 
 ######################################################  Printf instruction ######################################################
 
