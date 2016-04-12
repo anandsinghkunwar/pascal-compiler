@@ -117,6 +117,8 @@ class Operand(object):
         return self.operandType == Operand.STRING
     def isBool(self):
         return self.operandType == Operand.BOOL
+    def isChar(self):
+        return (type(self.operand) == str) and (len(self.operand) == 1)
     def isIntVar(self):
         return self.operandType == Operand.INTVAR
     def isStringVar(self):

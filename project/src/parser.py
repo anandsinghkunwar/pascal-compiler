@@ -726,8 +726,8 @@ def p_expression(p):
     elif len(p) == 4:
         # TODO Are more types required?
         if p[1].type.getDeepestType() == p[3].type.getDeepestType() and \
-           (p[1].getDeepestType() == 'integer' or p[1].getDeepestType() == 'char' or \
-            p[1].getDeepestType() == 'boolean'):
+           (p[1].type.getDeepestType() == 'integer' or p[1].type.getDeepestType() == 'char' or \
+            p[1].type.getDeepestType() == 'boolean'):
             
             p[0].code = p[1].code + p[3].code
             # p[0].place = IG.newTempBool()
