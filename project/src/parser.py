@@ -665,9 +665,9 @@ def p_for_loop_downto(p):
     IG.nextQuad += 1
 
 def p_for_loop_header_error(p):
-    '''for_loop_header : KEYWORD_FOR IDENTIFIER error expression KEYWORD_TO expression KEYWORD_DO
-                       | KEYWORD_FOR IDENTIFIER error expression KEYWORD_DOWNTO expression KEYWORD_DO'''
-    print_error("\tExpected ':=', Found " + p[3].type)
+    '''for_loop_header : KEYWORD_FOR error KEYWORD_TO expression KEYWORD_DO
+                       | KEYWORD_FOR error KEYWORD_DOWNTO expression KEYWORD_DO'''
+    print_error("\tInvalid for loop assignment")
 
 def p_while_loop_header(p):
     '''while_loop_header : KEYWORD_WHILE marker_while_begin expression KEYWORD_DO'''
