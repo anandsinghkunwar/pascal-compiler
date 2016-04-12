@@ -229,19 +229,12 @@ def translateBlock(bb):
                 if instr.Src1.operand > instr.Src2.operand:
                     if instr.Op == IG.TACInstr.GT or instr.Op == IG.TACInstr.GEQ:
                         G.text.string += indent + "jmp " + label + "\n"
-                    else:
-                        pass
-
                 elif instr.Src1.operand < instr.Src2.operand:
                     if instr.Op == IG.TACInstr.LT or instr.Op == IG.TACInstr.LEQ:
                         G.text.string += indent + "jmp " + label + "\n"
-                    else:
-                        pass
                 else:
                     if instr.Op == IG.TACInstr.EQ:
                         G.text.string += indent + "jmp " + label + "\n"
-                    else:
-                        pass
 
             elif instr.Src1.isInt() and instr.Src2.isVar():
                 if instr.Src2.addrDescEntry.reg:
@@ -250,32 +243,53 @@ def translateBlock(bb):
                     G.text.string += indent + "cmpl $" + str(instr.Src1.operand) + ", " + str(4*(instr.Src2.addrDescEntry.paramNum + 2)) + "(%ebp)\n"
                 else:
                     G.text.string += indent + "cmpl $" + str(instr.Src1.operand) + ", " + instr.Src2.addrDescEntry.name + "\n"
+                op = getReversedMnemonic(instr.Op)
                 G.text.string += indent + op + label + "\n"
 
-            elif instr.Src1.addrDescEntry.reg and instr.Src2.isInt():
-                G.text.string += indent + "cmpl $" + str(instr.Src2.operand) + ", %" + instr.Src1.addrDescEntry.reg.name + "\n"
-                G.text.string += indent + op + label + "\n"
-
-            elif instr.Src1.addrDescEntry.reg and instr.Src2.isVar():
+            elif instr.Src1.isChar() and instr.Src2.isVar():
                 if instr.Src2.addrDescEntry.reg:
-                    G.text.string += indent + "cmpl %" + instr.Src2.addrDescEntry.reg.name + ", %" + instr.Src1.addrDescEntry.reg.name + "\n"
-                    G.text.string += indent + op + label + "\n"
+                    G.text.string += indent + "cmpl $" + str(ord(instr.Src1.operand)) + ", %" + instr.Src2.addrDescEntry.reg.name + "\n"
+                elif instr.Src2.addrDescEntry.isParam:  # argument of function
+                    G.text.string += indent + "cmpl $" + str(ord(instr.Src1.operand)) + ", " + str(4*(instr.Src2.addrDescEntry.paramNum + 2)) + "(%ebp)\n"
                 else:
-                    G.text.string += indent + "cmpl " + instr.Src2.addrDescEntry.name + ", %" + instr.Src1.addrDescEntry.reg.name + "\n"
-                    G.text.string += indent + op + label + "\n"
+                    G.text.string += indent + "cmpl $" + str(ord(instr.Src1.operand)) + ", " + instr.Src2.addrDescEntry.name + "\n"
+                op = getReversedMnemonic(instr.Op)
+                G.text.string += indent + op + label + "\n"
 
-            elif instr.Src1.isVar() and instr.Src2.isInt():
-                G.text.string += indent + "cmpl $" + str(instr.Src2.operand) + ", " + instr.Src1.addrDescEntry.name + "\n"
+            elif instr.Src2.isInt() and instr.Src1.isVar():
+                if instr.Src1.addrDescEntry.reg:
+                    G.text.string += indent + "cmpl $" + str(instr.Src2.operand) + ", %" + instr.Src1.addrDescEntry.reg.name + "\n"
+                elif instr.Src1.addrDescEntry.isParam:  # argument of function
+                    G.text.string += indent + "cmpl $" + str(instr.Src2.operand) + ", " + str(4*(instr.Src1.addrDescEntry.paramNum + 2)) + "(%ebp)\n"
+                else:
+                    G.text.string += indent + "cmpl $" + str(instr.Src2.operand) + ", " + instr.Src1.addrDescEntry.name + "\n"
+                G.text.string += indent + op + label + "\n"
+
+            elif instr.Src2.isChar() and instr.Src1.isVar():
+                if instr.Src1.addrDescEntry.reg:
+                    G.text.string += indent + "cmpl $" + str(ord(instr.Src2.operand)) + ", %" + instr.Src1.addrDescEntry.reg.name + "\n"
+                elif instr.Src1.addrDescEntry.isParam:  # argument of function
+                    G.text.string += indent + "cmpl $" + str(ord(instr.Src2.operand)) + ", " + str(4*(instr.Src1.addrDescEntry.paramNum + 2)) + "(%ebp)\n"
+                else:
+                    G.text.string += indent + "cmpl $" + str(ord(instr.Src2.operand)) + ", " + instr.Src1.addrDescEntry.name + "\n"
                 G.text.string += indent + op + label + "\n"
 
             elif instr.Src1.isVar() and instr.Src2.isVar():
                 if instr.Src2.addrDescEntry.reg:
-                    G.text.string += indent + "cmpl %" + instr.Src2.addrDescEntry.reg.name + ", " + instr.Src1.addrDescEntry.name + "\n"
+                    if instr.Src1.addrDescEntry.reg:
+                        G.text.string += indent + "cmpl %" + instr.Src2.addrDescEntry.reg.name + ", %" + instr.Src1.addrDescEntry.reg.name + "\n"
+                    elif instr.Src1.addrDescEntry.isParam:
+                        G.text.string += indent + "cmpl %" + instr.Src2.addrDescEntry.reg.name + ", " + str(4*(instr.Src1.addrDescEntry.paramNum + 2)) + "(%ebp)\n"
+                    else:
+                        G.text.string += indent + "cmpl %" + instr.Src2.addrDescEntry.reg.name + ", " + instr.Src1.addrDescEntry.name + "\n"
                     G.text.string += indent + op + label + "\n"
                 else:
                     locTuple = bb.getReg()
                     loc = locTuple[0]
-                    G.text.string += indent + "movl " + instr.Src2.addrDescEntry.name + ", %" + loc.name + "\n"
+                    if instr.Src2.addrDescEntry.isParam:
+                        G.text.string += indent + "movl " + str(4*(instr.Src2.addrDescEntry.paramNum + 2)) + ", %" + loc.name + "\n"
+                    else:
+                        G.text.string += indent + "movl " + instr.Src2.addrDescEntry.name + ", %" + loc.name + "\n"
                     G.text.string += indent + "cmpl %" + loc.name + "," + instr.Src1.addrDescEntry.name + "\n"
                     G.text.string += indent + op + label + "\n"
                     instr.Src2.addrDescEntry.loadIntoReg(loc.name)
