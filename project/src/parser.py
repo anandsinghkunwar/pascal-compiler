@@ -438,7 +438,7 @@ def p_value_parameter(p):
                        | IDENTIFIER COLON KEYWORD_ARRAY KEYWORD_OF type_identifier'''
     p[0] = IG.Node()
     if len(p) == 4:
-        if ST.typeExists(p[3]):
+        if ST.typeExists(p[3].type):
             if type(p[1]) == IG.Node:
                 p[0].items = p[1].items
                 for item in p[1].items:
@@ -450,7 +450,7 @@ def p_value_parameter(p):
             # TODO Throw Error Type does not exist
             pass
     elif len(p) == 5:
-        if ST.typeExists(p[5]):
+        if ST.typeExists(p[5].type):
             if type(p[1]) == IG.Node:
                 p[0].items = p[1].items
                 for item in p[1].items:
@@ -523,12 +523,15 @@ def p_matched_statement(p):
             # TODO: Handle empty production
             # TODO: Generate code for break and continue
     elif len(p) == 10:
-        p[0].code = p[2].code + p[4].code + p[5].code + p[6].code + p[9].code
-        print 'test', p[8].quad
-        backpatch(p[2].falseList, p[8].quad)
-        backpatch(p[2].trueList, p[4].quad)
-        p[0].nextList = p[5].nextList + p[6].nextList + p[9].nextList
-
+        if p[2].type.name == 'boolean':
+            p[0].code = p[2].code + p[4].code + p[5].code + p[6].code + p[9].code
+            print 'test', p[8].quad
+            backpatch(p[2].falseList, p[8].quad)
+            backpatch(p[2].trueList, p[4].quad)
+            p[0].nextList = p[5].nextList + p[6].nextList + p[9].nextList
+        else:
+            # TODO Throw error boolean expected in condition
+            pass
     elif len(p) == 4:
         p[0].code = p[1].code + p[3].code
         backpatch(p[1].trueList, p[2].quad)
@@ -544,15 +547,17 @@ def p_unmatched_statement(p):
                            | loop_header marker_loop unmatched_statement'''
     p[0] = IG.Node()
     if len(p) == 6:
-        p[0].code = p[2].code + p[4].code + p[5].code
-        backpatch(p[2].trueList, p[4].quad)
-        p[0].nextList = p[2].falseList + p[5].nextList
+        if p[2].type.name == 'boolean':
+            p[0].code = p[2].code + p[4].code + p[5].code
+            backpatch(p[2].trueList, p[4].quad)
+            p[0].nextList = p[2].falseList + p[5].nextList
 
     elif len(p) == 10:
-        p[0].code = p[2].code + p[4].code + p[5].code + p[6].code + p[9].code
-        backpatch(p[2].falseList, p[8].quad)
-        backpatch(p[2].trueList, p[4].quad)
-        p[0].nextList = p[5].nextList + p[6].nextList + p[9].nextList
+        if p[2].type.name == 'boolean':
+            p[0].code = p[2].code + p[4].code + p[5].code + p[6].code + p[9].code
+            backpatch(p[2].falseList, p[8].quad)
+            backpatch(p[2].trueList, p[4].quad)
+            p[0].nextList = p[5].nextList + p[6].nextList + p[9].nextList
 
     elif len(p) == 4:
         p[0].code = p[1].code + p[3].code
@@ -606,12 +611,15 @@ def p_for_loop_header_error(p):
 
 def p_while_loop_header(p):
     '''while_loop_header : KEYWORD_WHILE marker_while_begin expression KEYWORD_DO'''
-    p[0] = IG.Node()
-    p[0].code = p[3].code
-    p[0].nextList = p[3].falseList
-    p[0].trueList = p[3].trueList
-    p[0].quad = p[2].quad
-
+    if p[3].type.name == 'boolean':
+        p[0] = IG.Node()
+        p[0].code = p[3].code
+        p[0].nextList = p[3].falseList
+        p[0].trueList = p[3].trueList
+        p[0].quad = p[2].quad
+    else:
+        pass
+        #TODO Throw error boolean expected
 def p_marker_while_begin(p):
     '''marker_while_begin : '''
     p[0] = IG.Node()
@@ -645,21 +653,30 @@ def p_expression(p):
     if len(p) == 2:
         p[0] = p[1]
     elif len(p) == 4:
-        p[0].code = p[1].code + p[3].code
-        # p[0].place = IG.newTempBool()
-        # p[0].type = p[0].place.type
-        # p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.OpMap[p[2]], src1=p[1].place,
-        #                          src2=p[3].place, dest=p[0].place, lineNo=IG.nextQuad))
-        p[0].trueList = [IG.nextQuad]
-        p[0].falseList = [IG.nextQuad+1]
-        print 'Given src2', p[3].place
-        print "Truelist", p[0].trueList
-        print "Falselist", p[0].falseList
-        p[0].genCode(IG.TACInstr(IG.TACInstr.IFGOTO, op=IG.TACInstr.OpMap[p[2]], src1=p[1].place,
-                                 src2=p[3].place, lineNo=IG.nextQuad))
-        IG.nextQuad += 1
-        p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
-        IG.nextQuad += 1
+        # TODO Are more types required?
+        if p[1].type.getDeepestType() == p[3].type.getDeepestType() and
+           (p[1].getDeepestType() == 'integer' or p[1].getDeepestType() == 'char' or
+            p[1].getDeepestType() == 'boolean'):
+            
+            p[0].code = p[1].code + p[3].code
+            # p[0].place = IG.newTempBool()
+            # p[0].type = p[0].place.type
+            # p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.OpMap[p[2]], src1=p[1].place,
+            #                          src2=p[3].place, dest=p[0].place, lineNo=IG.nextQuad))
+            p[0].trueList = [IG.nextQuad]
+            p[0].falseList = [IG.nextQuad+1]
+            print 'Given src2', p[3].place
+            print "Truelist", p[0].trueList
+            print "Falselist", p[0].falseList
+            p[0].genCode(IG.TACInstr(IG.TACInstr.IFGOTO, op=IG.TACInstr.OpMap[p[2]], src1=p[1].place,
+                                     src2=p[3].place, lineNo=IG.nextQuad))
+            IG.nextQuad += 1
+            p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
+            IG.nextQuad += 1
+            p[0].type = ST.Type('boolean', ST.Type.TYPE)
+        else:
+            # Throw error not same type
+            pass
 
 def p_simple_expression(p):
     '''simple_expression : simple_expression OP_PLUS term
@@ -671,27 +688,31 @@ def p_simple_expression(p):
                          | term'''
     p[0] = IG.Node()
     if len(p) == 5:
-        backpatch(p[1].falseList, p[3].quad)
-        p[0].trueList = p[1].trueList + p[4].trueList
-        p[0].falseList = p[4].falseList
-        p[0].code = p[1].code + p[4].code
-        # p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.LOGICOR, src1=p[1].place, src2=p[4].place,
-        #                          dest=p[0].place, lineNo=IG.nextQuad))
-        # IG.nextQuad += 1
-
+        if p[1].type.getDeepestType() == 'boolean' and 
+           p[4].type.getDeepestType() == 'boolean':
+            
+            backpatch(p[1].falseList, p[3].quad)
+            p[0].trueList = p[1].trueList + p[4].trueList
+            p[0].falseList = p[4].falseList
+            p[0].code = p[1].code + p[4].code
+            p[1].type = ST.Type('boolean', ST.Type.TYPE)
+            # p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.LOGICOR, src1=p[1].place, src2=p[4].place,
+            #                          dest=p[0].place, lineNo=IG.nextQuad))
+            # IG.nextQuad += 1
+        else:
+            pass
+            # TODO Throw Error boolean expected
     elif len(p) == 4:
-        if p[1].type == p[3].type:
+        if p[1].type.getDeepestType() == 'integer' and p[3].getDeepestType() == 'integer':
             p[0].place = IG.newTempInt()
             p[0].type = p[0].place.type
             p[0].code = p[1].code + p[3].code
             p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.OpMap[p[2]], src1=p[1].place,
                                      src2=p[3].place, dest=p[0].place, lineNo=IG.nextQuad))
             IG.nextQuad += 1
-            # TODO Generate Code for other types
         else:
-            # TODO Type checking error
+            # TODO Throw Error integer expected
             pass
-
     elif len(p) == 2:
         p[0] = p[1]
 
