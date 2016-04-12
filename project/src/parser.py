@@ -440,7 +440,6 @@ def p_value_parameter(p):
     if len(p) == 4:
         if ST.typeExists(p[3].type):
             if type(p[1]) == IG.Node:
-                p[0].items = p[1].items
                 for item in p[1].items:
                     STEntry = ST.currSymTab.addVar(item, p[3].type, isParameter=True)
                     p[0].items.append(STEntry)
@@ -940,9 +939,9 @@ def p_expression_list(p):
                        | expression'''
     p[0] = IG.Node()
     if len(p) == 4:
-        p[0].items = p[1].items + [p[3].place]
+        p[0].items = p[1].items + [p[3]]
     else:
-        p[0].items = [p[1].place]
+        p[0].items = [p[1]]
 
 def p_variable_reference(p):
     '''variable_reference : IDENTIFIER
