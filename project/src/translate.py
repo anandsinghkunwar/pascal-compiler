@@ -227,17 +227,13 @@ def translateBlock(bb):
             if instr.Src1.isInt() and instr.Src2.isInt():
                 # Just do the comparison
                 if instr.Src1.operand > instr.Src2.operand:
-                    if instr.Op == IG.TACInstr.GT:
-                        G.text.string += indent + "jmp " + label + "\n"
-                    elif instr.Op == IG.TACInstr.GEQ:
+                    if instr.Op == IG.TACInstr.GT or instr.Op == IG.TACInstr.GEQ:
                         G.text.string += indent + "jmp " + label + "\n"
                     else:
                         pass
 
                 elif instr.Src1.operand < instr.Src2.operand:
-                    if instr.Op == IG.TACInstr.LT:
-                        G.text.string += indent + "jmp " + label + "\n"
-                    elif instr.Op == IG.TACInstr.LEQ:
+                    if instr.Op == IG.TACInstr.LT or instr.Op == IG.TACInstr.LEQ:
                         G.text.string += indent + "jmp " + label + "\n"
                     else:
                         pass
@@ -248,7 +244,6 @@ def translateBlock(bb):
                         pass
 
             elif instr.Src1.isInt() and instr.Src2.isVar():
-                op = getReversedMnemonic(instr.Op)
                 if instr.Src2.addrDescEntry.reg:
                     G.text.string += indent + "cmpl $" + str(instr.Src1.operand) + ", %" + instr.Src2.addrDescEntry.reg.name + "\n"
                     G.text.string += indent + op + label + "\n" 
