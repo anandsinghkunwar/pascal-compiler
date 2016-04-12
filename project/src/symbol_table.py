@@ -34,6 +34,28 @@ class Type(object):
         else:
             return self.baseType.getDeepestType()
 
+    # def getArrayLength(self):
+    #     if self.arrayBaseType == None:
+    #         return 1
+    #     length = 0
+    #     for index in len(arrayBeginList):
+    #         if type(arrayBeginList[i]) == chr:
+    #             length += ord(arrayEndList[i]) - ord(arrayBeginList[i]) + 1
+    #         elif type(arrayBeginList[i]) == int:
+    #             length += arrayEndList[i] - arrayBeginList[i] + 1
+    #         elif type(arrayBeginList[i]) == 'true' or (type(arrayBeginList[i]) == 'false' and type(arrayEndList[i]) == 'false'):
+    #             length += 1
+    #         elif type(arrayBeginList[i]) == 'false' and type(arrayEndList[i]) == 'true':
+    #             length += 2
+    #         else:
+    #             # TODO Throw Error FIXME
+    #             print 'Yikes!'
+    #             pass
+
+
+    #     if self.arrayBaseType.name == 'array':
+    #         return length * getArrayLength(self.arrayBaseType)
+
 # Class to implement a symbol table entry.
 class SymTabEntry(object):
     def __init__(self, name, type, mySymTab, nextSymTab=None, isConst=False, isParameter=False, isTemp=False, isOverridable=False, paramNum=None):
@@ -46,6 +68,21 @@ class SymTabEntry(object):
         self.isTemp = isTemp
         self.isOverridable = isOverridable
         self.paramNum = paramNum
+
+        self.isLocal = self.mySymTab.scope != 0
+        if self.isLocal:
+            if self.isInt() or self.isBool() or self.isChar():
+                self.mySymTab.offset = self.mySymTab.offset - 4
+                self.offset = self.mySymTab.offset
+            elif self.isArray():
+                pass
+                # TODO FIXME
+                # self.mySymTab.offset += self.type.getArrayLength()
+                # self.offset = self.mySymTab.offset
+            elif self.isString():
+                pass
+                # TODO FIXME
+                # self.offset = self.mySymTab.off
 
     def scope(self):
         return self.mySymTab.scope
@@ -87,6 +124,7 @@ class SymTab(object):
         self.scope = SymTab.nextScope
         self.childrenTables = []
         SymTab.nextScope += 1
+        self.offset = 0
 
         # Add built in types
         self.addVar('integer', Type('integer', Type.TYPE), isOverridable=True)
