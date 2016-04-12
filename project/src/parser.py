@@ -533,12 +533,33 @@ def p_matched_statement(p):
             # TODO Throw error boolean expected in condition
             pass
     elif len(p) == 4:
-        p[0].code = p[1].code + p[3].code
-        backpatch(p[1].trueList, p[2].quad)
-        backpatch(p[3].nextList, p[1].quad)
-        p[0].nextList = p[1].nextList
-        p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, target=p[1].quad, lineNo=IG.nextQuad))
-        IG.nextQuad += 1
+        if p[1].type == 'while':
+            p[0].code = p[1].code + p[3].code
+            backpatch(p[1].trueList, p[2].quad)
+            backpatch(p[3].nextList, p[1].quad)
+            p[0].nextList = p[1].nextList
+            p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, target=p[1].quad, lineNo=IG.nextQuad))
+            IG.nextQuad += 1
+        elif p[1].type == 'for_to':
+            p[0].code = p[1].code + p[3].code
+            backpatch(p[1].trueList, p[2].quad)
+            backpatch(p[3].nextList, p[1].quad)
+            p[0].nextList = p[1].nextList
+            p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, src1=p[1].place, src2=1, \
+                         dest=p[1].place, op=IG.TACInstr.ADD, lineNo=IG.nextQuad))
+            IG.nextQuad += 1
+            p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, target=p[1].quad, lineNo=IG.nextQuad))
+            IG.nextQuad += 1
+        elif p[1].type == 'for_downto':
+            p[0].code = p[1].code + p[3].code
+            backpatch(p[1].trueList, p[2].quad)
+            backpatch(p[3].nextList, p[1].quad)
+            p[0].nextList = p[1].nextList
+            p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, src1=p[1].place, src2=1, \
+                         dest=p[1].place, op=IG.TACInstr.SUB, lineNo=IG.nextQuad))
+            IG.nextQuad += 1
+            p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, target=p[1].quad, lineNo=IG.nextQuad))
+            IG.nextQuad += 1
 
 def p_unmatched_statement(p):
     '''unmatched_statement : KEYWORD_IF expression KEYWORD_THEN marker_if statement
@@ -560,12 +581,33 @@ def p_unmatched_statement(p):
             p[0].nextList = p[5].nextList + p[6].nextList + p[9].nextList
 
     elif len(p) == 4:
-        p[0].code = p[1].code + p[3].code
-        backpatch(p[1].trueList, p[2].quad)
-        backpatch(p[3].nextList, p[1].quad)
-        p[0].nextList = p[1].nextList
-        p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, target=p[1].quad, lineNo=IG.nextQuad))
-        IG.nextQuad += 1
+        if p[1].type == 'while':
+            p[0].code = p[1].code + p[3].code
+            backpatch(p[1].trueList, p[2].quad)
+            backpatch(p[3].nextList, p[1].quad)
+            p[0].nextList = p[1].nextList
+            p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, target=p[1].quad, lineNo=IG.nextQuad))
+            IG.nextQuad += 1
+        elif p[1].type == 'for_to':
+            p[0].code = p[1].code + p[3].code
+            backpatch(p[1].trueList, p[2].quad)
+            backpatch(p[3].nextList, p[1].quad)
+            p[0].nextList = p[1].nextList
+            p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, src1=p[1].place, src2=1, \
+                         dest=p[1].place, op=IG.TACInstr.ADD, lineNo=IG.nextQuad))
+            IG.nextQuad += 1
+            p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, target=p[1].quad, lineNo=IG.nextQuad))
+            IG.nextQuad += 1
+        elif p[1].type == 'for_downto':
+            p[0].code = p[1].code + p[3].code
+            backpatch(p[1].trueList, p[2].quad)
+            backpatch(p[3].nextList, p[1].quad)
+            p[0].nextList = p[1].nextList
+            p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, src1=p[1].place, src2=1, \
+                         dest=p[1].place, op=IG.TACInstr.ADD, lineNo=IG.nextQuad))
+            IG.nextQuad += 1
+            p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, target=p[1].quad, lineNo=IG.nextQuad))
+            IG.nextQuad += 1
 
 def p_marker_if(p):
     '''marker_if : '''
@@ -595,16 +637,32 @@ def p_for_loop_header(p):
     p[0] = p[1]
 
 def p_for_loop_to(p):
-    '''for_loop_to : KEYWORD_FOR assignment_statement KEYWORD_TO expression KEYWORD_DO'''
+    '''for_loop_to : KEYWORD_FOR assignment_statement marker_loop KEYWORD_TO expression KEYWORD_DO'''
     p[0] = IG.Node()
     p[0].type = 'for_to'
-    # TODO generate code
+    p[0].code = p[2].code + p[5].code
+    p[0].quad = p[3].quad
+    p[0].place = p[2].place
+    p[0].trueList = [p[3].quad]
+    p[0].genCode(IG.TACInstr(IG.TACInstr.IFGOTO, src1=p[2].place, src2=p[5].place, op=IG.TACInstr.LEQ, lineNo=IG.nextQuad))
+    IG.nextQuad += 1
+    p[0].nextList = [IG.nextQuad]
+    p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
+    IG.nextQuad += 1
 
 def p_for_loop_downto(p):
-    '''for_loop_downto : KEYWORD_FOR assignment_statement expression KEYWORD_DOWNTO expression KEYWORD_DO'''
+    '''for_loop_downto : KEYWORD_FOR assignment_statement marker_loop KEYWORD_DOWNTO expression KEYWORD_DO'''
     p[0] = IG.Node()
     p[0].type = 'for_downto'
-    # TODO generate code
+    p[0].code = p[2].code + p[5].code
+    p[0].quad = p[3].quad
+    p[0].place = p[2].place
+    p[0].trueList = [p[3].quad]
+    p[0].genCode(IG.TACInstr(IG.TACInstr.IFGOTO, src1=p[2].place, src2=p[5].place, op=IG.TACInstr.GEQ, lineNo=IG.nextQuad))
+    IG.nextQuad += 1
+    p[0].nextList = [IG.nextQuad]
+    p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
+    IG.nextQuad += 1
 
 def p_for_loop_header_error(p):
     '''for_loop_header : KEYWORD_FOR IDENTIFIER error expression KEYWORD_TO expression KEYWORD_DO
@@ -643,6 +701,7 @@ def p_simple_statement(p):
 def p_assignment_statement(p):
     '''assignment_statement : variable_reference COLON_EQUAL expression'''
     p[0] = IG.Node()
+    p[0].place = p[1].place
     p[0].nextList = p[3].nextList
     p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, src1=p[3].place, dest=p[1].place, lineNo=IG.nextQuad))
     IG.nextQuad += 1
