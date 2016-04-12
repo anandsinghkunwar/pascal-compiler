@@ -112,7 +112,7 @@ class Operand(object):
             self.operandType = Operand.ARRAYELEMENT
 
     def isInt(self):
-        return self.operandType == Operand.INT
+        return (self.operandType == Operand.INT) or self.isBool()
     def isString(self):
         return self.operandType == Operand.STRING
     def isBool(self):
