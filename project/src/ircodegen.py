@@ -93,7 +93,7 @@ class Operand(object):
                 self.operandType = Operand.BOOLVAR
             else:
                 self.operandType = Operand.ARRAY
-            G.varMap[self.operand] = CG.AddrDescEntry(self.operand)
+            G.varMap[self.operand] = CG.AddrDescEntry(self.operand, isParam = varObj.isParameter, paramNum = varObj.paramNum)
             self.addrDescEntry = G.varMap[self.operand]
         elif type(varObj) is int:
             self.operand = varObj

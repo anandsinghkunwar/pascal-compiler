@@ -365,6 +365,8 @@ def translateBlock(bb):
                 if arg.isVar():
                     if arg.addrDescEntry.reg:
                         G.text.string += indent + "pushl %" + arg.addrDescEntry.reg.name  + indent + "# Pushing argument\n"
+                    elif arg.addrDescEntry.isParam: # argument of function
+                        G.text.string += indent + "pushl " + str(4*(arg.addrDescEntry.paramNum + 2)) + "(%ebp)" + indent + "# Pushing argument\n"
                     else:
                         G.text.string += indent + "pushl " + arg.addrDescEntry.name + indent + "# Pushing argument\n"
                 elif arg.isInt():
