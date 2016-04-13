@@ -28,7 +28,10 @@ class Register(object):
     def spill(self):
         for varName in self.varNames:
             G.varMap[varName].reg = None
-            G.text.string += " "*4 + "movl %" + self.name + ", " + varName + " "*4 + "#Spilling register\n"
+            if G.varMap[varName].isLocal:
+                G.text.string += " "*4 + "movl %" + self.name + ", " + str(G.varMap[varName].offset) + '(%ebp)' + " "*4 + "#Spilling register\n"
+            else:
+                G.text.string += " "*4 + "movl %" + self.name + ", " + varName + " "*4 + "#Spilling register\n"
         self.varNames = set()
 
     def dump(self):
