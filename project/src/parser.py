@@ -1079,6 +1079,7 @@ def p_func_proc_statement(p):
                 else:
                     if type(p[3].items[0].place) == int or type(p[3].items[0].place) == str:
                         ioFmtString = str(p[3].items[0].place)
+                        p[3].items = []
                     else:
                         # TODO Error
                         print 'YOLO'
