@@ -1086,6 +1086,7 @@ def p_variable_reference(p):
             p[0].type = STEntry.type
         elif len(p) == 3:
             p[0].place = IG.ArrayElement(STEntry, p[2].place)
+            p[0].type = p[0].place.type
     else:
         print_error('Semantic error at line ' + str(p.lineno(1)))
         print_error('\tVariable ' + p[1] + ' does not exist')
@@ -1154,16 +1155,18 @@ def p_func_proc_statement(p):
         if p[1] == 'read' or p[1] == 'readln':
             if len(p[3].items) == 1:
                 if p[3].items[0].type.getDeepestType() == 'integer':
-                    ioFmtString = '"%d"'
+                    ioFmtString = '%d'
                 elif p[3].items[0].type.getDeepestType() == 'string':
-                    ioFmtString = '"%s"'
+                    ioFmtString = '%s'
                 elif p[3].items[0].type.getDeepestType() == 'char':
-                    ioFmtString = '"%c"'
+                    ioFmtString = '%c'
                 else:
                     print_error('Semantic error at line ' + str(p.lineno(1)))
                     print_error('\tType ' + p[3].items[0].type.getDeepestType() + ' not supported for read')
                     sys.exit(1)
-
+                if p[1] == 'readln':
+                    ioFmtString += '\\n'
+                ioFmtString = '"' + ioFmtString + '"'
                 ioArgList = [IG.Operand(item.place) for item in p[3].items]
                 p[0].genCode(IG.TACInstr(IG.TACInstr.SCANF, ioArgList=ioArgList,
                                         ioFmtString=ioFmtString, lineNo=IG.nextQuad))
