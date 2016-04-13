@@ -326,12 +326,12 @@ def p_var_statement_error(p):
 
 def p_proc_def(p):
     '''proc_def : proc_head SEMICOLON declarations block SEMICOLON'''
-    ST.currSymTab.previousTable.addTable(ST.currSymTab)
-    ST.currSymTab = ST.currSymTab.previousTable
     p[0] = IG.Node()
     p[0].code = p[1].code + p[3].code + p[4].code
-    p[0].genCode(IG.TACInstr(IG.TACInstr.RETURN, lineNo=IG.nextQuad))
+    p[0].genCode(IG.TACInstr(IG.TACInstr.RETURN, lineNo=IG.nextQuad, symTableParser=ST.currSymTab))
     IG.nextQuad += 1
+    ST.currSymTab.previousTable.addTable(ST.currSymTab)
+    ST.currSymTab = ST.currSymTab.previousTable
 
 def p_proc_def_head_error(p):
     '''proc_def : proc_head declarations block SEMICOLON'''
@@ -357,17 +357,17 @@ def p_proc_head(p):
     'proc_head : KEYWORD_PROCEDURE IDENTIFIER parameter_list'
     STEntry = ST.currSymTab.previousTable.addProcedure(p[2], len(p[3].items), p[3].items)
     p[0] = IG.Node()
-    p[0].genCode(IG.TACInstr(IG.TACInstr.LABEL, label=STEntry.name, paramList=p[3].items, lineNo=IG.nextQuad))
+    p[0].genCode(IG.TACInstr(IG.TACInstr.LABEL, label=STEntry.name, paramList=p[3].items, lineNo=IG.nextQuad, symTableParser=ST.currSymTab))
     IG.nextQuad += 1
 
 def p_func_def(p):
     '''func_def : func_head SEMICOLON declarations block SEMICOLON'''
-    ST.currSymTab.previousTable.addTable(ST.currSymTab)
-    ST.currSymTab = ST.currSymTab.previousTable
     p[0] = IG.Node()
     p[0].code = p[1].code + p[3].code + p[4].code
-    p[0].genCode(IG.TACInstr(IG.TACInstr.RETURN, src1=p[1].place, lineNo=IG.nextQuad))
+    p[0].genCode(IG.TACInstr(IG.TACInstr.RETURN, src1=p[1].place, lineNo=IG.nextQuad, symTableParser=ST.currSymTab))
     IG.nextQuad += 1
+    ST.currSymTab.previousTable.addTable(ST.currSymTab)
+    ST.currSymTab = ST.currSymTab.previousTable
 
 def p_func_def_head_error(p):
     '''func_def : func_head declarations block SEMICOLON'''
