@@ -8,12 +8,11 @@ from lexer import tokens
 
 def backpatch(instrList, target):
     for instr in instrList:
-        print instr, IG.nextQuad
         if instr == IG.InstrList[instr].LineNo:
-            print 'Backpatching', instr
             IG.InstrList[instr].Target = target
         else:
-            print 'Why is this happening!', instr
+            pass
+            # print 'Why is this happening!', instr
 
 def p_start(p):
     'start : program_statement global_decs_defs block DOT'
@@ -821,9 +820,6 @@ def p_expression(p):
             #                          src2=p[3].place, dest=p[0].place, lineNo=IG.nextQuad))
             p[0].trueList = [IG.nextQuad]
             p[0].falseList = [IG.nextQuad+1]
-            print 'Given src2', p[3].place
-            print "Truelist", p[0].trueList
-            print "Falselist", p[0].falseList
             p[0].genCode(IG.TACInstr(IG.TACInstr.IFGOTO, op=IG.TACInstr.OpMap[p[2]], src1=p[1].place,
                                      src2=p[3].place, lineNo=IG.nextQuad))
             IG.nextQuad += 1
@@ -887,7 +883,6 @@ def p_term(p):
     p[0] = IG.Node()
     if len(p) == 5:
         if p[1].type.getDeepestType() == 'boolean' and p[4].type.getDeepestType() == 'boolean':
-            print 'truelist', p[1].trueList, 'quad', p[3].quad
             backpatch(p[1].trueList, p[3].quad)
             p[0].trueList = p[4].trueList
             p[0].falseList = p[1].falseList + p[4].falseList
@@ -993,7 +988,6 @@ def p_function_call(p):
                      | IDENTIFIER LEFT_PARENTHESIS RIGHT_PARENTHESIS'''
     p[0] = IG.Node()
     STEntry = ST.lookup(p[1])
-    print STEntry
     if STEntry:
         if STEntry.isMyName:
             STEntry = ST.lookup(p[1], symTab=ST.currSymTab.previousTable)
