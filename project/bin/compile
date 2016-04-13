@@ -23,7 +23,8 @@ else:
 globalObjectsModule.data = machineModule.Data()
 globalObjectsModule.text = machineModule.Text()
 parserModule.parser.parse(data, tracking=True)
-irCodeGenModule.generateIr(irCodeGenModule.InstrList[1:])
+fp = open("test.ir","w")
+fp.write(irCodeGenModule.generateIr(irCodeGenModule.InstrList[1:]))
 #print "\n" + "#"*14 + "Symbol Table" + "#"*14 + "\n"
 #symTabModule.rootSymTab.printTable()
 codeGen = codeGenModule.Codegen(irCodeGenModule.InstrList[1:])

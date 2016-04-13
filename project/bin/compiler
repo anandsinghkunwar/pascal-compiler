@@ -1,0 +1,25 @@
+#! /bin/sh
+IR=True
+ASSM=True
+while getopts ia opt; do
+    case $opt in
+        i)
+            unset IR
+            IR=False
+            ;;
+        a)
+            unset ASSM
+            ASSM=False
+    esac
+done
+for last; do true; done
+bin/compile $last > test.S
+gcc -m32 test.S
+if [ $IR = True ]
+then
+    rm -f test.ir
+fi
+if [ $ASSM = True ]
+then
+    rm -f test.S
+fi
