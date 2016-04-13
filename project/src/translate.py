@@ -210,6 +210,8 @@ def translateBlock(bb):
                             else:   # TODO constant of other types????
                                 pass
                     G.text.string += indent + "call " + instr.TargetLabel + "\n"
+                    if instr.ParamList is not None:
+                        G.text.string += indent + "addl $" + str(len(instr.ParamList) * 4) + ", %esp" + indent + "# Removing parameters from stack\n"
                     # No need to check if a is in a register or not, since the current
                     # instruction will be the last of this basic block
                     if instr.Dest.addrDescEntry.isLocal:
@@ -360,6 +362,8 @@ def translateBlock(bb):
                         pass
                     G.text.string += indent + "#pushing function parameters\n"
             G.text.string += indent + "call " + instr.TargetLabel + "\n"
+            if instr.ParamList is not None:
+                G.text.string += indent + "addl $" + str(len(instr.ParamList) * 4) + ", %esp" + indent + "# Removing parameters from stack\n"
 
 ######################################################  isReturn instruction #####################################################
 
