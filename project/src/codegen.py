@@ -42,11 +42,14 @@ class AddrDescEntry(object):
         self.name = name
         self.dataType = 'integer'
         self.reg = None
-        self.memAddr = globjects.data.allocateMem(self.name)
         self.dirty = False
         self.isParam = isParam
         self.paramNum = paramNum
         self.isLocal = isLocal
+        if not self.isLocal:
+            self.memAddr = globjects.data.allocateMem(self.name)
+        else:
+            self.memAddr = None
         self.offset = offset
 
     def loadIntoReg(self, regName):
