@@ -77,18 +77,32 @@ class SymTabEntry(object):
 
         self.isLocal = self.mySymTab.scope != 0
         if self.isLocal:
-            if self.isInt() or self.isBool() or self.isChar():
-                self.mySymTab.offset = self.mySymTab.offset - 4
-                self.offset = self.mySymTab.offset
-            elif self.isArray():
-                pass
-                # TODO FIXME
-                # self.mySymTab.offset += self.type.getArrayLength()
-                # self.offset = self.mySymTab.offset
-            elif self.isString():
-                pass
-                # TODO FIXME
-                # self.offset = self.mySymTab.off
+            if self.isParameter:
+                if self.isInt() or self.isBool() or self.isChar():
+                    self.mySymTab.paramOffset = self.mySymTab.paramOffset + 4
+                    self.offset = self.mySymTab.paramOffset
+                elif self.isArray():
+                    pass
+                    # TODO FIXME
+                    # self.mySymTab.offset += self.type.getArrayLength()
+                    # self.offset = self.mySymTab.offset
+                elif self.isString():
+                    pass
+                    # TODO FIXME
+                    # self.offset = self.mySymTab.off
+            else:
+                if self.isInt() or self.isBool() or self.isChar():
+                    self.mySymTab.offset = self.mySymTab.offset - 4
+                    self.offset = self.mySymTab.offset
+                elif self.isArray():
+                    pass
+                    # TODO FIXME
+                    # self.mySymTab.offset += self.type.getArrayLength()
+                    # self.offset = self.mySymTab.offset
+                elif self.isString():
+                    pass
+                    # TODO FIXME
+                    # self.offset = self.mySymTab.off
 
     def scope(self):
         return self.mySymTab.scope
@@ -132,6 +146,7 @@ class SymTab(object):
         self.paramCount = 0
         SymTab.nextScope += 1
         self.offset = 0
+        self.paramOffset = 4
 
         # Add built in types
         self.addVar('integer', Type('integer', Type.TYPE), isOverridable=True)
