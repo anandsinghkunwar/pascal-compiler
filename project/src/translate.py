@@ -194,9 +194,11 @@ def translateBlock(bb):
             # Basic assignment
             else:   # basic assignment   a = b
                 # Case 1: b is an immediate
-                if instr.Src1.isInt():  #b is integer
+                if instr.Src1.isInt() or instr.Src1.isChar():  #b is integer or char
                     if instr.Dest.addrDescEntry.reg:  #a is in a register
                         G.text.string += indent + "movl $" + str(instr.Src1.operand) + ", %" + instr.Dest.addrDescEntry.reg.name + "\n"
+                    elif instr.Dest.addrDescEntry.isLocal:  #a is local variable or parameter
+                        G.text.string += indent + "movl $" + str(instr.Src1.operand) + ", " + str(instr.Dest.addrDescEntry.offset) + "(%ebp)\n"
                     else:   #a is in memory
                         G.text.string += indent + "movl $" + str(instr.Src1.operand) + ", " + instr.Dest.addrDescEntry.name + "\n"
 
@@ -206,8 +208,19 @@ def translateBlock(bb):
                     # register of b.
                     instr.Dest.addrDescEntry.loadIntoReg(instr.Src1.addrDescEntry.reg.name)
 
-                # Case 3: b is in memory
-                else:   # b is in memory
+                # Case 3: b is local variable or parameter
+                elif instr.Src1.addrDescEntry.isLocal:
+                    # If a is in a register
+                    if instr.Dest.addrDescEntry.reg:
+                        G.text.string += indent + "movl " + str(instr.Src1.addrDescEntry.offset) + "(%ebp), %" + instr.Dest.addrDescEntry.reg.name + "\n"
+                    else:   # a is either local variable or parameter or is global variable
+                        locTuple = bb.getReg()
+                        loc = locTuple[0]
+                        G.text.string += indent + "movl " + str(instr.Src1.addrDescEntry.offset) + "(%ebp), %" + loc.name + "\n"
+                        instr.Dest.addrDescEntry.loadIntoReg(loc.name)
+
+                # Case 4: b is global varibale
+                else:
                     # If a is in a register
                     if instr.Dest.addrDescEntry.reg:
                         G.text.string += indent + "movl " + instr.Src1.addrDescEntry.name + ", %" + instr.Dest.addrDescEntry.reg.name + "\n"
