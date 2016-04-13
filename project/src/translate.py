@@ -88,19 +88,21 @@ def translateBlock(bb):
                     loc = locTuple[0]
 
                     # Moving the first operand into the destination register
-                    if instr.Src1.isInt():  # y is integer
+                    if instr.Src1.isInt() or instr.Src1.isChar():  # y is integer or char
                         G.text.string += indent + "movl $" + str(instr.Src1.operand) + ", %" + loc.name + "\n"
                     elif locTuple[1]:   # y is variable and getReg returned y's register. so loc has y's value
                         pass
                     else:   # y is a variable and loc doesn't have y's value
                         if instr.Src1.addrDescEntry.reg:      # y exists in a non disposable register
                             G.text.string += indent + "movl %" + instr.Src1.addrDescEntry.reg.name + ", %" + loc.name + "\n"
-                        else:   # y is a variable only in memory
+                        elif instr.Src1.addrDescEntry.isLocal:  # y is local variable or parameter
+                            G.text.string += indent + "movl " + str(instr.Src1.addrDescEntry.offset) + "(%ebp), %" + loc.name + "\n"
+                        else:   # y is a global variable only in memory
                             G.text.string += indent + "movl " + instr.Src1.addrDescEntry.name + ", %" + loc.name + "\n"
 
                     # Performing the operation
                     # Case 1: Second operand is an immediate
-                    if instr.Src2.isInt():
+                    if instr.Src2.isInt() or instr.Src2.isChar():
                         G.text.string += indent + op + " $" + str(instr.Src2.operand) + ", %" + loc.name + "\n"
 
                     # Case 2: Second operand is a variable in a register
@@ -112,7 +114,16 @@ def translateBlock(bb):
                         else:
                             G.text.string += indent + op + " %" + instr.Src2.addrDescEntry.reg.name + ", %" + loc.name + "\n"
 
-                    # Case 3: Second operand is a variable in memory
+                    # Case 3: Second operand is a local variable or parameter
+                    elif instr.Src2.addrDescEntry.isLocal:
+                        if instr.Op == IG.TACInstr.SHL or instr.Op == IG.TACInstr.SHR:
+                            G.text.string += indent + "xchgl %ecx, " + str(instr.Src2.addrDescEntry.offset) + "(%ebp)\n"
+                            G.text.string += indent + op + " %cl, %" + loc.name + "\n"
+                            G.text.string += indent + "xchgl %ecx, " + str(instr.Src2.addrDescEntry.offset) + "(%ebp)\n"
+                        else:
+                            G.text.string += indent + op + " " + str(instr.Src2.addrDescEntry.offset) + "(%ebp), %" + loc.name + "\n"
+
+                    # Case 4: Second operand is a global variable in memory
                     else:   #z doesn't exist in a register
                         if instr.Op == IG.TACInstr.SHL or instr.Op == IG.TACInstr.SHR:
                             G.text.string += indent + "xchgl %ecx, " + instr.Src2.addrDescEntry.name + "\n"
