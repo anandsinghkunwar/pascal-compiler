@@ -318,6 +318,12 @@ def translateBlock(bb):
                             pass
                     elif type(arg) == int:
                         G.text.string += indent + "pushl $" + str(arg)
+                    elif arg == 'true' or arg == 'false': # constant boolean
+                        G.text.string += indent + "pushl $"
+                        if arg == 'true':
+                            G.text.string += "1"
+                        else:
+                            G.text.string += "0"
                     elif type(arg) == str:
                         if len(arg) == 1:   # constant char
                             G.text.string += indent + "pushl $" + str(ord(arg)) # assuming only print operations on char
@@ -326,12 +332,6 @@ def translateBlock(bb):
                             pass
                     elif type(arg) == IG.ArrayElement:  # TODO
                         pass
-                    elif arg == 'true' or arg == 'false': # constant boolean
-                        G.text.string += indent + "pushl $"
-                        if arg == 'true':
-                            G.text.string += "1"
-                        else:
-                            G.text.string += "0"
                     else:   # TODO constant of other types????
                         pass
                     G.text.string += indent + "#pushing function parameters\n"
@@ -343,7 +343,7 @@ def translateBlock(bb):
             # If there is a value to return
             if instr.Src1:
                 G.registerMap["eax"].spill()
-                if instr.Src1.isInt():
+                if instr.Src1.isInt() or instr.Src1.isChar():
                     G.text.string += indent + "movl $" + str(instr.Src1.operand) + ", %eax\n"
                 elif instr.Src1.addrDescEntry.reg:
                     G.text.string += indent + "movl %" + instr.Src1.addrDescEntry.reg.name + ", %eax\n"
@@ -376,11 +376,11 @@ def translateBlock(bb):
                 if arg.isVar():
                     if arg.addrDescEntry.reg:
                         G.text.string += indent + "pushl %" + arg.addrDescEntry.reg.name  + indent + "# Pushing argument\n"
-                    elif arg.addrDescEntry.isParam: # argument of function
-                        G.text.string += indent + "pushl " + str(4*(arg.addrDescEntry.paramNum + 2)) + "(%ebp)" + indent + "# Pushing argument\n"
+                    elif arg.addrDescEntry.isLocal:
+                        G.text.string += indent + "pushl " + str(arg.addrDescEntry.offset) + "(%ebp)" + indent + "# Pushing argument\n"
                     else:
                         G.text.string += indent + "pushl " + arg.addrDescEntry.name + indent + "# Pushing argument\n"
-                elif arg.isInt():
+                elif arg.isInt() or arg.isChar():
                     G.text.string += indent + "pushl $" + str(arg.operand) + indent + "# Pushing argument\n"
             G.text.string += indent + "pushl $" + instr.IOFmtStringAddr + indent + "# Pushing argument\n"
             G.text.string += indent + "call printf\n"
@@ -405,7 +405,10 @@ def translateBlock(bb):
                 if arg.isVar():
                     # Discard the register value for arg
                     arg.addrDescEntry.removeReg()
-                    G.text.string += indent + "pushl $" + arg.addrDescEntry.name + indent + "# Pushing argument\n"
+                    if arg.addrDescEntry.isLocal:
+                        G.text.string += indent + "pushl " + str(arg.addrDescEntry.offset) + "(%ebp)" + indent + "# Pushing argument\n"
+                    else:
+                        G.text.string += indent + "pushl $" + arg.addrDescEntry.name + indent + "# Pushing argument\n"
             G.text.string += indent + "pushl $" + instr.IOFmtStringAddr + indent + "# Pushing argument\n"
             G.text.string += indent + "call scanf\n"
             G.text.string += indent + "addl $" + str(4 * (len(instr.IOArgList) + 1)) + ", %esp\n"
