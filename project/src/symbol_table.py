@@ -70,6 +70,8 @@ class SymTabEntry(object):
         self.isTemp = isTemp
         self.isOverridable = isOverridable
         self.paramNum = None
+        self.offset = None
+        self.
         # TODO This is probably not required now
         if self.isParameter:
             self.paramNum = self.mySymTab.paramCount
