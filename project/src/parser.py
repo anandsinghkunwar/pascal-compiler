@@ -593,7 +593,6 @@ def p_matched_statement(p):
     elif len(p) == 10:
         if p[2].type.getDeepestType() == 'boolean':
             p[0].code = p[2].code + p[4].code + p[5].code + p[6].code + p[9].code
-            print 'test', p[8].quad
             backpatch(p[2].falseList, p[8].quad)
             backpatch(p[2].trueList, p[4].quad)
             p[0].nextList = p[5].nextList + p[6].nextList + p[9].nextList
