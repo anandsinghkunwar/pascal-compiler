@@ -78,7 +78,7 @@ class SymTabEntry(object):
             self.mySymTab.paramCount += 1
 
         self.isLocal = self.mySymTab.scope != 0
-        if self.isLocal:
+        if self.isLocal and not self.isPredefined():
             if self.isParameter:
                 if self.isInt() or self.isBool() or self.isChar():
                     self.mySymTab.paramOffset = self.mySymTab.paramOffset + 4
