@@ -186,7 +186,7 @@ def p_array_declaration(p):
     if ST.typeExists(p[6].type):
         baseType = ST.lookup(p[6].type.name).type
         p[0].type = ST.Type('array', ST.Type.TYPE, arrayBeginList=p[3].arrayBeginList,
-                        arrayEndList=p[3].arrayEndList, arrayBaseType=baseType)
+                        arrayEndList=p[3].arrayEndList, arrayBaseType=baseType, arrayRangeTypeList=p[3].arrayTypeList)
     else:
         print_error('Semantic error at line ' + str(p.lineno(6)))
         print_error('\tUndefined Type ' + p[6].type.getDeepestType())
@@ -200,9 +200,11 @@ def p_array_ranges(p):
     if len(p) == 4:
         p[0].arrayBeginList = p[1].arrayBeginList + p[3].arrayBeginList
         p[0].arrayEndList = p[1].arrayEndList + p[3].arrayEndList
+        p[0].arrayTypeList = p[1].arrayTypeList + [p[3].type]
     else:
         p[0].arrayBeginList = p[1].arrayBeginList
         p[0].arrayEndList = p[1].arrayEndList
+        p[0].arrayTypeList = [p[1].type]
 
 def p_array_range(p):
     '''array_range : integer_range
@@ -217,6 +219,7 @@ def p_integer_range(p):
     if (p[1] <= p[3]):
         p[0].arrayBeginList = [p[1]]
         p[0].arrayEndList = [p[3]]
+        p[0].type = ST.Type('char', ST.Type.TYPE)
     else:
         print_error("Semantic error at line", p.lineno(3))
         print_error("\tEnd index is less than start index")
@@ -229,6 +232,8 @@ def p_char_range(p):
     if (p[1] <= p[3]):
         p[0].arrayBeginList = [p[1]]
         p[0].arrayEndList = [p[3]]
+        p[0].type = ST.Type('char', ST.Type.TYPE)
+
     else:
         print_error("Semantic error at line", p.lineno(3))
         print_error("\tEnd index is less than start index")
@@ -242,6 +247,7 @@ def p_boolean_range(p):
     p[0] = IG.Node()
     p[0].arrayBeginList = [p[1]]
     p[0].arrayEndList = [p[3]]
+    p[0].type = ST.Type('boolean', ST.Type.TYPE)
 
 def p_char(p):
     '''char : CONSTANT_STRING
@@ -1092,8 +1098,13 @@ def p_variable_reference(p):
             p[0].place = STEntry
             p[0].type = STEntry.type
         elif len(p) == 3:
-            p[0].place = IG.ArrayElement(STEntry, p[2].place)
-            p[0].type = p[0].place.type
+            if STEntry.type.arrayRangeTypeList[0].getDeepestType() == p[2].type.getDeepestType():
+                p[0].place = IG.ArrayElement(STEntry, p[2].place)
+                p[0].type = p[0].place.type
+            else:
+                print_error('Semantic error at line ' + str(p.lineno(2)))
+                print_error('\tVariable ' + p[1] + ' referenced with incorrect type ' + p[2].type.getDeepestType())
+                sys.exit(1)
     else:
         print_error('Semantic error at line ' + str(p.lineno(1)))
         print_error('\tVariable ' + p[1] + ' does not exist')
