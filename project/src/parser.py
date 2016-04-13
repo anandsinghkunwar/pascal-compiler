@@ -8,6 +8,7 @@ from lexer import tokens
 
 def backpatch(instrList, target):
     for instr in instrList:
+        print instr, IG.nextQuad
         if instr == IG.InstrList[instr].LineNo:
             print 'Backpatching', instr
             IG.InstrList[instr].Target = target
@@ -540,7 +541,7 @@ def p_matched_statement(p):
             backpatch(p[2].trueList, p[4].quad)
             p[0].nextList = p[5].nextList + p[6].nextList + p[9].nextList
         else:
-            print_error('Semantic error at line ' + str(p.lineno(5)))
+            print_error('Semantic error at line ' + str(p.lineno(2)))
             print_error('\tBoolean expected found ' + p[2].type.getDeepestType())
             sys.exit(1)
     elif len(p) == 4:
@@ -692,7 +693,7 @@ def p_for_loop_header_error(p):
 def p_while_loop_header(p):
     '''while_loop_header : KEYWORD_WHILE marker_while_begin expression KEYWORD_DO'''
 
-    if p[3].type.name == 'boolean':
+    if p[3].type.getDeepestType() == 'boolean':
         p[0] = IG.Node()
         p[0].type = 'while'
         p[0].code = p[3].code
@@ -700,8 +701,9 @@ def p_while_loop_header(p):
         p[0].trueList = p[3].trueList
         p[0].quad = p[2].quad
     else:
-        pass
-        #TODO Throw error boolean expected
+        print_error('Semantic error at line ' + str(p.lineno(3)))
+        print_error('\tUndefined Type ' + p[3].type.getDeepestType())
+        sys.exit(1)
 
 def p_marker_while_begin(p):
     '''marker_while_begin : '''
@@ -780,15 +782,16 @@ def p_simple_expression(p):
             p[0].trueList = p[1].trueList + p[4].trueList
             p[0].falseList = p[4].falseList
             p[0].code = p[1].code + p[4].code
-            p[1].type = ST.Type('boolean', ST.Type.TYPE)
+            p[0].type = ST.Type('boolean', ST.Type.TYPE)
             # p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.LOGICOR, src1=p[1].place, src2=p[4].place,
             #                          dest=p[0].place, lineNo=IG.nextQuad))
             # IG.nextQuad += 1
         else:
-            pass
-            # TODO Throw Error boolean expected
+            print_error('Semantic error at line ' + str(p.lineno(1)))
+            print_error('\tBoth operands of OR operator should be boolean, found ' + p[1].type.getDeepestType() + ' and ' + p[4].type.getDeepestType())
+            sys.exit(1)
     elif len(p) == 4:
-        if p[1].type.getDeepestType() == 'integer' and p[3].getDeepestType() == 'integer':
+        if p[1].type.getDeepestType() == 'integer' and p[3].type.getDeepestType() == 'integer':
             p[0].place = IG.newTempInt()
             p[0].type = p[0].place.type
             p[0].code = p[1].code + p[3].code
@@ -796,8 +799,9 @@ def p_simple_expression(p):
                                      src2=p[3].place, dest=p[0].place, lineNo=IG.nextQuad))
             IG.nextQuad += 1
         else:
-            # TODO Throw Error integer expected
-            pass
+            print_error('Semantic error at line ' + str(p.lineno(1)))
+            print_error('\tBoth operands should be integer, found ' + p[1].type.getDeepestType() + ' and ' + p[3].type.getDeepestType())
+            sys.exit(1)
     elif len(p) == 2:
         p[0] = p[1]
 
@@ -814,20 +818,21 @@ def p_term(p):
     p[0] = IG.Node()
     if len(p) == 5:
         if p[1].type.getDeepestType() == 'boolean' and p[4].type.getDeepestType() == 'boolean':
+            print 'truelist', p[1].trueList, 'quad', p[3].quad
             backpatch(p[1].trueList, p[3].quad)
             p[0].trueList = p[4].trueList
             p[0].falseList = p[1].falseList + p[4].falseList
-            p[0].place = IG.newTempBool()
-            p[0].type = p[0].place.type
+            p[0].type = ST.Type('boolean', ST.Type.TYPE)
             p[0].code = p[1].code + p[4].code
             # p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.LOGICAND, src1=p[1].place, src2=p[4].place,
             #                          dest=p[0].place, lineNo=IG.nextQuad))
             # IG.nextQuad += 1
         else:
-            # TODO Throw error boolean expected
-            pass
-    elif len(p) == 4:
+            print_error('Semantic error at line ' + str(p.lineno(1)))
+            print_error('\tBoth operands of AND operator should be boolean, found ' + p[1].type.getDeepestType() + ' and ' + p[4].type.getDeepestType())
+            sys.exit(1)
         # We have only integer type for operations
+    elif len(p) == 4:
         if p[1].type.getDeepestType() == 'integer' and p[3].type.getDeepestType() == 'integer':
             p[0].place = IG.newTempInt()
             p[0].type = p[0].place.type
@@ -836,8 +841,10 @@ def p_term(p):
                                      src2=p[3].place, dest=p[0].place, lineNo=IG.nextQuad))
             IG.nextQuad += 1
         else:
-            # TODO Throw error integer expected
-            pass
+            print_error('Semantic error at line ' + str(p.lineno(1)))
+            print_error('\tBoth operands should be integer, found ' + p[1].type.getDeepestType() + ' and ' + p[3].type.getDeepestType())
+            sys.exit(1)
+
     elif len(p) == 2:
         p[0] = p[1]
         # print p[0].type
@@ -861,19 +868,23 @@ def p_factor(p):
                 # dest=p[0].place, lineNo=IG.nextQuad))
                 # IG.nextQuad += 1
             else:
-                # TODO throw error boolean expected
-                pass
+                print_error('Semantic error at line ' + str(p.lineno(2)))
+                print_error('\tNOT operator requires boolean, found ' + p[2].type.getDeepestType())
+                sys.exit(1)
+
         else:
-            if p[0].type.getDeepestType() == 'integer':
+            if p[2].type.getDeepestType() == 'integer':
                 p[0].place = IG.newTempInt()
                 p[0].type = p[0].place.type
                 p[0].code = p[2].code
-                p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.OpMap[p[1]], src1=p[1].place,
+                p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.OpMap[p[1]], src1=p[2].place,
                                          dest=p[0].place, lineNo=IG.nextQuad))
                 IG.nextQuad += 1
             else:
-                # TODO Throw error integer expected
-                pass
+                print_error('Semantic error at line ' + str(p.lineno(2)))
+                print_error('\tOperator required integer, found ' + p[2].type.getDeepestType())
+                sys.exit(1)
+
 
     elif len(p) == 2:
 
@@ -882,13 +893,15 @@ def p_factor(p):
         # TODO handle case for if boolean then  ...
         if p[1].place == 'true':
             p[0].trueList = [IG.nextQuad]
-            # p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
-            # IG.nextQuad += 1
+            # TODO Evaluate the need for this
+            p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
+            IG.nextQuad += 1
 
         elif p[1].place == 'false':
             p[0].falseList = [IG.nextQuad]
-            #p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
-            #IG.nextQuad += 1
+            # TODO Evaluate the need for this
+            p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
+            IG.nextQuad += 1
 
         elif p[1].type.getDeepestType() == 'boolean':
             p[0].trueList = [IG.nextQuad]
@@ -922,21 +935,25 @@ def p_function_call(p):
                     elif STEntry.type.returnType.getDeepestType() == 'char':
                         p[0].place = IG.newTempChar()
                     else:
-                        # TODO Throw Error FIXME Cannot Return any other type
-                        pass
+                        print_error('Semantic error at line ' + str(p.lineno(1)))
+                        print_error('\tCannot return type ' + STEntry.type.returnType.getDeepestType())
+                        sys.exit(1)
+
                     p[0].type = p[0].place.type
                     p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.CALLOP,
                                              dest=p[0].place, targetLabel=STEntry.name, lineNo=IG.nextQuad))
                     IG.nextQuad += 1
                 else:
-                    # TODO Throw Error No parameter required
-                    pass
+                    print_error('Semantic error at line ' + str(p.lineno(2)))
+                    print_error('\tFunction '+ p[1] + ' accepts ' + str(len(STEntry.type.paramList)) + 'arguments, none given')
+                    sys.exit(1)
             elif len(p) == 5:
                 if len(STEntry.type.paramList) == len(p[3].items):
                     for index in range(len(p[3].items)):
                         if STEntry.type.paramList[index].type.getDeepestType() != p[3].items[index].type.getDeepestType():
-                            # TODO Throw Error
-                            pass
+                            print_error('Semantic error at line ' + str(p.lineno(2)))
+                            print_error('\tFunction '+ p[1] + ' argument ' + str(index+1) + ' mismatch type, expected ' + STEntry.type.paramList[index].type.getDeepestType() + ' given '+ p[3].items[index].type.getDeepestType())
+                            sys.exit(1)
 
                     if STEntry.type.returnType.getDeepestType() == 'integer':
                         p[0].place = IG.newTempInt()
@@ -945,21 +962,25 @@ def p_function_call(p):
                     elif STEntry.type.returnType.getDeepestType() == 'char':
                         p[0].place = IG.newTempChar()
                     else:
-                        # TODO Throw Error FIXME Cannot Return any other type
-                        pass
+                        print_error('Semantic error at line ' + str(p.lineno(1)))
+                        print_error('\tCannot return type ' + STEntry.type.returnType.getDeepestType())
+                        sys.exit(1)
                     p[0].type = p[0].place.type
                     p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, op=IG.TACInstr.CALLOP,
                                              dest=p[0].place, lineNo=IG.nextQuad, paramList=[item.place for item in p[3].items], targetLabel=STEntry.name))
                     IG.nextQuad += 1
                 else:
-                    # TODO Throw error number of parameters not matching
-                    pass
+                    print_error('Semantic error at line ' + str(p.lineno(1)))
+                    print_error('\tCall function '+ p[1] + ', number of arguments mismatch')
+                    sys.exit(1)
         else:
-            # Throw Error identifier is not function
-            pass
+            print_error('Semantic error at line ' + str(p.lineno(1)))
+            print_error('\t' + p[1] + ' is not a function')
+            sys.exit(1)
     else:
-        # Throw Error function does not exist
-        pass
+        print_error('Semantic error at line ' + str(p.lineno(1)))
+        print_error('\t' + p[1] + ' function does not exist')
+        sys.exit(1)
 
 def p_expression_list(p):
     '''expression_list : expression_list COMMA expression
@@ -984,8 +1005,9 @@ def p_variable_reference(p):
         elif len(p) == 3:
             p[0].place = IG.ArrayElement(STEntry, p[2].place)
     else:
-        # TODO Throw Error
-        pass
+        print_error('Semantic error at line ' + str(p.lineno(1)))
+        print_error('\tVariable ' + p[1] + ' does not exist')
+        sys.exit(1)
 
 def p_array_index(p):
     '''array_index : array_index COMMA expression
@@ -1046,7 +1068,6 @@ def p_func_proc_statement(p):
     if len(p) == 5:
         if p[1] == 'read' or p[1] == 'readln':
             if len(p[3].items) == 1:
-                # TODO Type Readln FIXME
                 if p[3].items[0].type.getDeepestType() == ST.Type.INT:
                     ioFmtString = '"%d"'
                 elif p[3].items[0].type.getDeepestType() == ST.Type.STRING:
@@ -1054,18 +1075,18 @@ def p_func_proc_statement(p):
                 elif p[3].items[0].type.getDeepestType() == ST.Type.CHAR:
                     ioFmtString = '"%c"'
                 else:
-                    # TODO ERROR
-                    pass
-                    # print_error('Type Not Supported for Read Operation')
+                    print_error('Semantic error at line ' + str(p.lineno(1)))
+                    print_error('\tType ' + p[3].items[0].type.getDeepestType() + ' not supported for read')
+                    sys.exit(1)
+
                 ioArgList = [IG.Operand(item.place) for item in p[3].items]
                 p[0].genCode(IG.TACInstr(IG.TACInstr.SCANF, ioArgList=ioArgList,
                                         ioFmtString=ioFmtString, lineNo=IG.nextQuad))
                 IG.nextQuad += 1
         elif p[1] == 'write' or p[1] == 'writeln':
             if len(p[3].items) == 1:
-                # TODO Type Writeln FIXME
                 if type(p[3].items[0].place) == ST.SymTabEntry or type(p[3].items[0].place) == IG.ArrayElement:
-                    #print p[3].items[0].type.name, p[3].items[0].type.getDeepestType()
+
                     if p[3].items[0].type.getDeepestType() == 'integer':
                         ioFmtString = '%d'
                     elif p[3].items[0].type.getDeepestType() == 'string':
@@ -1073,17 +1094,18 @@ def p_func_proc_statement(p):
                     elif p[3].items[0].type.getDeepestType() == 'char':
                         ioFmtString = '%c'
                     else:
-                        # TODO ERROR
-                        pass
-                        # print_error('Type Not Supported for Read Operation')
+                        print_error('Semantic error at line ' + str(p.lineno(1)))
+                        print_error('\tType ' + p[3].items[0].type.getDeepestType() + ' not supported for write')
+                        sys.exit(1)
                 else:
-                    if type(p[3].items[0].place) == int or type(p[3].items[0].place) == str:
+                    if p[3].items[0].type.getDeepestType() == 'integer' or p[3].items[0].type.getDeepestType() == 'string':
                         ioFmtString = str(p[3].items[0].place)
                         p[3].items = []
                     else:
-                        # TODO Error
-                        print 'YOLO'
-                        pass
+                        print_error('Semantic error at line ' + str(p.lineno(1)))
+                        print_error('\tType ' + p[3].items[0].type.getDeepestType() + ' not supported for write')
+                        sys.exit(1)
+
                 if p[1] == 'writeln':
                     ioFmtString += '\\n'
                 ioFmtString = '"' + ioFmtString + '"'
@@ -1092,29 +1114,34 @@ def p_func_proc_statement(p):
                                         ioFmtString=ioFmtString, lineNo=IG.nextQuad))
                 IG.nextQuad += 1
             else:
-                # TODO Error multiple arguments in write/read
-                pass
+                print_error('Semantic error at line ' + str(p.lineno(1)))
+                print_error('\tOnly 1 argument supported for write function')
+                sys.exit(1)
         else:
             if STEntry:
                 if STEntry.isFunction() or STEntry.isProcedure():
                     if len(STEntry.type.paramList) == len(p[3].items):
                         for index in range(len(p[3].items)):
                             if STEntry.type.paramList[index].type.getDeepestType() != p[3].items[index].type.getDeepestType():
-                                # TODO Throw Error
-                                pass
+                                print_error('Semantic error at line ' + str(p.lineno(2)))
+                                print_error('\tFunction/Procedure '+ p[1] + ' argument ' + str(index+1) + ' mismatch type, expected ' + STEntry.type.paramList[index].type.getDeepestType() + ' given '+ p[3].items[index].type.getDeepestType())
+                                sys.exit(1)
 
                         p[0].genCode(IG.TACInstr(IG.TACInstr.CALL, paramList=[item.place for item in p[3].items], lineNo=IG.nextQuad, targetLabel=STEntry.name))
                         IG.nextQuad += 1
                     else:
-                        # TODO Throw error number of parameters not matching
-                        pass
+                        print_error('Semantic error at line ' + str(p.lineno(1)))
+                        print_error('\tCall function/procedure '+ p[1] + ', number of arguments mismatch')
+                        sys.exit(1)
 
                 else:
-                    # TODO Throw Error this name is not a function / procedure
-                    pass
+                    print_error('Semantic error at line ' + str(p.lineno(1)))
+                    print_error('\t' + p[1] + ' is not a function/procedure')
+                    sys.exit(1)
             else:
-                # TODO Throw Error no function / procedure of name exists
-                pass
+                print_error('Semantic error at line ' + str(p.lineno(1)))
+                print_error('\t' + p[1] + ' function/procedure does not exist')
+                sys.exit(1)
 
     else:
         if STEntry:
@@ -1123,15 +1150,18 @@ def p_func_proc_statement(p):
                     p[0].genCode(IG.TACInstr(IG.TACInstr.CALL, paramList=[], lineNo=IG.nextQuad, targetLabel=STEntry.name))
                     IG.nextQuad += 1
                 else:
-                    # TODO Throw error number of parameters not matching
-                    pass
+                    print_error('Semantic error at line ' + str(p.lineno(1)))
+                    print_error('\tCall function/procedure '+ p[1] + ' accepts no arguments')
+                    sys.exit(1)
 
             else:
-                # TODO Throw Error this name is not a function / procedure
-                pass
+                print_error('Semantic error at line ' + str(p.lineno(1)))
+                print_error('\t' + p[1] + ' is not a function/procedure')
+                sys.exit(1)
         else:
-            # TODO Throw Error no function / procedure of name exists
-            pass
+            print_error('Semantic error at line ' + str(p.lineno(1)))
+            print_error('\t' + p[1] + ' function/procedure does not exist')
+            sys.exit(1)
 
 def p_structured_statement(p):
     '''structured_statement : block
