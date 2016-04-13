@@ -782,10 +782,21 @@ def p_assignment_statement(p):
     '''assignment_statement : variable_reference COLON_EQUAL expression'''
     p[0] = IG.Node()
     p[0].place = p[1].place
-    p[0].type = p[1].type
-    p[0].nextList = p[3].nextList
-    p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, src1=p[3].place, dest=p[1].place, lineNo=IG.nextQuad))
-    IG.nextQuad += 1
+    if type(p[0].place) == ST.SymTabEntry:
+        if p[0].place.isConst:
+            print_error('Semantic error at line ' + str(p.lineno(1)))
+            print_error('\tConstants can\'t be reassigned')
+            sys.exit(1)
+
+    if p[1].type.getDeepestType() == p[3].type.getDeepestType():
+        p[0].type = p[1].type
+        p[0].nextList = p[3].nextList
+        p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, src1=p[3].place, dest=p[1].place, lineNo=IG.nextQuad))
+        IG.nextQuad += 1
+    else:
+        print_error('Semantic error at line ' + str(p.lineno(1)))
+        print_error('\tAssignment is not of same type')
+        sys.exit(1)
 
 def p_assignment_statement_error(p):
     '''assignment_statement : variable_reference error expression'''
