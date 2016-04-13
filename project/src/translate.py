@@ -375,6 +375,8 @@ def translateBlock(bb):
                     G.text.string += indent + "movl $" + str(instr.Src1.operand) + ", %eax\n"
                 elif instr.Src1.addrDescEntry.reg:
                     G.text.string += indent + "movl %" + instr.Src1.addrDescEntry.reg.name + ", %eax\n"
+                elif instr.Src1.addrDescEntry.isLocal:
+                    G.text.string += indent + "movl " + str(instr.Src1.addrDescEntry.offset) + "(%ebp), %eax\n"
                 else:
                     G.text.string += indent + "movl " + instr.Src1.addrDescEntry.name + ", %eax\n"
             if instr.SymTableParser.offset != 0:
