@@ -11,8 +11,13 @@ end;
 
 var
     d : integer;
+    b : char;
 begin
-    read(d);
-    d := foo(d);
-    writeln(d)
+    write('Enter an integer: ');
+//    read(d);
+//    d := foo(d);
+//    writeln(d);
+    write('Enter a char: ');
+    read(b);
+    writeln(b);
 end.
