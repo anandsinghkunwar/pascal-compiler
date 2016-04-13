@@ -60,7 +60,7 @@ class Type(object):
 
 # Class to implement a symbol table entry.
 class SymTabEntry(object):
-    def __init__(self, name, type, mySymTab, nextSymTab=None, isConst=False, isParameter=False, isTemp=False, isOverridable=False):
+    def __init__(self, name, type, mySymTab, nextSymTab=None, isConst=False, isParameter=False, isTemp=False, isOverridable=False, isMyName=False):
         self.name = name
         self.type = type
         self.mySymTab = mySymTab
@@ -71,6 +71,7 @@ class SymTabEntry(object):
         self.isOverridable = isOverridable
         self.paramNum = None
         self.offset = None
+        self.isMyName = isMyName
         # TODO This is probably not required now
         if self.isParameter:
             self.paramNum = self.mySymTab.paramCount
@@ -163,11 +164,11 @@ class SymTab(object):
     def addTable(self, symTab):
         self.childrenTables.append(symTab)
 
-    def addVar(self, varName, varType, isParameter=False, isTemp=False, isConst=False, isOverridable=False):
+    def addVar(self, varName, varType, isParameter=False, isTemp=False, isConst=False, isOverridable=False, isMyName=False):
         if not self.entryExists(varName) or self.entries[varName].isPredefined():
             self.entries[varName] = SymTabEntry(varName + "." + str(self.scope), varType, self, \
                                                 isParameter=isParameter, isTemp=isTemp, isConst=isConst, \
-                                                isOverridable=isOverridable)
+                                                isOverridable=isOverridable, isMyName=isMyName)
             return self.entries[varName]
         else:
             # TODO: Handle error?
@@ -216,8 +217,11 @@ rootSymTab = SymTab(None)
 currSymTab = rootSymTab
 
 # Helper Functions
-def lookup(identifier):
-    tempSymTab = currSymTab
+def lookup(identifier, symTab=None):
+    if symTab == None:
+        tempSymTab = currSymTab
+    else:
+        tempSymTab = symTab
 
     while tempSymTab != None:
         if identifier in tempSymTab.entries.keys():

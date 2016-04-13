@@ -395,7 +395,7 @@ def p_func_head(p):
         STEntry = ST.currSymTab.previousTable.addFunction(p[2], p[5].type, len(p[3].items), p[3].items)
         # Generate code
         p[0] = IG.Node()
-        p[0].place = ST.currSymTab.addVar(p[2], p[5].type)
+        p[0].place = ST.currSymTab.addVar(p[2], p[5].type, isMyName=True)
         p[0].genCode(IG.TACInstr(IG.TACInstr.LABEL, label=STEntry.name, paramList=p[3].items, lineNo=IG.nextQuad))
         IG.nextQuad += 1
     else:
@@ -924,8 +924,12 @@ def p_function_call(p):
                      | IDENTIFIER LEFT_PARENTHESIS RIGHT_PARENTHESIS'''
     p[0] = IG.Node()
     STEntry = ST.lookup(p[1])
+    print STEntry
     if STEntry:
-        if STEntry.isFunction():
+        if STEntry.isMyName:
+            STEntry = ST.lookup(p[1], symTab=ST.currSymTab.previousTable)
+
+        if STEntry and STEntry.isFunction():
             if len(p) == 4:
                 if len(STEntry.type.paramList) == 0:
                     if STEntry.type.returnType.getDeepestType() == 'integer':
@@ -975,8 +979,9 @@ def p_function_call(p):
                     sys.exit(1)
         else:
             print_error('Semantic error at line ' + str(p.lineno(1)))
-            print_error('\t' + p[1] + ' is not a function')
+            print_error('\t' + p[1] + ' function does not exist')
             sys.exit(1)
+
     else:
         print_error('Semantic error at line ' + str(p.lineno(1)))
         print_error('\t' + p[1] + ' function does not exist')
@@ -1119,7 +1124,10 @@ def p_func_proc_statement(p):
                 sys.exit(1)
         else:
             if STEntry:
-                if STEntry.isFunction() or STEntry.isProcedure():
+                if STEntry.isMyName:
+                    STEntry = ST.lookup(p[1], symTab=ST.currSymTab.previousTable)
+
+                if STEntry and (STEntry.isFunction() or STEntry.isProcedure()):
                     if len(STEntry.type.paramList) == len(p[3].items):
                         for index in range(len(p[3].items)):
                             if STEntry.type.paramList[index].type.getDeepestType() != p[3].items[index].type.getDeepestType():
@@ -1136,7 +1144,7 @@ def p_func_proc_statement(p):
 
                 else:
                     print_error('Semantic error at line ' + str(p.lineno(1)))
-                    print_error('\t' + p[1] + ' is not a function/procedure')
+                    print_error('\t' + p[1] + ' function/procedure does not exist')
                     sys.exit(1)
             else:
                 print_error('Semantic error at line ' + str(p.lineno(1)))
@@ -1145,7 +1153,10 @@ def p_func_proc_statement(p):
 
     else:
         if STEntry:
-            if STEntry.isFunction() or STEntry.isProcedure():
+            if STEntry.isMyName:
+                STEntry = ST.lookup(p[1], symTab=ST.currSymTab.previousTable)
+
+            if STEntry and STEntry.isFunction() or STEntry.isProcedure():
                 if len(STEntry.type.paramList) == 0:
                     p[0].genCode(IG.TACInstr(IG.TACInstr.CALL, paramList=[], lineNo=IG.nextQuad, targetLabel=STEntry.name))
                     IG.nextQuad += 1
@@ -1156,7 +1167,7 @@ def p_func_proc_statement(p):
 
             else:
                 print_error('Semantic error at line ' + str(p.lineno(1)))
-                print_error('\t' + p[1] + ' is not a function/procedure')
+                print_error('\t' + p[1] + ' function/procedure does not exist')
                 sys.exit(1)
         else:
             print_error('Semantic error at line ' + str(p.lineno(1)))
