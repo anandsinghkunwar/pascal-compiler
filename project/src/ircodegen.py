@@ -93,8 +93,11 @@ class Operand(object):
                 self.operandType = Operand.BOOLVAR
             else:
                 self.operandType = Operand.ARRAY
-            G.varMap[self.operand] = CG.AddrDescEntry(self.operand, isParam=varObj.isParameter, paramNum=varObj.paramNum, isLocal=varObj.isLocal, offset=varObj.offset)
-            self.addrDescEntry = G.varMap[self.operand]
+            if self.operand in G.varMap.keys():
+                self.addrDescEntry = G.varMap[self.operand]
+            else:
+                G.varMap[self.operand] = CG.AddrDescEntry(self.operand, isParam=varObj.isParameter, paramNum=varObj.paramNum, isLocal=varObj.isLocal, offset=varObj.offset)
+                self.addrDescEntry = G.varMap[self.operand]
         elif type(varObj) is int:
             self.operand = varObj
             self.operandType = Operand.INT

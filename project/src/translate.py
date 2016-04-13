@@ -34,7 +34,7 @@ def translateBlock(bb):
                         G.text.string += indent + "pushl " + str(instr.Src2.addrDescEntry.offset) + "\n"
                     else:   # z is in memory
                         G.text.string += indent + "pushl " + instr.Src2.addrDescEntry.name + "\n"
-                    if instr.Src1.isInt() or instr.Src.isChar():    # y is integer or char
+                    if instr.Src1.isInt() or instr.Src1.isChar():    # y is integer or char
                         G.text.string += indent + "movl $" + str(instr.Src1.operand) + ", %eax\n"
                     elif instr.Src1.addrDescEntry.reg:    # y is in register
                         G.text.string += indent + "movl %" + instr.Src1.addrDescEntry.reg.name + ", %eax\n"
@@ -178,30 +178,30 @@ def translateBlock(bb):
                     if instr.ParamList is not None:
                         for arg in reversed(instr.ParamList):
                             if type(arg) == ST.SymTabEntry:
-                                name = arg.name + str(arg.mySymTab.scope)
+                                name = arg.name
                                 if name in G.varMap.keys():
                                     addrDescEntry = G.varMap[name]
                                     if addrDescEntry.reg:   # variable exists in a register
-                                        G.text.string += indent + "pushl %" + addrDescEntry.reg.name
+                                        G.text.string += indent + "pushl %" + addrDescEntry.reg.name + indent + "# Pushing function parameters\n"
                                     elif addrDescEntry.isLocal: # variable is either local or parameter and dosen't exist in a register
-                                        G.text.string += indent + "pushl " + str(addrDescEntry.offset) + "(%ebp)"
+                                        G.text.string += indent + "pushl " + str(addrDescEntry.offset) + "(%ebp)" + indent + "# Pushing function parameters\n"
                                     elif arg.isInt() or arg.isChar():
-                                        G.text.string += indent + "pushl " + addrDescEntry.name
+                                        G.text.string += indent + "pushl " + addrDescEntry.name + indent + "# Pushing function parameters\n"
                                     else:   # TODO what about variables of other types
                                         pass
                                 else:   #error - variable without address descriptor entry
                                     pass
                             elif type(arg) == int:
-                                G.text.string += indent + "pushl $" + str(arg) + indent + "#pushing function parameters\n"
+                                G.text.string += indent + "pushl $" + str(arg) + indent + "# Pushing function parameters\n"
                             elif arg == 'true' or arg == 'false': # constant boolean
                                 G.text.string += indent + "pushl $"
                                 if arg == 'true':
-                                    G.text.string += "1" + indent + "#pushing function parameters\n"
+                                    G.text.string += "1" + indent + "# Pushing function parameters\n"
                                 else:
-                                    G.text.string += "0" + indent + "#pushing function parameters\n"
+                                    G.text.string += "0" + indent + "# Pushing function parameters\n"
                             elif type(arg) == str:
                                 if len(arg) == 1:   # constant char
-                                    G.text.string += indent + "pushl $" + str(ord(arg)) + indent + "#pushing function parameters\n" # assuming only print operations on char
+                                    G.text.string += indent + "pushl $" + str(ord(arg)) + indent + "# Pushing function parameters\n" # assuming only print operations on char
                                     # TODO handle other operations for char
                                 else: # TODO for constant string
                                     pass
@@ -212,7 +212,10 @@ def translateBlock(bb):
                     G.text.string += indent + "call " + instr.TargetLabel + "\n"
                     # No need to check if a is in a register or not, since the current
                     # instruction will be the last of this basic block
-                    G.text.string += indent + "movl %eax, " + instr.Dest.addrDescEntry.name + "\n"
+                    if instr.Dest.addrDescEntry.isLocal:
+                        G.text.string += indent + "movl %eax, " + str(instr.Dest.addrDescEntry.offset) + "(%ebp)\n"
+                    else:
+                        G.text.string += indent + "movl %eax, " + instr.Dest.addrDescEntry.name + "\n"
                 else:
                     G.halt(instr.LineNo, "invalid assignment instruction with unary operator")
 
@@ -324,27 +327,27 @@ def translateBlock(bb):
             if instr.ParamList is not None:
                 for arg in reversed(instr.ParamList):
                     if type(arg) == ST.SymTabEntry:
-                        name = arg.name + str(arg.mySymTab.scope)
+                        name = arg.name
                         if name in G.varMap.keys():
                             addrDescEntry = G.varMap[name]
                             if addrDescEntry.reg:   # variable exists in a register
-                                G.text.string += indent + "pushl %" + addrDescEntry.reg.name
+                                G.text.string += indent + "pushl %" + addrDescEntry.reg.name + indent + "# Pushing function parameters\n"
                             elif addrDescEntry.isLocal: # variable is either local or parameter and dosen't exist in a register
-                                G.text.string += indent + "pushl " + str(addrDescEntry.offset) + "(%ebp)"
+                                G.text.string += indent + "pushl " + str(addrDescEntry.offset) + "(%ebp)" + indent + "# Pushing function parameters\n"
                             elif arg.isInt() or arg.isChar():
-                                G.text.string += indent + "pushl " + addrDescEntry.name
+                                G.text.string += indent + "pushl " + addrDescEntry.name + indent + "# Pushing function parameters\n"
                             else:   # TODO what about variables of other types
                                 pass
                         else:   #error - variable without address descriptor entry
                             pass
                     elif type(arg) == int:
-                        G.text.string += indent + "pushl $" + str(arg)
+                        G.text.string += indent + "pushl $" + str(arg) + indent + "# Pushing function parameters\n"
                     elif arg == 'true' or arg == 'false': # constant boolean
                         G.text.string += indent + "pushl $"
                         if arg == 'true':
-                            G.text.string += "1"
+                            G.text.string += "1" + indent + "# Pushing function parameters\n"
                         else:
-                            G.text.string += "0"
+                            G.text.string += "0" + indent + "# Pushing function parameters\n"
                     elif type(arg) == str:
                         if len(arg) == 1:   # constant char
                             G.text.string += indent + "pushl $" + str(ord(arg)) # assuming only print operations on char
@@ -370,6 +373,8 @@ def translateBlock(bb):
                     G.text.string += indent + "movl %" + instr.Src1.addrDescEntry.reg.name + ", %eax\n"
                 else:
                     G.text.string += indent + "movl " + instr.Src1.addrDescEntry.name + ", %eax\n"
+            if instr.SymTableParser.offset != 0:
+                G.text.string += indent + "subl $" + str(instr.SymTableParser.offset) + ", %esp" + indent + "# Releasing space for local variables\n"
             G.text.string += indent + "movl %ebp, %esp" + indent + "#standard function protocol\n"
             G.text.string += indent + "popl %ebp" + indent + "#standard function protocol\n"
             # Issue the ret instruction
@@ -381,6 +386,8 @@ def translateBlock(bb):
             G.text.string += instr.Label + ":\n"
             G.text.string += indent + "pushl %ebp" + indent + "#Standard function protocol\n"
             G.text.string += indent + "movl %esp, %ebp" + indent + "#Standard function protocol\n"
+            if instr.SymTableParser.offset != 0:
+                G.text.string += indent + "addl $" + str(instr.SymTableParser.offset) + ", %esp" + indent + "# Allocating space for local variables\n"
             # TODO map parameters to location on stack
 
 ######################################################  Printf instruction ######################################################
