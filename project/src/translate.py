@@ -26,17 +26,21 @@ def translateBlock(bb):
                     G.text.string += indent + "pushl %edx" + indent + "#clearing eax and edx for division\n"
 
                     # Moving the dividend into eax and the divisor onto the stack top
-                    if instr.Src2.isInt():          # z is integer
+                    if instr.Src2.isInt() or instr.Src2.isChar():          # z is integer
                         G.text.string += indent + "pushl $" + str(instr.Src2.operand) + "\n"
                     elif instr.Src2.addrDescEntry.reg:    # z is in register
                         G.text.string += indent + "pushl %" + instr.Src2.addrDescEntry.reg.name + "\n"
-                    else:                           # z is in memory
+                    elif instr.Src2.addrDescEntry.isLocal:  # z is local variable or parameter
+                        G.text.string += indent + "pushl " + str(instr.Src2.addrDescEntry.offset) + "\n"
+                    else:   # z is in memory
                         G.text.string += indent + "pushl " + instr.Src2.addrDescEntry.name + "\n"
-                    if instr.Src1.isInt():          # y is integer
+                    if instr.Src1.isInt() or instr.Src.isChar():    # y is integer or char
                         G.text.string += indent + "movl $" + str(instr.Src1.operand) + ", %eax\n"
                     elif instr.Src1.addrDescEntry.reg:    # y is in register
                         G.text.string += indent + "movl %" + instr.Src1.addrDescEntry.reg.name + ", %eax\n"
-                    else:                           # y is in memory
+                    elif instr.Src1.addrDescEntry.isLocal:  # y is local variable or parameter
+                        G.text.string += indent + "movl " + str(instr.Src1.addrDescEntry.offset) + "(%ebp), %eax\n"
+                    else:   # y is in memory
                         G.text.string += indent + "movl " + instr.Src1.addrDescEntry.name + ", %eax\n"
                     G.text.string += indent + "cltd" + indent + "#sign extending eax into edx:eax\n"
 
@@ -47,11 +51,15 @@ def translateBlock(bb):
                     if instr.Op == IG.TACInstr.DIV:
                         if instr.Dest.addrDescEntry.reg:  # x is in register
                             G.text.string += indent + "movl %eax, %" + instr.Dest.addrDescEntry.reg.name + "\n"
-                        else:                       # x is in memory
+                        elif instr.Dest.addrDescEntry.isLocal:  # x is a local variable or parameter
+                            G.text.string += indent + "movl %eax, " + str(instr.Dest.addrDescEntry.offset) + "(%ebp)\n"
+                        else:   # x is in memory
                             G.text.string += indent + "movl %eax," + instr.Dest.addrDescEntry.name + "\n"
                     else:   # instr.op == MOD
                         if instr.Dest.addrDescEntry.reg:  # x is in register
                             G.text.string += indent + "movl %edx, %" + instr.Dest.addrDescEntry.reg.name + "\n"
+                        elif instr.Dest.addrDescEntry.isLocal:
+                            G.text.string += indent + "movl %edx, " + str(instr.Dest.addrDescEntry.offset) + "(%ebp)\n"
                         else:                       # x is in memory
                             G.text.string += indent + "movl %edx," + instr.Dest.addrDescEntry.name + "\n"
 
