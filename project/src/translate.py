@@ -126,14 +126,18 @@ def translateBlock(bb):
                     if not locTuple[1]:
                         # Moving operand into destination register to perform op
                         # Case 1: Operand is an immediate
-                        if instr.Src1.isInt():  # b is integer
+                        if instr.Src1.isInt():
                             G.text.string += indent + "movl $" + str(instr.Src1.operand) + ", %" + loc.name + "\n"
 
                         # Case 2: Operand is in a register
-                        elif instr.Src1.addrDescEntry.reg:   # b is in register
+                        elif instr.Src1.addrDescEntry.reg:
                             G.text.string += indent + "movl %" + instr.Src1.addrDescEntry.reg.name + ", %" + loc.name + "\n"
 
-                        # Case 3: Operand is in memory
+                        # Case 3: Operand is local varible or parameter
+                        elif instr.Src1.addrDescEntry.isLocal:
+                            G.text.string += indent + "movl " + str(instr.Src1.addrDescEntry.offset) + "(%ebp), %" + loc.name + "\n"
+
+                        # Case 4: Operand is global variable
                         else:
                             G.text.string += indent + "movl " + instr.Src1.addrDescEntry.name + ", %" + loc.name + "\n"
 
@@ -159,15 +163,23 @@ def translateBlock(bb):
                                 if name in G.varMap.keys():
                                     addrDescEntry = G.varMap[name]
                                     if addrDescEntry.reg:   # variable exists in a register
-                                        G.text.string += indent + "pushl %" + addrDescEntry.reg.name + indent + "#pushing function parameters\n"
-                                    elif name.isInt():
-                                        G.text.string += indent + "pushl " + addrDescEntry.name + indent + "#pushing function parameters\n"
+                                        G.text.string += indent + "pushl %" + addrDescEntry.reg.name
+                                    elif addrDescEntry.isLocal: # variable is either local or parameter and dosen't exist in a register
+                                        G.text.string += indent + "pushl " + str(addrDescEntry.offset) + "(%ebp)"
+                                    elif arg.isInt() or arg.isChar():
+                                        G.text.string += indent + "pushl " + addrDescEntry.name
                                     else:   # TODO what about variables of other types
                                         pass
                                 else:   #error - variable without address descriptor entry
                                     pass
                             elif type(arg) == int:
                                 G.text.string += indent + "pushl $" + str(arg) + indent + "#pushing function parameters\n"
+                            elif arg == 'true' or arg == 'false': # constant boolean
+                                G.text.string += indent + "pushl $"
+                                if arg == 'true':
+                                    G.text.string += "1" + indent + "#pushing function parameters\n"
+                                else:
+                                    G.text.string += "0" + indent + "#pushing function parameters\n"
                             elif type(arg) == str:
                                 if len(arg) == 1:   # constant char
                                     G.text.string += indent + "pushl $" + str(ord(arg)) + indent + "#pushing function parameters\n" # assuming only print operations on char
@@ -176,12 +188,6 @@ def translateBlock(bb):
                                     pass
                             elif type(arg) == IG.ArrayElement:  # TODO
                                 pass
-                            elif arg == 'true' or arg == 'false': # constant boolean
-                                G.text.string += indent + "pushl $"
-                                if arg == 'true':
-                                    G.text.string += "1" + indent + "#pushing function parameters\n"
-                                else:
-                                    G.text.string += "0" + indent + "#pushing function parameters\n"
                             else:   # TODO constant of other types????
                                 pass
                     G.text.string += indent + "call " + instr.TargetLabel + "\n"
