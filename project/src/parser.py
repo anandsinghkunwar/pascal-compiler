@@ -169,7 +169,9 @@ def p_array_declaration(p):
         p[0].type = ST.Type('array', ST.Type.TYPE, arrayBeginList=p[3].arrayBeginList,
                         arrayEndList=p[3].arrayEndList, arrayBaseType=p[6].type)
     else:
-        # TODO Throw Error?
+        print_error('Semantic error at line ' + str(p.lineno(6)))
+        print_error('\tUndefined Type ' + p[6].type.getDeepestType())
+        sys.exit(1)
         pass
 
 def p_array_ranges(p):
@@ -282,10 +284,14 @@ def p_var_statement(p):
                 p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, dest=STEntry, src1=p[5].place, lineNo=IG.nextQuad))
                 IG.nextQuad += 1
             else:
-                # TODO Throw Error can't initialise array
+                print_error('Semantic error at line ' + str(p.lineno(6)))
+                print_error('\tArray initialization is not possible')
+                sys.exit(1)
                 pass
     else:
-        # TODO Throw Error Type not exists
+        print_error('Semantic error at line ' + str(p.lineno(3)))
+        print_error('\tUndefined Type ' + p[3].type.getDeepestType())
+        sys.exit(1)
         pass
 def p_var_statement_colon_error(p):
     '''var_statement : identifiers error type SEMICOLON
@@ -392,8 +398,10 @@ def p_func_head(p):
         p[0].genCode(IG.TACInstr(IG.TACInstr.LABEL, label=STEntry.name, paramList=p[3].items, lineNo=IG.nextQuad))
         IG.nextQuad += 1
     else:
-        pass
-        #TODO Throw error type does not exist
+        print_error('Semantic error at line ' + str(p.lineno(5)))
+        print_error('\tUndefined Type ' + p[5].type.getDeepestType())
+        sys.exit(1)
+
 def p_func_head_error(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list error type_identifier'''
     #Line number reported from KEYWORD_FUNCTION token
@@ -446,9 +454,11 @@ def p_value_parameter(p):
                 STEntry = ST.currSymTab.addVar(p[1], p[3].type, isParameter=True)
                 p[0].items.append(STEntry)
         else:
-            # TODO Throw Error Type does not exist
-            pass
-    elif len(p) == 5:
+            print_error('Semantic error at line ' + str(p.lineno(3)))
+            print_error('\tUndefined Type ' + p[3].type.getDeepestType())
+            sys.exit(1)
+
+    elif len(p) == 6:
         if ST.typeExists(p[5].type):
             if type(p[1]) == IG.Node:
                 for item in p[1].items:
@@ -460,8 +470,9 @@ def p_value_parameter(p):
                                                    isParameter=True)
                 p[0].items.append(STEntry)
         else:
-            # TODO Throw Error Type does not exist
-            pass
+            print_error('Semantic error at line ' + str(p.lineno(5)))
+            print_error('\tUndefined Type ' + p[5].type.getDeepestType())
+            sys.exit(1)
 
 def p_value_parameter_error(p):
     '''value_parameter : identifiers error type_identifier
@@ -522,15 +533,16 @@ def p_matched_statement(p):
             # TODO: Handle empty production
             # TODO: Generate code for break and continue
     elif len(p) == 10:
-        if p[2].type.name == 'boolean':
+        if p[2].type.getDeepestType() == 'boolean':
             p[0].code = p[2].code + p[4].code + p[5].code + p[6].code + p[9].code
             print 'test', p[8].quad
             backpatch(p[2].falseList, p[8].quad)
             backpatch(p[2].trueList, p[4].quad)
             p[0].nextList = p[5].nextList + p[6].nextList + p[9].nextList
         else:
-            # TODO Throw error boolean expected in condition
-            pass
+            print_error('Semantic error at line ' + str(p.lineno(5)))
+            print_error('\tBoolean expected found ' + p[2].type.getDeepestType())
+            sys.exit(1)
     elif len(p) == 4:
         if p[1].type == 'while':
             p[0].code = p[1].code + p[3].code
@@ -637,7 +649,7 @@ def p_for_loop_header(p):
 
 def p_for_loop_to(p):
     '''for_loop_to : KEYWORD_FOR assignment_statement marker_loop KEYWORD_TO expression KEYWORD_DO'''
-    if p[2].place.getDeepestType() == p[5].type.getDeepestType():
+    if p[2].type.getDeepestType() == p[5].type.getDeepestType():
         p[0] = IG.Node()
         p[0].type = 'for_to'
         p[0].code = p[2].code + p[5].code
@@ -650,11 +662,12 @@ def p_for_loop_to(p):
         p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
         IG.nextQuad += 1
     else:
-        # TODO Throw Error not same type
-        pass
+        print_error('Semantic error at line ' + str(p.lineno(2)))
+        print_error('\tMismatch type in for-to statement ' + p[2].type.getDeepestType() + ' and ' + p[5].type.getDeepestType())
+        sys.exit(1)
 def p_for_loop_downto(p):
     '''for_loop_downto : KEYWORD_FOR assignment_statement marker_loop KEYWORD_DOWNTO expression KEYWORD_DO'''
-    if p[2].place.getDeepestType() == p[5].type.getDeepestType():
+    if p[2].type.getDeepestType() == p[5].type.getDeepestType():
         p[0] = IG.Node()
         p[0].type = 'for_downto'
         p[0].code = p[2].code + p[5].code
@@ -667,8 +680,9 @@ def p_for_loop_downto(p):
         p[0].genCode(IG.TACInstr(IG.TACInstr.GOTO, lineNo=IG.nextQuad))
         IG.nextQuad += 1
     else:
-        # TODO Throw error not same type
-        pass
+        print_error('Semantic error at line ' + str(p.lineno(2)))
+        print_error('\tMismatch type in for-downto statement ' + p[2].type.getDeepestType() + ' and ' + p[5].type.getDeepestType())
+        sys.exit(1)
 
 def p_for_loop_header_error(p):
     '''for_loop_header : KEYWORD_FOR error KEYWORD_TO expression KEYWORD_DO
@@ -708,6 +722,7 @@ def p_assignment_statement(p):
     '''assignment_statement : variable_reference COLON_EQUAL expression'''
     p[0] = IG.Node()
     p[0].place = p[1].place
+    p[0].type = p[1].type
     p[0].nextList = p[3].nextList
     p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, src1=p[3].place, dest=p[1].place, lineNo=IG.nextQuad))
     IG.nextQuad += 1
@@ -825,6 +840,7 @@ def p_term(p):
             pass
     elif len(p) == 2:
         p[0] = p[1]
+        # print p[0].type
 
 def p_factor(p):
     '''factor : LEFT_PARENTHESIS expression RIGHT_PARENTHESIS
@@ -860,7 +876,9 @@ def p_factor(p):
                 pass
 
     elif len(p) == 2:
+
         p[0] = p[1]
+        # print p[1].type
         # TODO handle case for if boolean then  ...
         if p[1].place == 'true':
             p[0].trueList = [IG.nextQuad]
@@ -965,6 +983,9 @@ def p_variable_reference(p):
             p[0].type = STEntry.type
         elif len(p) == 3:
             p[0].place = IG.ArrayElement(STEntry, p[2].place)
+    else:
+        # TODO Throw Error
+        pass
 
 def p_array_index(p):
     '''array_index : array_index COMMA expression
