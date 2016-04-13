@@ -236,58 +236,39 @@ def translateBlock(bb):
                     if instr.Op == IG.TACInstr.EQ:
                         G.text.string += indent + "jmp " + label + "\n"
 
-            elif instr.Src1.isInt() and instr.Src2.isVar():
+            elif (instr.Src1.isInt() or instr.Src1.isChar()) and instr.Src2.isVar():
                 if instr.Src2.addrDescEntry.reg:
                     G.text.string += indent + "cmpl $" + str(instr.Src1.operand) + ", %" + instr.Src2.addrDescEntry.reg.name + "\n"
-                elif instr.Src2.addrDescEntry.isParam:  # argument of function
-                    G.text.string += indent + "cmpl $" + str(instr.Src1.operand) + ", " + str(4*(instr.Src2.addrDescEntry.paramNum + 2)) + "(%ebp)\n"
+                elif instr.Src2.addrDescEntry.isLocal:  # argument of function
+                    G.text.string += indent + "cmpl $" + str(instr.Src1.operand) + ", " + str(instr.Src2.addrDescEntry.offset) + "(%ebp)\n"
                 else:
                     G.text.string += indent + "cmpl $" + str(instr.Src1.operand) + ", " + instr.Src2.addrDescEntry.name + "\n"
                 op = getReversedMnemonic(instr.Op)
                 G.text.string += indent + op + label + "\n"
 
-            elif instr.Src1.isChar() and instr.Src2.isVar():
-                if instr.Src2.addrDescEntry.reg:
-                    G.text.string += indent + "cmpl $" + str(ord(instr.Src1.operand)) + ", %" + instr.Src2.addrDescEntry.reg.name + "\n"
-                elif instr.Src2.addrDescEntry.isParam:  # argument of function
-                    G.text.string += indent + "cmpl $" + str(ord(instr.Src1.operand)) + ", " + str(4*(instr.Src2.addrDescEntry.paramNum + 2)) + "(%ebp)\n"
-                else:
-                    G.text.string += indent + "cmpl $" + str(ord(instr.Src1.operand)) + ", " + instr.Src2.addrDescEntry.name + "\n"
-                op = getReversedMnemonic(instr.Op)
-                G.text.string += indent + op + label + "\n"
-
-            elif instr.Src2.isInt() and instr.Src1.isVar():
+            elif (instr.Src2.isInt() or instr.Src2.isChar()) and instr.Src1.isVar():
                 if instr.Src1.addrDescEntry.reg:
                     G.text.string += indent + "cmpl $" + str(instr.Src2.operand) + ", %" + instr.Src1.addrDescEntry.reg.name + "\n"
-                elif instr.Src1.addrDescEntry.isParam:  # argument of function
-                    G.text.string += indent + "cmpl $" + str(instr.Src2.operand) + ", " + str(4*(instr.Src1.addrDescEntry.paramNum + 2)) + "(%ebp)\n"
+                elif instr.Src1.addrDescEntry.isLocal:  # argument of function
+                    G.text.string += indent + "cmpl $" + str(instr.Src2.operand) + ", " + str(instr.Src1.addrDescEntry.offset) + "(%ebp)\n"
                 else:
                     G.text.string += indent + "cmpl $" + str(instr.Src2.operand) + ", " + instr.Src1.addrDescEntry.name + "\n"
-                G.text.string += indent + op + label + "\n"
-
-            elif instr.Src2.isChar() and instr.Src1.isVar():
-                if instr.Src1.addrDescEntry.reg:
-                    G.text.string += indent + "cmpl $" + str(ord(instr.Src2.operand)) + ", %" + instr.Src1.addrDescEntry.reg.name + "\n"
-                elif instr.Src1.addrDescEntry.isParam:  # argument of function
-                    G.text.string += indent + "cmpl $" + str(ord(instr.Src2.operand)) + ", " + str(4*(instr.Src1.addrDescEntry.paramNum + 2)) + "(%ebp)\n"
-                else:
-                    G.text.string += indent + "cmpl $" + str(ord(instr.Src2.operand)) + ", " + instr.Src1.addrDescEntry.name + "\n"
                 G.text.string += indent + op + label + "\n"
 
             elif instr.Src1.isVar() and instr.Src2.isVar():
                 if instr.Src2.addrDescEntry.reg:
                     if instr.Src1.addrDescEntry.reg:
                         G.text.string += indent + "cmpl %" + instr.Src2.addrDescEntry.reg.name + ", %" + instr.Src1.addrDescEntry.reg.name + "\n"
-                    elif instr.Src1.addrDescEntry.isParam:
-                        G.text.string += indent + "cmpl %" + instr.Src2.addrDescEntry.reg.name + ", " + str(4*(instr.Src1.addrDescEntry.paramNum + 2)) + "(%ebp)\n"
+                    elif instr.Src1.addrDescEntry.isLocal:
+                        G.text.string += indent + "cmpl %" + instr.Src2.addrDescEntry.reg.name + ", " + str(instr.Src1.addrDescEntry.offset) + "(%ebp)\n"
                     else:
                         G.text.string += indent + "cmpl %" + instr.Src2.addrDescEntry.reg.name + ", " + instr.Src1.addrDescEntry.name + "\n"
                     G.text.string += indent + op + label + "\n"
                 else:
                     locTuple = bb.getReg()
                     loc = locTuple[0]
-                    if instr.Src2.addrDescEntry.isParam:
-                        G.text.string += indent + "movl " + str(4*(instr.Src2.addrDescEntry.paramNum + 2)) + ", %" + loc.name + "\n"
+                    if instr.Src2.addrDescEntry.isLocal:
+                        G.text.string += indent + "movl " + str(instr.Src2.addrDescEntry.offset) + ", %" + loc.name + "\n"
                     else:
                         G.text.string += indent + "movl " + instr.Src2.addrDescEntry.name + ", %" + loc.name + "\n"
                     G.text.string += indent + "cmpl %" + loc.name + "," + instr.Src1.addrDescEntry.name + "\n"
@@ -310,7 +291,9 @@ def translateBlock(bb):
                             addrDescEntry = G.varMap[name]
                             if addrDescEntry.reg:   # variable exists in a register
                                 G.text.string += indent + "pushl %" + addrDescEntry.reg.name
-                            elif name.isInt():
+                            elif addrDescEntry.isLocal: # variable is either local or parameter and dosen't exist in a register
+                                G.text.string += indent + "pushl " + str(addrDescEntry.offset) + "(%ebp)"
+                            elif arg.isInt() or arg.isChar():
                                 G.text.string += indent + "pushl " + addrDescEntry.name
                             else:   # TODO what about variables of other types
                                 pass
