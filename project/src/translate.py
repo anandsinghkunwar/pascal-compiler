@@ -370,6 +370,8 @@ def translateBlock(bb):
                     G.text.string += indent + "movl %" + instr.Src1.addrDescEntry.reg.name + ", %eax\n"
                 else:
                     G.text.string += indent + "movl " + instr.Src1.addrDescEntry.name + ", %eax\n"
+            if instr.SymTableParser.offset != 0:
+                G.text.string += indent + "subl $" + str(instr.SymTableParser.offset) + ", %esp" + indent + "# Releasing space for local variables\n"
             G.text.string += indent + "movl %ebp, %esp" + indent + "#standard function protocol\n"
             G.text.string += indent + "popl %ebp" + indent + "#standard function protocol\n"
             # Issue the ret instruction
@@ -381,6 +383,8 @@ def translateBlock(bb):
             G.text.string += instr.Label + ":\n"
             G.text.string += indent + "pushl %ebp" + indent + "#Standard function protocol\n"
             G.text.string += indent + "movl %esp, %ebp" + indent + "#Standard function protocol\n"
+            if instr.SymTableParser.offset != 0:
+                G.text.string += indent + "addl $" + str(instr.SymTableParser.offset) + ", %esp" + indent + "# Allocating space for local variables\n"
             # TODO map parameters to location on stack
 
 ######################################################  Printf instruction ######################################################
