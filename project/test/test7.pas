@@ -1,12 +1,15 @@
 program p;
 function foo(a : integer) : integer;
+var
+    b : integer;
 begin
-    foo := 6;
+    b := a - 1;
+    b := a * foo(b);
+    foo := b;
 end;
 
 var
     d : integer;
-
 begin
-        writeln('dsfds')
+    d := foo(4);
 end.
