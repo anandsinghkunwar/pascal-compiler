@@ -139,14 +139,15 @@ class Operand(object):
 class TACInstr(object):
     def __init__(self, instrType, op=None, target=None, src1=None, src2=None,
                  dest=None, label=None, targetLabel=None, lineNo=None, ioArgList=None,
-                 paramList=None, ioFmtString=None):
+                 paramList=None, ioFmtString=None, symTableParser=None):
         self.InstrType = instrType
         self.Target = target
         self.Op = op
         self.Src1 = None
         self.Src2 = None
         self.Dest = None
-        #self.SymTable = None
+        self.SymTable = None
+        self.SymTableParser = symTableParser
         self.Label = label
         self.TargetLabel = targetLabel
         self.LineNo = lineNo

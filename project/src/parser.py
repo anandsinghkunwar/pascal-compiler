@@ -396,7 +396,13 @@ def p_func_head(p):
         # Generate code
         p[0] = IG.Node()
         p[0].place = ST.currSymTab.addVar(p[2], p[5].type, isMyName=True)
-        p[0].genCode(IG.TACInstr(IG.TACInstr.LABEL, label=STEntry.name, paramList=p[3].items, lineNo=IG.nextQuad))
+
+        if p[0].place == False:
+            # TODO
+            print_error("Semantic error at line " + p.lineno())
+            print_error("\tMissing ';'")
+
+        p[0].genCode(IG.TACInstr(IG.TACInstr.LABEL, label=STEntry.name, paramList=p[3].items, lineNo=IG.nextQuad, symTableParser=ST.currSymTab))
         IG.nextQuad += 1
     else:
         print_error('Semantic error at line ' + str(p.lineno(5)))

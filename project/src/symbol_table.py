@@ -171,9 +171,7 @@ class SymTab(object):
                                                 isOverridable=isOverridable, isMyName=isMyName)
             return self.entries[varName]
         else:
-            # TODO: Handle error?
-            pass
-
+            return False
     def entryExists(self, varName):
         return varName in self.entries.keys()
 
@@ -183,8 +181,7 @@ class SymTab(object):
                                                  nextSymTab=self)
             return self.entries[procName]
         else:
-            # TODO: Handle error?
-            pass
+            return False
 
     def addFunction(self, funcName, returnType, numParams, paramList):
         if not self.entryExists(funcName):
@@ -192,8 +189,7 @@ class SymTab(object):
                                                  self, nextSymTab=self)
             return self.entries[funcName]
         else:
-            # TODO: Handle error?
-            pass
+            return False
 
     def printTable(self):
         print "#"*20 + str(self.scope) + "#"*20
