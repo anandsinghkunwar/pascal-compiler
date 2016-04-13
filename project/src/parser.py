@@ -132,19 +132,25 @@ def p_type_statements(p):
 def p_type_statement(p):
     '''type_statement : identifiers EQUAL type SEMICOLON
                       | IDENTIFIER EQUAL type SEMICOLON'''
-    if type(p[1]) == IG.Node:
-        for item in p[1].items:
-            STEntry = ST.currSymTab.addVar(item, ST.Type(item, ST.Type.TYPE, baseType=p[3].type))
+    if ST.typeExists(p[3].type):
+        baseType = ST.lookup(p[3].type.name).type
+        if type(p[1]) == IG.Node:
+            for item in p[1].items:
+                STEntry = ST.currSymTab.addVar(item, ST.Type(item, ST.Type.TYPE, baseType=baseType))
+                if STEntry == False:
+                    print_error('Semantic error at line ' + str(p.lineno(1)))
+                    print_error('\tDuplicate identifier "' + item + '"')
+                    sys.exit(1)
+        else:
+            STEntry = ST.currSymTab.addVar(p[1], ST.Type(p[1], ST.Type.TYPE, baseType=baseType))
             if STEntry == False:
                 print_error('Semantic error at line ' + str(p.lineno(1)))
-                print_error('\tDuplicate identifier "' + item + '"')
+                print_error('\tDuplicate identifier "' + p[1] + '"')
                 sys.exit(1)
     else:
-        STEntry = ST.currSymTab.addVar(p[1], ST.Type(p[1], ST.Type.TYPE, baseType=p[3].type))
-        if STEntry == False:
-            print_error('Semantic error at line ' + str(p.lineno(1)))
-            print_error('\tDuplicate identifier "' + p[1] + '"')
-            sys.exit(1)
+        print_error('Semantic error at line ' + str(p.lineno(3)))
+        print_error('\tType "' + p[3].name + '" does not exist')
+        sys.exit(1)
 
 def p_type_statement_error(p):
     '''type_statement : identifiers EQUAL type
@@ -274,10 +280,11 @@ def p_var_statement(p):
                      | IDENTIFIER COLON type EQUAL expression SEMICOLON'''
     p[0] = IG.Node()
     if ST.typeExists(p[3].type):
+        baseType = ST.lookup(p[3].type.name).type
         if len(p) == 5:
             if type(p[1]) == IG.Node:
                 for item in p[1].items:
-                    STEntry = ST.currSymTab.addVar(item, p[3].type)
+                    STEntry = ST.currSymTab.addVar(item, baseType)
                     if STEntry == False:
                         print_error('Semantic error at line ' + str(p.lineno(1)))
                         print_error('\tDuplicate identifier "' + item + '"')
@@ -288,7 +295,7 @@ def p_var_statement(p):
                                                  src2=p[3].type.arrayEndList[0], lineNo=IG.nextQuad))
                         IG.nextQuad += 1
             else:
-                STEntry = ST.currSymTab.addVar(p[1], p[3].type)
+                STEntry = ST.currSymTab.addVar(p[1], baseType)
                 if STEntry == False:
                     print_error('Semantic error at line ' + str(p.lineno(1)))
                     print_error('\tDuplicate identifier "' + p[1] + '"')
@@ -300,7 +307,7 @@ def p_var_statement(p):
 
         else:
             if p[3].type.name != 'array':
-                STEntry = ST.currSymTab.addVar(p[1], p[3].type)
+                STEntry = ST.currSymTab.addVar(p[1], baseType)
                 if STEntry == False:
                     print_error('Semantic error at line ' + str(p.lineno(1)))
                     print_error('\tDuplicate identifier "' + p[1] + '"')
@@ -453,10 +460,15 @@ def p_declarations(p):
     '''declarations : declarations const_declarations
                     | declarations type_declarations
                     | declarations var_declarations
+                    | declarations marker_fpdef func_def
+                    | declarations marker_fpdef proc_def
                     | empty'''
     p[0] = IG.Node()
     if len(p) == 3:
         p[0].code = p[1].code + p[2].code
+    elif len(p) == 4:
+        backpatch([p[2].quad], IG.nextQuad)
+        p[0].code = p[1].code + p[2].code + p[3].code
 
 def p_parameter_list(p):
     '''parameter_list : LEFT_PARENTHESIS parameter_declarations RIGHT_PARENTHESIS
@@ -786,14 +798,17 @@ def p_assignment_statement(p):
             print_error('\tConstants can\'t be reassigned')
             sys.exit(1)
 
-    if p[1].type.getDeepestType() == p[3].type.getDeepestType():
+    if p[1].type.getDeepestType() == p[3].type.getDeepestType() or (p[1].type.getDeepestType() == 'string' and p[3].type.getDeepestType() == 'char'):
+        if p[3].type.getDeepestType() == 'char' and type(p[3].place) == str:
+            p[3].place = ord(p[3].place)
+
         p[0].type = p[1].type
         p[0].nextList = p[3].nextList
         p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, src1=p[3].place, dest=p[1].place, lineNo=IG.nextQuad))
         IG.nextQuad += 1
     else:
         print_error('Semantic error at line ' + str(p.lineno(1)))
-        print_error('\tAssignment is not of same type')
+        print_error('\tAssignment is not of same type ' + p[1].type.getDeepestType() + ' and ' + p[3].type.getDeepestType() + ' found')
         sys.exit(1)
 
 def p_assignment_statement_error(p):
@@ -1115,7 +1130,10 @@ def p_unsigned_constant(p):
             # TODO Support nil
             pass
         else:
-            p[0].type = ST.Type('string', ST.Type.TYPE)
+            if len(p[0].place) == 1:
+                p[0].type = ST.Type('char', ST.Type.TYPE)
+            else:
+                p[0].type = ST.Type('string', ST.Type.TYPE)
 
 def p_relational_operator(p):
     '''relational_operator : OP_NEQ
@@ -1135,11 +1153,11 @@ def p_func_proc_statement(p):
     if len(p) == 5:
         if p[1] == 'read' or p[1] == 'readln':
             if len(p[3].items) == 1:
-                if p[3].items[0].type.getDeepestType() == ST.Type.INT:
+                if p[3].items[0].type.getDeepestType() == 'integer':
                     ioFmtString = '"%d"'
-                elif p[3].items[0].type.getDeepestType() == ST.Type.STRING:
+                elif p[3].items[0].type.getDeepestType() == 'string':
                     ioFmtString = '"%s"'
-                elif p[3].items[0].type.getDeepestType() == ST.Type.CHAR:
+                elif p[3].items[0].type.getDeepestType() == 'char':
                     ioFmtString = '"%c"'
                 else:
                     print_error('Semantic error at line ' + str(p.lineno(1)))
