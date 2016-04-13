@@ -77,6 +77,10 @@ def p_const_statements(p):
 def p_const_statement(p):
     'const_statement : IDENTIFIER EQUAL expression SEMICOLON'
     STEntry = ST.currSymTab.addVar(p[1], p[3].type, isConst=True)
+    if STEntry == False:
+        print_error('Semantic error at line ' + str(p.lineno(1)))
+        print_error('\tDuplicate identifier "' + p[1] + '"')
+        sys.exit(1)
     p[0] = IG.Node()
     p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, dest=STEntry, src1=p[3].place, lineNo=IG.nextQuad))
     IG.nextQuad += 1
@@ -131,9 +135,17 @@ def p_type_statement(p):
                       | IDENTIFIER EQUAL type SEMICOLON'''
     if type(p[1]) == IG.Node:
         for item in p[1].items:
-            ST.currSymTab.addVar(item, ST.Type(item, ST.Type.TYPE, baseType=p[3].type))
+            STEntry = ST.currSymTab.addVar(item, ST.Type(item, ST.Type.TYPE, baseType=p[3].type))
+            if STEntry == False:
+                print_error('Semantic error at line ' + str(p.lineno(1)))
+                print_error('\tDuplicate identifier "' + item + '"')
+                sys.exit(1)
     else:
-        ST.currSymTab.addVar(p[1], ST.Type(p[1], ST.Type.TYPE, baseType=p[3].type))
+        STEntry = ST.currSymTab.addVar(p[1], ST.Type(p[1], ST.Type.TYPE, baseType=p[3].type))
+        if STEntry == False:
+            print_error('Semantic error at line ' + str(p.lineno(1)))
+            print_error('\tDuplicate identifier "' + p[1] + '"')
+            sys.exit(1)
 
 def p_type_statement_error(p):
     '''type_statement : identifiers EQUAL type
@@ -267,6 +279,10 @@ def p_var_statement(p):
             if type(p[1]) == IG.Node:
                 for item in p[1].items:
                     STEntry = ST.currSymTab.addVar(item, p[3].type)
+                    if STEntry == False:
+                        print_error('Semantic error at line ' + str(p.lineno(1)))
+                        print_error('\tDuplicate identifier "' + item + '"')
+                        sys.exit(1)
                     if STEntry.isArray():
                         # TODO Make MultiDimension
                         p[0].genCode(IG.TACInstr(IG.TACInstr.DECLARE, dest='array', src1=p[3].type.arrayBeginList[0],
@@ -274,6 +290,10 @@ def p_var_statement(p):
                         IG.nextQuad += 1
             else:
                 STEntry = ST.currSymTab.addVar(p[1], p[3].type)
+                if STEntry == False:
+                    print_error('Semantic error at line ' + str(p.lineno(1)))
+                    print_error('\tDuplicate identifier "' + p[1] + '"')
+                    sys.exit(1)
                 if STEntry.isArray():
                     p[0].genCode(IG.TACInstr(IG.TACInstr.DECLARE, dest='array', src1=p[3].type.arrayBeginList[0],
                                              src2=p[3].type.arrayEndList[0], lineNo=IG.nextQuad))
@@ -282,6 +302,10 @@ def p_var_statement(p):
         else:
             if p[3].type.name != 'array':
                 STEntry = ST.currSymTab.addVar(p[1], p[3].type)
+                if STEntry == False:
+                    print_error('Semantic error at line ' + str(p.lineno(1)))
+                    print_error('\tDuplicate identifier "' + p[1] + '"')
+                    sys.exit(1)
                 p[0].genCode(IG.TACInstr(IG.TACInstr.ASSIGN, dest=STEntry, src1=p[5].place, lineNo=IG.nextQuad))
                 IG.nextQuad += 1
             else:
@@ -356,6 +380,10 @@ def p_proc_def_head_block_error(p):
 def p_proc_head(p):
     'proc_head : KEYWORD_PROCEDURE IDENTIFIER parameter_list'
     STEntry = ST.currSymTab.previousTable.addProcedure(p[2], len(p[3].items), p[3].items)
+    if STEntry == False:
+        print_error('Semantic error at line ' + str(p.lineno(2)))
+        print_error('\tDuplicate identifier "' + p[2] + '"')
+        sys.exit(1)
     p[0] = IG.Node()
     p[0].genCode(IG.TACInstr(IG.TACInstr.LABEL, label=STEntry.name, paramList=p[3].items, lineNo=IG.nextQuad, symTableParser=ST.currSymTab))
     IG.nextQuad += 1
@@ -393,9 +421,17 @@ def p_func_head(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list COLON type_identifier'''
     if ST.typeExists(p[5].type):
         STEntry = ST.currSymTab.previousTable.addFunction(p[2], p[5].type, len(p[3].items), p[3].items)
+        if STEntry == False:
+            print_error('Semantic error at line ' + str(p.lineno(2)))
+            print_error('\tDuplicate identifier "' + p[2] + '"')
+            sys.exit(1)
         # Generate code
         p[0] = IG.Node()
         p[0].place = ST.currSymTab.addVar(p[2], p[5].type, isMyName=True)
+        if p[0].place == False:
+            print_error('Semantic error at line ' + str(p.lineno(2)))
+            print_error('\tDuplicate identifier "' + p[2] + '"')
+            sys.exit(1)
 
         if p[0].place == False:
             # TODO
@@ -456,9 +492,17 @@ def p_value_parameter(p):
             if type(p[1]) == IG.Node:
                 for item in p[1].items:
                     STEntry = ST.currSymTab.addVar(item, p[3].type, isParameter=True)
+                    if STEntry == False:
+                        print_error('Semantic error at line ' + str(p.lineno(1)))
+                        print_error('\tDuplicate identifier "' + item + '"')
+                        sys.exit(1)
                     p[0].items.append(STEntry)
             else:
                 STEntry = ST.currSymTab.addVar(p[1], p[3].type, isParameter=True)
+                if STEntry == False:
+                    print_error('Semantic error at line ' + str(p.lineno(1)))
+                    print_error('\tDuplicate identifier "' + p[1] + '"')
+                    sys.exit(1)
                 p[0].items.append(STEntry)
         else:
             print_error('Semantic error at line ' + str(p.lineno(3)))
@@ -471,10 +515,18 @@ def p_value_parameter(p):
                 for item in p[1].items:
                     STEntry = ST.currSymTab.addVar(item, ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[5].type), \
                                                        isParameter=True)
+                    if STEntry == False:
+                        print_error('Semantic error at line ' + str(p.lineno(1)))
+                        print_error('\tDuplicate identifier "' + item + '"')
+                        sys.exit(1)
                     p[0].items.append(STEntry)
             else:
                 STEntry = ST.currSymTab.addVar(p[1], ST.Type('array', ST.Type.ARRAY, arrayBaseType=p[5].type), \
                                                    isParameter=True)
+                if STEntry == False:
+                    print_error('Semantic error at line ' + str(p.lineno(1)))
+                    print_error('\tDuplicate identifier "' + p[1] + '"')
+                    sys.exit(1)
                 p[0].items.append(STEntry)
         else:
             print_error('Semantic error at line ' + str(p.lineno(5)))
