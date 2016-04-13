@@ -19,7 +19,7 @@ def p_start(p):
     'start : program_statement global_decs_defs block DOT'
     p[0] = IG.Node()
     p[0].code = p[2].code + p[3].code
-    p[0].genCode(IG.TACInstr(IG.TACInstr.RETURN, lineNo=IG.nextQuad))
+    p[0].genCode(IG.TACInstr(IG.TACInstr.RETURN, lineNo=IG.nextQuad, symTableParser=ST.currSymTab))
     IG.nextQuad += 1
 
 def p_program_statement(p):
