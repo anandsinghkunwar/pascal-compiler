@@ -120,7 +120,7 @@ class Operand(object):
             self.operand = varObj
             self.operandType = Operand.BOOL
         elif type(varObj) is ArrayElement:
-            self.operand = varObj.name
+            self.operand = varObj.array.name
             self.index = varObj.index
             self.operandType = Operand.ARRAYELEMENT
             if self.operand in G.varMap.keys():
@@ -266,13 +266,13 @@ class TACInstr(object):
 def getLexeme(obj): #for getting lexeme from Operand object or constant
     if isinstance(obj, Operand):
         if obj.isArrayElement():
-            arrayName = obj.operand.array.name
-            if isinstance(obj.operand.index, ST.SymTabEntry):
-                return arrayName + '[' + obj.operand.index.name + ']'
-            elif type(obj.operand.index) is int:
-                return arrayName + '[' + str(obj.operand.index) + ']'
-            elif type(obj.operand.index) is str:
-                return arrayName + '[' + obj.operand.index + ']'
+            arrayName = obj.operand
+            if isinstance(obj.index, ST.SymTabEntry):
+                return arrayName + '[' + obj.index.name + ']'
+            elif type(obj.index) is int:
+                return arrayName + '[' + str(obj.index) + ']'
+            elif type(obj.index) is str:
+                return arrayName + '[' + obj.index + ']'
         else:
             return str(obj.operand)
     else:

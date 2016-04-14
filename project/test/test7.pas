@@ -4,7 +4,9 @@ var
     b : array[1..5] of integer;
 begin
     readln(b[2]);
+    foo := 1
 end;
 begin
-    writeln('main')
+    writeln('main');
+    foo()
 end.

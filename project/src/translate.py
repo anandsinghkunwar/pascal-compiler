@@ -445,14 +445,15 @@ def translateBlock(bb):
                         else:
                             locTuple = bb.getReg()
                             loc = locTuple[0].name
-                            G.varMap[arg.operand].loadIntoReg(locTuple[0])
+                            G.varMap[arg.operand].loadIntoReg(loc)
                         if type(arg.index) == ST.SymTabEntry:
                             indexTuple = bb.getReg()
                             index = indexTuple[0].name
-                            G.varMap[arg.index.name].loadIntoReg(indexTuple[0])
+                            G.varMap[arg.index.name].loadIntoReg(index)
                             G.text.string += indent + "pushl (%" + loc + ", %" + index + ", 4)" + indent + "# Pushing argument\n"
                         else:   # constant integer index
-                            G.text.string += indent + "pushl " + str(arg.index * 4) + "(%" + loc + ")" + indent + "# Pushing argument\n"
+                            G.text.string += indent + "subl $4, %esp" + indent + "# Creating space for address\n"
+                            G.text.string += indent + "leal " + str(arg.index * 4) + "(%" + loc + "), %esp" + indent + "# Pushing argument\n"
                     elif arg.addrDescEntry.isLocal:
                         G.text.string += indent + "pushl " + str(arg.addrDescEntry.offset) + "(%ebp)" + indent + "# Pushing argument\n"
                     else:

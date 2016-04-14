@@ -35,7 +35,7 @@ class BasicBlock(object):
 #      tuple of (reg/memory, boolean)
 #          * true means that it returned y's register
     def getReg(self):
-        if G.currInstr.Src1.isVar():
+        if G.currInstr.Src1 and G.currInstr.Src1.isVar():
             varName = G.currInstr.Src1.addrDescEntry.name
             if (not G.currInstr.SymTable[varName].isLive() and
                 G.currInstr.SymTable[varName].nextUse == None and
