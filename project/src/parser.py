@@ -219,7 +219,7 @@ def p_integer_range(p):
     if (p[1] <= p[3]):
         p[0].arrayBeginList = [p[1]]
         p[0].arrayEndList = [p[3]]
-        p[0].type = ST.Type('char', ST.Type.TYPE)
+        p[0].type = ST.Type('integer', ST.Type.TYPE)
     else:
         print_error("Semantic error at line", p.lineno(3))
         print_error("\tEnd index is less than start index")
@@ -230,6 +230,8 @@ def p_char_range(p):
 
     p[0] = IG.Node()
     if (p[1] <= p[3]):
+        p[1] = ord(p[1])
+        p[3] = ord(p[3])
         p[0].arrayBeginList = [p[1]]
         p[0].arrayEndList = [p[3]]
         p[0].type = ST.Type('char', ST.Type.TYPE)
@@ -245,6 +247,14 @@ def p_boolean_range(p):
                      | CONSTANT_BOOLEAN_TRUE DOTDOT CONSTANT_BOOLEAN_TRUE'''
 
     p[0] = IG.Node()
+    if p[1] == 'true':
+        p[1] = 1
+    else:
+        p[1] = 0
+    if p[3] == 'true':
+        p[3] = 1
+    else:
+        p[3] = 0
     p[0].arrayBeginList = [p[1]]
     p[0].arrayEndList = [p[3]]
     p[0].type = ST.Type('boolean', ST.Type.TYPE)
@@ -294,9 +304,9 @@ def p_var_statement(p):
                     if p[3].type.name == 'array':
                         # TODO Make MultiDimension Also see if declare is required
                         STEntry = ST.currSymTab.addVar(item, p[3].type)
-                        # p[0].genCode(IG.TACInstr(IG.TACInstr.DECLARE, dest=STEntry, arrayStartIndex=p[3].type.arrayBeginList[0],
-                        #                          arrayEndIndex=p[3].type.arrayEndList[0], lineNo=IG.nextQuad))
-                        # IG.nextQuad += 1
+                        p[0].genCode(IG.TACInstr(IG.TACInstr.DECLARE, array=STEntry, arrayStartIndex=p[3].type.arrayBeginList[0],
+                                                 arrayEndIndex=p[3].type.arrayEndList[0], lineNo=IG.nextQuad))
+                        IG.nextQuad += 1
                     else:
                         STEntry = ST.currSymTab.addVar(item, baseType)
 
@@ -308,9 +318,9 @@ def p_var_statement(p):
             else:
                 if p[3].type.name == 'array':
                     STEntry = ST.currSymTab.addVar(p[1], p[3].type)
-                    # p[0].genCode(IG.TACInstr(IG.TACInstr.DECLARE, dest=STEntry, arrayStartIndex=p[3].type.arrayBeginList[0],
-                    #                          arrayEndIndex=p[3].type.arrayEndList[0], lineNo=IG.nextQuad))
-                    # IG.nextQuad += 1
+                    p[0].genCode(IG.TACInstr(IG.TACInstr.DECLARE, array=STEntry, arrayStartIndex=p[3].type.arrayBeginList[0],
+                                             arrayEndIndex=p[3].type.arrayEndList[0], lineNo=IG.nextQuad))
+                    IG.nextQuad += 1
                 else:
                     STEntry = ST.currSymTab.addVar(p[1], baseType)
                     if STEntry == False:
@@ -1103,7 +1113,7 @@ def p_variable_reference(p):
                 p[0].type = p[0].place.type
             else:
                 print_error('Semantic error at line ' + str(p.lineno(2)))
-                print_error('\tVariable ' + p[1] + ' referenced with incorrect type ' + p[2].type.getDeepestType())
+                print_error('\tVariable "' + p[1] + '" referenced with incorrect type ' + p[2].type.getDeepestType())
                 sys.exit(1)
     else:
         print_error('Semantic error at line ' + str(p.lineno(1)))
