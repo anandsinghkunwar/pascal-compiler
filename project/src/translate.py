@@ -439,7 +439,17 @@ def translateBlock(bb):
                 if arg.isVar():
                     # Discard the register value for arg
                     arg.addrDescEntry.removeReg()
-                    if arg.addrDescEntry.isLocal:
+                    if arg.isArrayElement():
+                        locTuple = bb.getReg()  # FIXME check compatibility
+                        loc = locTuple[0]
+                        addrDescEntry = G.varMap[arg.operand.array.name]
+                        if addrDescEntry.isLocal:   # local array
+                            G.text.string += indent + "movl " + str(addrDescEntry.offset) + "(%ebp), %" + loc.name + indent + "# moving array base address in " + loc.name + "\n"
+                        else:   # global arrat
+                            G.text.string += indent + "movl " + addrDescEntry.name + ", %" + loc.name + indent + "# moving array base address in" + loc.name + "\n"
+                        # FIXME is this the address or the value being pushed and what about base index
+                        G.text.string += indent + "pushl " + str(arg.operand.index * 4) + "(%" + loc.name + ")" + indent + "# Pushing argument\n"
+                    elif arg.addrDescEntry.isLocal:
                         G.text.string += indent + "pushl " + str(arg.addrDescEntry.offset) + "(%ebp)" + indent + "# Pushing argument\n"
                     else:
                         G.text.string += indent + "pushl $" + arg.addrDescEntry.name + indent + "# Pushing argument\n"
