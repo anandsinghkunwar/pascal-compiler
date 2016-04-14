@@ -77,6 +77,7 @@ class Text(object):
         indent = " "*4
         textString += indent + ".extern printf\n"
         textString += indent + ".extern scanf\n"
+        textString += indent + ".extern malloc\n"
         textString += indent + ".globl main\n\n"
         textString += "main: \n"
         textString += indent + "pushl %ebp" + indent + "#treating main as a function\n"
