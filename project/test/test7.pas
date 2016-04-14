@@ -3,7 +3,7 @@ function foo() : integer;
 var
     b : array[1..5] of integer;
 begin
-    writeln('aa')    
+    readln(b[2]);
 end;
 begin
     writeln('main')

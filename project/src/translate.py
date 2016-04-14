@@ -440,15 +440,19 @@ def translateBlock(bb):
                     # Discard the register value for arg
                     arg.addrDescEntry.removeReg()
                     if arg.isArrayElement():
-                        locTuple = bb.getReg()  # FIXME check compatibility
-                        loc = locTuple[0]
-                        addrDescEntry = G.varMap[arg.operand.array.name]
-                        if addrDescEntry.isLocal:   # local array
-                            G.text.string += indent + "movl " + str(addrDescEntry.offset) + "(%ebp), %" + loc.name + indent + "# moving array base address in " + loc.name + "\n"
-                        else:   # global arrat
-                            G.text.string += indent + "movl " + addrDescEntry.name + ", %" + loc.name + indent + "# moving array base address in" + loc.name + "\n"
-                        # FIXME is this the address or the value being pushed and what about base index
-                        G.text.string += indent + "pushl " + str(arg.operand.index * 4) + "(%" + loc.name + ")" + indent + "# Pushing argument\n"
+                        if G.varMap[arg.operand].reg:   # base pointer is in a register
+                            loc = G.varMap[arg.operand].reg.name
+                        else:
+                            locTuple = bb.getReg()
+                            loc = locTuple[0].name
+                            G.varMap[arg.operand].loadIntoReg(locTuple[0])
+                        if type(arg.index) == ST.SymTabEntry:
+                            indexTuple = bb.getReg()
+                            index = indexTuple[0].name
+                            G.varMap[arg.index.name].loadIntoReg(indexTuple[0])
+                            G.text.string += indent + "pushl (%" + loc + ", %" + index + ", 4)" + indent + "# Pushing argument\n"
+                        else:   # constant integer index
+                            G.text.string += indent + "pushl " + str(arg.index * 4) + "(%" + loc + ")" + indent + "# Pushing argument\n"
                     elif arg.addrDescEntry.isLocal:
                         G.text.string += indent + "pushl " + str(arg.addrDescEntry.offset) + "(%ebp)" + indent + "# Pushing argument\n"
                     else:
