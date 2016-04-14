@@ -324,7 +324,7 @@ def generateIr(irList):
             else:   #unary operators except call
                 text += rev_OpMap[ir.Op] + ", " + getLexeme(ir.Dest) + ", " + getLexeme(ir.Src1)
         elif ir.isDeclare():
-            text += "declare, " + getLexeme(ir.Dest) + ", " + getLexeme(ir.Src1) + ", " + getLexeme(ir.Src2)
+            text += "declare array, " + getLexeme(ir.Array.operand) + ", " + getLexeme(ir.ArrayLength)
         return text + "\n" + generateIr(irList[1:])
     else:
         return ""

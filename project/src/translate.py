@@ -458,8 +458,8 @@ def translateBlock(bb):
             G.text.string += indent + "pushl %eax" + indent + "# Saving register on stack\n"
             G.text.string += indent + "pushl $" + str(instr.ArrayLength * 4) + indent + "# Pushing argument\n"
             G.text.string += indent + "call malloc\n"
-            if instr.Array.isLocal: # local array
-                G.text.string += indent + "movl %eax, " + str(instr.Array.offset) + "(%ebp)" + indent + "# Storing location of array\n"
+            if instr.Array.addrDescEntry.isLocal: # local array
+                G.text.string += indent + "movl %eax, " + str(instr.Array.addrDescEntry.offset) + "(%ebp)" + indent + "# Storing location of array\n"
             else:   # global array
                 G.text.string += indent + "movl %eax, " + instr.Array.operand + indent + "# Storing location of array\n"
             G.text.string += indent + "addl $4, %esp" + indent + "# Removing pushed arguments\n"
