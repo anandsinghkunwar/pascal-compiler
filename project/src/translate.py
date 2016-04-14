@@ -408,7 +408,27 @@ def translateBlock(bb):
             # Push arguments in reverse order
             for arg in reversed(instr.IOArgList):
                 if arg.isVar():
-                    if arg.addrDescEntry.reg:
+                    if arg.isArrayElement():
+                        if G.varMap[arg.operand].reg:
+                            G.text.string += indent + "movl %" + G.varMap[arg.operand].reg.name + ", %eax" + indent + "# Moving array base pointer\n"
+                        else:
+                            if G.varMap[arg.operand].isLocal:   # local array
+                                G.text.string += indent + "movl " + str(G.varMap[arg.operand].offset) + "(%ebp), %eax" + indent + "# Moving array base pointer\n"
+                            else:   # global array
+                                G.text.string += indent + "movl " + arg.operand + ", %eax" + indent + "# Moving array base pointer\n"
+                        if type(arg.index) == ST.SymTabEntry:
+                            if G.varMap[arg.index.name].reg:
+                                G.text.string += indent + "movl %" + G.varMap[arg.index.name].reg.name + ", %ecx" + indent + "# Moving index\n"
+                            else:
+                                if G.varMap[arg.index.name].isLocal:
+                                    G.text.string += indent + "movl " + str(G.varMap[arg.index.name].offset) + "(%ebp), %ecx" + indent + "# Moving index\n"
+                                else:
+                                    G.text.sring += indent + "movl " + arg.index.name + ", %ecx" + indent + "# Moving index\n"
+                        else:   # constant index
+                            G.text.string += indent + "movl $" + str(arg.index) + ", %ecx" + indent + "# Moving index\n"
+                        G.text.string += indent + "pushl (%eax, %ecx, 4)" + indent + "# Pushing argumnet\n"
+                                
+                    elif arg.addrDescEntry.reg:
                         G.text.string += indent + "pushl %" + arg.addrDescEntry.reg.name  + indent + "# Pushing argument\n"
                     elif arg.addrDescEntry.isLocal:
                         G.text.string += indent + "pushl " + str(arg.addrDescEntry.offset) + "(%ebp)" + indent + "# Pushing argument\n"
@@ -441,23 +461,22 @@ def translateBlock(bb):
                     arg.addrDescEntry.removeReg()
                     if arg.isArrayElement():
                         if G.varMap[arg.operand].reg:   # base pointer is in a register
-                            loc = G.varMap[arg.operand].reg.name
+                            G.text.string += indent + "movl %" + G.varMap[arg.operand].reg.name + ", %eax" + indent + "# Moving array base pointer\n"
                         else:
-                            locTuple = bb.getReg()
-                            loc = locTuple[0].name
-                            G.varMap[arg.operand].loadIntoReg(loc)
                             if G.varMap[arg.operand].isLocal:   # local array
-                                G.text.string += indent + "movl " + str(G.varMap[arg.operand].offset) + "(%ebp), %" + loc + indent + "# Moving array base pointer\n"
+                                G.text.string += indent + "movl " + str(G.varMap[arg.operand].offset) + "(%ebp), %eax" + indent + "# Moving array base pointer\n"
                             else:   # global array
-                                G.text.string += indent + "movl " + arg.operand + ", %" + loc + indent + "# Moving array base pointer\n"
-                        G.text.string += indent + "subl $4, %esp" + indent + "# Creating space for address\n"
+                                G.text.string += indent + "movl " + arg.operand + ", %eax" + indent + "# Moving array base pointer\n"
                         if type(arg.index) == ST.SymTabEntry:
-                            indexTuple = bb.getReg()
-                            index = indexTuple[0].name
-                            G.varMap[arg.index.name].loadIntoReg(index)
-                            G.text.string += indent + "leal (%" + loc + ", %" + index + ", 4), %esp" + indent + "# Pushing argument\n"
-                        else:   # constant integer index
-                            G.text.string += indent + "leal " + str(arg.index * 4) + "(%" + loc + "), %esp" + indent + "# Pushing argument\n"
+                            if G.varMap[arg.index.name].reg:
+                                G.text.string += indent + "movl %" + G.varMap[arg.index.name].reg.name + ", %ecx" + indent + "# Moving index\n"
+                            else:
+                                if G.varMap[arg.index.name].isLocal:
+                                    G.text.string += indent + "movl " + str(G.varMap[arg.index.name].offset) + "(%ebp), %ecx" + indent + "# Moving index\n"
+                        else:
+                            G.text.string += indent + "movl $" + str(arg.index) + ", %ecx" + indent + "# Moving index\n"
+                        G.text.string += indent + "leal (%eax, %ecx, 4), %edx" + indent + "# Storing address of array element in %edx\n"
+                        G.text.string += indent + "pushl %edx" + indent + "# Pushing argument\n"
                     elif arg.addrDescEntry.isLocal:
                         G.text.string += indent + "pushl " + str(arg.addrDescEntry.offset) + "(%ebp)" + indent + "# Pushing argument\n"
                     else:
