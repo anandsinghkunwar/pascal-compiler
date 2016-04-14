@@ -14,7 +14,10 @@ while getopts ia opt; do
 done
 for last; do true; done
 bin/compile $last > test.S
-gcc -m32 test.S
+if [ $? = 0 ]
+then
+   gcc -m32 test.S
+fi
 if [ $IR = True ]
 then
     rm -f test.ir
