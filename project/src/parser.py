@@ -1214,7 +1214,7 @@ def p_func_proc_statement(p):
                         print_error('\tType ' + p[3].items[0].type.getDeepestType() + ' not supported for write')
                         sys.exit(1)
                 else:
-                    if p[3].items[0].type.getDeepestType() == 'integer' or p[3].items[0].type.getDeepestType() == 'string':
+                    if p[3].items[0].type.getDeepestType() == 'integer' or p[3].items[0].type.getDeepestType() == 'string' or p[3].items[0].type.getDeepestType() == 'char':
                         ioFmtString = str(p[3].items[0].place)
                         p[3].items = []
                     else:
