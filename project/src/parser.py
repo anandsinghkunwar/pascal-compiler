@@ -34,6 +34,7 @@ def p_program_statement_error(p):
     # Line number reported from IDENTIFIER token
     print_error("Syntax error at line", p.lineno(2))
     print_error("\tMissing ';'")
+    sys.exit(1)
 
 def p_global_decs_defs(p):
     '''global_decs_defs : global_decs_defs const_declarations
@@ -89,6 +90,7 @@ def p_const_statement_error(p):
     #Line number reported from expression nonterminal
     print_error("Syntax error at line", p.linespan(3)[1])
     print_error("\tMissing ';'")
+    sys.exit(1)
 
 def p_string(p):
     '''string : CONSTANT_STRING_LEADSPACE substring
@@ -158,6 +160,7 @@ def p_type_statement_error(p):
     #Line number reported from type nonterminal
     print_error("Syntax error at line", p.linespan(3)[1])
     print_error("\tMissing ';'")
+    sys.exit(1)
 
 def p_identifiers(p):
     '''identifiers : identifiers COMMA IDENTIFIER
@@ -405,6 +408,7 @@ def p_proc_def_head_block_error(p):
     print_error("\tMissing ';'")
     print_error("Syntax error at line", p.linespan(3)[1])
     print_error("\tMissing ';'")
+    sys.exit(1)
 
 def p_proc_head(p):
     'proc_head : KEYWORD_PROCEDURE IDENTIFIER parameter_list'
@@ -431,12 +435,14 @@ def p_func_def_head_error(p):
     #Line number reported from func_head
     print_error("Syntax error at line", p.linespan(1)[1])
     print_error("\tMissing ';'")
+    sys.exit(1)
 
 def p_func_def_block_error(p):
     '''func_def : func_head SEMICOLON declarations block'''
     #Line number reported from block
     print_error("Syntax error at line", p.linespan(4)[1])
     print_error("\tMissing ';'")
+    sys.exit(1)
 
 def p_func_def_head_block_error(p):
     '''func_def : func_head declarations block'''
@@ -445,6 +451,7 @@ def p_func_def_head_block_error(p):
     print_error("\tMissing ';'")
     print_error("Syntax error at line", p.linespan(3)[1])
     print_error("\tMissing ';'")
+    sys.exit(1)
 
 def p_func_head(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list COLON type_identifier'''
@@ -462,11 +469,6 @@ def p_func_head(p):
             print_error('\tDuplicate identifier "' + p[2] + '"')
             sys.exit(1)
 
-        if p[0].place == False:
-            # TODO
-            print_error("Semantic error at line " + p.lineno())
-            print_error("\tMissing ';'")
-
         p[0].genCode(IG.TACInstr(IG.TACInstr.LABEL, label=STEntry.name, paramList=p[3].items, lineNo=IG.nextQuad, symTableParser=ST.currSymTab))
         IG.nextQuad += 1
     else:
@@ -478,6 +480,7 @@ def p_func_head_error(p):
     '''func_head : KEYWORD_FUNCTION IDENTIFIER parameter_list error type_identifier'''
     #Line number reported from KEYWORD_FUNCTION token
     print_error("\tExpected :'")
+    sys.exit(1)
 
 def p_declarations(p):
     '''declarations : declarations const_declarations
@@ -514,6 +517,7 @@ def p_parameter_declarations(p):
 def p_parameter_declarations_error(p):
     '''parameter_declarations : parameter_declarations error value_parameter'''
     print_error("\tExpected ';', Found " + p[2].type)
+    sys.exit(1)
 
 def p_value_parameter(p):
     '''value_parameter : identifiers COLON type_identifier
@@ -577,6 +581,7 @@ def p_value_parameter_error(p):
         if p[4] == '=':
             print_error("\tDefault parameter values are unsupported.")
     print_error("\tExpected ':', Found " + p[2].type)
+    sys.exit(1)
 
 def p_block(p):
     'block : KEYWORD_BEGIN statements KEYWORD_END'
@@ -597,6 +602,7 @@ def p_statements(p):
 def p_statements_error(p):
     '''statements : statements error statement'''
     print_error("\tExpected ';', Found " + p[2].type)
+    sys.exit(1)
 
 def p_marker_statement(p):
     '''marker_statement : '''
@@ -780,6 +786,7 @@ def p_for_loop_header_error(p):
     '''for_loop_header : KEYWORD_FOR error KEYWORD_TO expression KEYWORD_DO
                        | KEYWORD_FOR error KEYWORD_DOWNTO expression KEYWORD_DO'''
     print_error("\tInvalid for loop assignment")
+    sys.exit(1)
 
 def p_while_loop_header(p):
     '''while_loop_header : KEYWORD_WHILE marker_while_begin expression KEYWORD_DO'''
@@ -837,6 +844,7 @@ def p_assignment_statement(p):
 def p_assignment_statement_error(p):
     '''assignment_statement : variable_reference error expression'''
     print_error("\tIllegal Expression")
+    sys.exit(1)
 
 def p_expression(p):
     '''expression : simple_expression relational_operator simple_expression
@@ -1243,10 +1251,14 @@ def p_func_proc_statement(p):
                         for index in range(len(p[3].items)):
                             if STEntry.type.paramList[index].type.getDeepestType() != p[3].items[index].type.getDeepestType():
                                 print_error('Semantic error at line ' + str(p.lineno(2)))
-                                print_error('\tFunction/Procedure '+ p[1] + ' argument ' + str(index+1) + ' mismatch type, expected ' + STEntry.type.paramList[index].type.getDeepestType() + ' given '+ p[3].items[index].type.getDeepestType())
+                                print_error('\tFunction/Procedure '+ p[1] + ' argument ' + \
+                                            str(index+1) + ' mismatch type, expected ' + \
+                                            STEntry.type.paramList[index].type.getDeepestType() + \
+                                            ' given '+ p[3].items[index].type.getDeepestType())
                                 sys.exit(1)
 
-                        p[0].genCode(IG.TACInstr(IG.TACInstr.CALL, paramList=[item.place for item in p[3].items], lineNo=IG.nextQuad, targetLabel=STEntry.name))
+                        p[0].genCode(IG.TACInstr(IG.TACInstr.CALL, paramList=[item.place for item in p[3].items],
+                                     lineNo=IG.nextQuad, targetLabel=STEntry.name))
                         IG.nextQuad += 1
                     else:
                         print_error('Semantic error at line ' + str(p.lineno(1)))
@@ -1291,8 +1303,11 @@ def p_structured_statement(p):
     p[0] = p[1]
 
 def p_repeat_statement(p):
-    '''repeat_statement : KEYWORD_REPEAT statements KEYWORD_UNTIL expression'''
-
+    '''repeat_statement : KEYWORD_REPEAT marker_loop statements KEYWORD_UNTIL expression'''
+    p[0] = IG.Node()
+    p[0].code = p[3].code + p[5].code
+    backpatch(p[5].trueList, IG.nextQuad)
+    backpatch(p[5].falseList, p[2].quad)
 
 def p_empty(p):
     'empty :'
