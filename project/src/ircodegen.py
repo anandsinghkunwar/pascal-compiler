@@ -87,17 +87,19 @@ def newTempArray():
 # Class to handle instruction operands
 class Operand(object):
     # Operand Types
-    INT, STRING, BOOL, INTVAR, STRINGVAR, BOOLVAR, ARRAY, ARRAYELEMENT = range(8)
+    INT, STRING, BOOL, INTVAR, STRINGVAR, CHARVAR, BOOLVAR, ARRAY, ARRAYELEMENT = range(9)
 
     def __init__(self, varObj):
         if isinstance(varObj, ST.SymTabEntry):
             self.operand = varObj.name
-            if varObj.type.type == ST.Type.INT:
+            if varObj.type.getDeepestType() == 'integer':
                 self.operandType = Operand.INTVAR
-            elif varObj.type.type == ST.Type.STRING:
+            elif varObj.type.getDeepestType() == 'string':
                 self.operandType = Operand.STRINGVAR
-            elif varObj.type.type == ST.Type.BOOL:
+            elif varObj.type.getDeepestType() == 'boolean':
                 self.operandType = Operand.BOOLVAR
+            elif varObj.type.getDeepestType() == 'char':
+                self.operandType = Operand.CHARVAR
             else:
                 self.operandType = Operand.ARRAY
             if self.operand in G.varMap.keys():
@@ -118,8 +120,15 @@ class Operand(object):
             self.operand = varObj
             self.operandType = Operand.BOOL
         elif type(varObj) is ArrayElement:
-            self.operand = varObj
+            self.operand = varObj.name
+            self.index = varObj.index
             self.operandType = Operand.ARRAYELEMENT
+            if self.operand in G.varMap.keys():
+                self.addrDescEntry = G.varMap[self.operand]
+            else:
+                print 'This should not be happening'
+                G.varMap[self.operand] = CG.AddrDescEntry(self.operand, isParam=varObj.isParameter, paramNum=varObj.paramNum, isLocal=varObj.isLocal, offset=varObj.offset)
+                self.addrDescEntry = G.varMap[self.operand]
 
     def isInt(self):
         return (self.operandType == Operand.INT) or self.isBool()

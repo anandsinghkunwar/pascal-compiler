@@ -35,7 +35,7 @@ class BasicBlock(object):
 #      tuple of (reg/memory, boolean)
 #          * true means that it returned y's register
     def getReg(self):
-        if not G.currInstr.Src1.isInt():
+        if G.currInstr.Src1.isVar():
             varName = G.currInstr.Src1.addrDescEntry.name
             if (not G.currInstr.SymTable[varName].isLive() and
                 G.currInstr.SymTable[varName].nextUse == None and
@@ -48,7 +48,8 @@ class BasicBlock(object):
         reg = self.getEmptyRegister()
         if reg:
             return reg, False
-        varName = G.currInstr.Dest.addrDescEntry.name
+        # TODO Was this statement required?
+        # varName = G.currInstr.Dest.addrDescEntry.name
         reg = self.getOccupiedRegister()
         #generate instructions here
         return reg, False
