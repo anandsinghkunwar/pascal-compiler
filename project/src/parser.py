@@ -184,8 +184,9 @@ def p_array_declaration(p):
     '''array_declaration : KEYWORD_ARRAY LEFT_SQUARE_BRACKETS array_ranges RIGHT_SQUARE_BRACKETS KEYWORD_OF type'''
     p[0] = IG.Node()
     if ST.typeExists(p[6].type):
+        baseType = ST.lookup(p[6].type.name).type
         p[0].type = ST.Type('array', ST.Type.TYPE, arrayBeginList=p[3].arrayBeginList,
-                        arrayEndList=p[3].arrayEndList, arrayBaseType=p[6].type)
+                        arrayEndList=p[3].arrayEndList, arrayBaseType=baseType, arrayRangeTypeList=p[3].arrayTypeList)
     else:
         print_error('Semantic error at line ' + str(p.lineno(6)))
         print_error('\tUndefined Type ' + p[6].type.getDeepestType())
@@ -199,9 +200,11 @@ def p_array_ranges(p):
     if len(p) == 4:
         p[0].arrayBeginList = p[1].arrayBeginList + p[3].arrayBeginList
         p[0].arrayEndList = p[1].arrayEndList + p[3].arrayEndList
+        p[0].arrayTypeList = p[1].arrayTypeList + [p[3].type]
     else:
         p[0].arrayBeginList = p[1].arrayBeginList
         p[0].arrayEndList = p[1].arrayEndList
+        p[0].arrayTypeList = [p[1].type]
 
 def p_array_range(p):
     '''array_range : integer_range
@@ -216,6 +219,7 @@ def p_integer_range(p):
     if (p[1] <= p[3]):
         p[0].arrayBeginList = [p[1]]
         p[0].arrayEndList = [p[3]]
+        p[0].type = ST.Type('char', ST.Type.TYPE)
     else:
         print_error("Semantic error at line", p.lineno(3))
         print_error("\tEnd index is less than start index")
@@ -228,6 +232,8 @@ def p_char_range(p):
     if (p[1] <= p[3]):
         p[0].arrayBeginList = [p[1]]
         p[0].arrayEndList = [p[3]]
+        p[0].type = ST.Type('char', ST.Type.TYPE)
+
     else:
         print_error("Semantic error at line", p.lineno(3))
         print_error("\tEnd index is less than start index")
@@ -241,6 +247,7 @@ def p_boolean_range(p):
     p[0] = IG.Node()
     p[0].arrayBeginList = [p[1]]
     p[0].arrayEndList = [p[3]]
+    p[0].type = ST.Type('boolean', ST.Type.TYPE)
 
 def p_char(p):
     '''char : CONSTANT_STRING
@@ -284,27 +291,33 @@ def p_var_statement(p):
         if len(p) == 5:
             if type(p[1]) == IG.Node:
                 for item in p[1].items:
-                    STEntry = ST.currSymTab.addVar(item, baseType)
+                    if p[3].type.name == 'array':
+                        # TODO Make MultiDimension Also see if declare is required
+                        STEntry = ST.currSymTab.addVar(item, p[3].type)
+                        # p[0].genCode(IG.TACInstr(IG.TACInstr.DECLARE, dest=STEntry, arrayStartIndex=p[3].type.arrayBeginList[0],
+                        #                          arrayEndIndex=p[3].type.arrayEndList[0], lineNo=IG.nextQuad))
+                        # IG.nextQuad += 1
+                    else:
+                        STEntry = ST.currSymTab.addVar(item, baseType)
+
+                        if STEntry == False:
+                            print_error('Semantic error at line ' + str(p.lineno(1)))
+                            print_error('\tDuplicate identifier "' + item + '"')
+                            sys.exit(1)
+                    # if STEntry.isArray():
+            else:
+                if p[3].type.name == 'array':
+                    STEntry = ST.currSymTab.addVar(p[1], p[3].type)
+                    # p[0].genCode(IG.TACInstr(IG.TACInstr.DECLARE, dest=STEntry, arrayStartIndex=p[3].type.arrayBeginList[0],
+                    #                          arrayEndIndex=p[3].type.arrayEndList[0], lineNo=IG.nextQuad))
+                    # IG.nextQuad += 1
+                else:
+                    STEntry = ST.currSymTab.addVar(p[1], baseType)
                     if STEntry == False:
                         print_error('Semantic error at line ' + str(p.lineno(1)))
-                        print_error('\tDuplicate identifier "' + item + '"')
+                        print_error('\tDuplicate identifier "' + p[1] + '"')
                         sys.exit(1)
-                    if STEntry.isArray():
-                        # TODO Make MultiDimension
-                        p[0].genCode(IG.TACInstr(IG.TACInstr.DECLARE, dest='array', src1=p[3].type.arrayBeginList[0],
-                                                 src2=p[3].type.arrayEndList[0], lineNo=IG.nextQuad))
-                        IG.nextQuad += 1
-            else:
-                STEntry = ST.currSymTab.addVar(p[1], baseType)
-                if STEntry == False:
-                    print_error('Semantic error at line ' + str(p.lineno(1)))
-                    print_error('\tDuplicate identifier "' + p[1] + '"')
-                    sys.exit(1)
-                if STEntry.isArray():
-                    p[0].genCode(IG.TACInstr(IG.TACInstr.DECLARE, dest='array', src1=p[3].type.arrayBeginList[0],
-                                             src2=p[3].type.arrayEndList[0], lineNo=IG.nextQuad))
-                    IG.nextQuad += 1
-
+                    
         else:
             if p[3].type.name != 'array':
                 STEntry = ST.currSymTab.addVar(p[1], baseType)
@@ -1085,8 +1098,13 @@ def p_variable_reference(p):
             p[0].place = STEntry
             p[0].type = STEntry.type
         elif len(p) == 3:
-            p[0].place = IG.ArrayElement(STEntry, p[2].place)
-            p[0].type = p[0].place.type
+            if STEntry.type.arrayRangeTypeList[0].getDeepestType() == p[2].type.getDeepestType():
+                p[0].place = IG.ArrayElement(STEntry, p[2].place)
+                p[0].type = p[0].place.type
+            else:
+                print_error('Semantic error at line ' + str(p.lineno(2)))
+                print_error('\tVariable ' + p[1] + ' referenced with incorrect type ' + p[2].type.getDeepestType())
+                sys.exit(1)
     else:
         print_error('Semantic error at line ' + str(p.lineno(1)))
         print_error('\tVariable ' + p[1] + ' does not exist')

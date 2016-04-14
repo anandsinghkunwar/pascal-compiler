@@ -5,7 +5,7 @@ class Type(object):
     def __init__(self, name, type, baseType = None, arrayBeginList = [],
                  arrayEndList = [], arrayBaseType = None, strLen = None,
                  returnType = None, numParams=None, isConst=False,
-                 paramList = None):
+                 paramList = None, arrayRangeTypeList=None):
         self.name = name
         self.type = type            # From the enumeration
         self.baseType = baseType    # For custom defined types
@@ -17,6 +17,7 @@ class Type(object):
         self.numParams = numParams
         self.paramList = paramList
         self.isConst = isConst
+        self.arrayRangeTypeList = arrayRangeTypeList
 
     def __eq__(self, other):
         if other is None:
