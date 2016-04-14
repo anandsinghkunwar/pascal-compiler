@@ -32,6 +32,13 @@ class Node(object):
 class ArrayElement(object):
     def __init__(self, array, index):
         self.array = array
+        if type(index) == chr:
+            index = ord(index)
+        elif index == 'true':
+            index = 1
+        elif index == 'false':
+            index = 0
+
         self.index = index
         self.type = array.type.arrayBaseType
 
@@ -142,7 +149,8 @@ class Operand(object):
 class TACInstr(object):
     def __init__(self, instrType, op=None, target=None, src1=None, src2=None,
                  dest=None, label=None, targetLabel=None, lineNo=None, ioArgList=None,
-                 paramList=None, ioFmtString=None, symTableParser=None):
+                 paramList=None, ioFmtString=None, symTableParser=None, array=None,
+                 arrayStartIndex=None, arrayEndIndex=None):
         self.InstrType = instrType
         self.Target = target
         self.Op = op
@@ -158,6 +166,14 @@ class TACInstr(object):
         self.IOFmtStringAddr = None
         self.IOArgList = ioArgList
         self.ParamList = paramList
+        self.ArrayStartIndex = arrayStartIndex
+        self.ArrayEndIndex = arrayEndIndex
+        self.Array = array
+        self.ArrayLength = None
+
+        if self.Array is not None:
+            self.ArrayLength = arrayEndIndex - arrayStartIndex + 1
+            self.Array = Operand(array)
 
         if src1 is not None:
             self.Src1 = Operand(src1)

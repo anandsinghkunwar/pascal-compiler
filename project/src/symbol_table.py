@@ -81,27 +81,17 @@ class SymTabEntry(object):
         self.isLocal = self.mySymTab.scope != 0
         if self.isLocal and not self.isPredefined():
             if self.isParameter:
-                if self.isInt() or self.isBool() or self.isChar():
+                if self.isInt() or self.isBool() or self.isChar() or self.isArray():
                     self.mySymTab.paramOffset = self.mySymTab.paramOffset + 4
                     self.offset = self.mySymTab.paramOffset
-                elif self.isArray():
-                    pass
-                    # TODO FIXME
-                    # self.mySymTab.offset += self.type.getArrayLength()
-                    # self.offset = self.mySymTab.offset
                 elif self.isString():
                     pass
                     # TODO FIXME
                     # self.offset = self.mySymTab.off
             else:
-                if self.isInt() or self.isBool() or self.isChar():
+                if self.isInt() or self.isBool() or self.isChar() or self.isArray():
                     self.mySymTab.offset = self.mySymTab.offset - 4
                     self.offset = self.mySymTab.offset
-                elif self.isArray():
-                    pass
-                    # TODO FIXME
-                    # self.mySymTab.offset += self.type.getArrayLength()
-                    # self.offset = self.mySymTab.offset
                 elif self.isString():
                     pass
                     # TODO FIXME
