@@ -79,7 +79,7 @@ class SymTabEntry(object):
             self.mySymTab.paramCount += 1
 
         self.isLocal = self.mySymTab.scope != 0
-        if self.isLocal and not self.isPredefined():
+        if self.isLocal and not (self.isPredefined() or self.name == 'array.' + str(self.mySymTab.scope)):
             if self.isParameter:
                 if self.isInt() or self.isBool() or self.isChar() or self.isArray():
                     self.mySymTab.paramOffset = self.mySymTab.paramOffset + 4
@@ -96,6 +96,7 @@ class SymTabEntry(object):
                     pass
                     # TODO FIXME
                     # self.offset = self.mySymTab.off
+
 
     def scope(self):
         return self.mySymTab.scope
