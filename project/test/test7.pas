@@ -2,8 +2,11 @@ program p;
 function foo() : integer;
 var
     b : array[1..5] of integer;
+    i : integer;
 begin
-    readln(b[2]);
+    i := 3;
+    read(b[i]);
+    writeln(b[i]);
     foo := 1
 end;
 begin
