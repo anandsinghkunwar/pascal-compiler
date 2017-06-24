@@ -1,3 +1,3 @@
-#README#
+# Pascal Compiler
 
-A compiler for pascal to x86 implemented in python.
+A compiler for Pascal to x86 implemented in Python using PLY library
